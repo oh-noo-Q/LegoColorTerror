@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Green
+  m_Name: red
   m_Shader: {fileID: 4800000, guid: 37639dc9dfcb02e418de063aa605d992, type: 3}
   m_ShaderKeywords: CURVEDWORLD_BEND_ID_1 CURVEDWORLD_BEND_TYPE_CYLINDRICALROLLOFF_Z
     CURVEDWORLD_NORMAL_TRANSFORMATION_ON
@@ -95,7 +95,7 @@ Material:
     - _ZWrite: 1
     m_Colors:
     - CurvedWorld_Bend_Settings: {r: 4, g: 1, b: 1, a: 0}
-    - _BaseColor: {r: 0, g: 0.8018868, b: 0.67316806, a: 1}
+    - _BaseColor: {r: 1, g: 0.22423741, b: 0, a: 1}
     - _Color: {r: 0.3894523, g: 0.58823526, b: 0.16435987, a: 1}
     - _CurvedWorldBendSettings: {r: 10, g: 1, b: 1, a: 0}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 0}
