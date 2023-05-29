@@ -22,5 +22,7 @@ public class LegoEnemy : MonoBehaviour
     {
         transform.Translate(moveDirection * speed * Time.deltaTime);
     }
+
+
 }
 
