@@ -12,4 +12,6 @@ public enum EventID
     ResetGame,
     OnChangeProcessLevel,
     OnChangeMaxEnemy,
+
+    TabAttackLego,
 }

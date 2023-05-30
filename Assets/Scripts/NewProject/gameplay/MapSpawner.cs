@@ -39,7 +39,7 @@ public class MapSpawner : MonoBehaviour
                     break;
                 case AXIS.Znegative:
                     newMap.transform.position = new Vector3(0, newMap.transform.position.y, i * mapSize);
-                    moveDirection = new Vector3(0, 0, 1);
+                    moveDirection = new Vector3(0, 0, -1);
                     break;
             }
             lastSpawnOb = newMap;
