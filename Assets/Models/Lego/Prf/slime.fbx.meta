@@ -8,12 +8,12 @@ ModelImporter:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: M_map
-    second: {fileID: 2100000, guid: d52e2a0f085e1d84f8a146897e40073d, type: 2}
+    second: {fileID: 2100000, guid: f0c1639a5cc713247805efeff68bd187, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: Material.004
-    second: {fileID: 2100000, guid: 07b1cac335cf3dd46a0f5a1d15286a76, type: 2}
+    second: {fileID: 2100000, guid: 006c86e25c73f2e41af691830a558159, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0
