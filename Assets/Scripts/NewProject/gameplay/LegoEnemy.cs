@@ -24,15 +24,20 @@ public class LegoEnemy : MonoBehaviour
     private void Update()
     {
         transform.Translate(moveDirection * speed * Time.deltaTime);
-        if(Vector3.Distance(transform.position, distanceDie.position) < 0.5f)
+        if(Mathf.Abs(transform.position.z - distanceDie.position.z) < 0.5f)
         {
-            Die(null);
+            EventDispatcher.Instance.PostEvent(EventID.OnChangeValueHealth, -1);
+            GameManager.Instance.enemyManager.KillEnemy(this);
         }
     }
 
-    public void Die(GameObject enemyExplosionPrefab)
+    public void Die()
     {
         Destroy(gameObject);
+    }
+
+    public void EffectDie(GameObject enemyExplosionPrefab)
+    {
         GameObject explosion = Instantiate(enemyExplosionPrefab, transform.position,
             enemyExplosionPrefab.transform.rotation);
         explosion.transform.SetParent(transform);

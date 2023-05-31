@@ -27,14 +27,19 @@ public class LegoEnemyManager : MonoBehaviour
             }
             else if(amountPiece - 1 == currentTargetEnemy.injureHit)
             {
-                enemies.Remove(currentTargetEnemy);
-                currentTargetEnemy.Die(effectKill);
-                if (enemies.Count > 0) currentTargetEnemy = enemies[0];
+                KillEnemy(currentTargetEnemy);
             }
         }
         else
         {
 
         }
+    }
+
+    public void KillEnemy(LegoEnemy removedEnemy)
+    {
+        enemies.Remove(removedEnemy);
+        removedEnemy.Die();
+        if (enemies.Count > 0) currentTargetEnemy = enemies[0];
     }
 }

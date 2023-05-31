@@ -15,13 +15,8 @@ ModelImporter:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
-      name: M_map1
-    second: {fileID: 2100000, guid: a47da29075bf15b47a8ad655e78b9e0f, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
       name: Material.004
-    second: {fileID: 2100000, guid: 1ab89b56d38ba914ca4a07a07ba1ab61, type: 2}
+    second: {fileID: 2100000, guid: e7e3a72408d0b314987c112ae1ecaec3, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

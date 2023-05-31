@@ -50,6 +50,7 @@ public class EnemySpawner : MonoBehaviour
             LegoEnemy legoEnemy = newEnemy.GetComponent<LegoEnemy>();
             legoEnemy.moveDirection = -mapSpawner.moveDirection;
             legoEnemy.speed = speed;
+            legoEnemy.distanceDie = distanceDie;
 
             if (enemyManager.enemies.Count == 0) enemyManager.currentTargetEnemy = legoEnemy;
             enemyManager.enemies.Add(legoEnemy);
