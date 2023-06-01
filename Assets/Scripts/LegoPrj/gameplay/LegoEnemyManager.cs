@@ -28,10 +28,12 @@ public class LegoEnemyManager : MonoBehaviour
             if (currentTargetEnemy.injureHit < amountPiece - 1)
             {
                 currentTargetEnemy.pieces[currentTargetEnemy.injureHit].SetActive(false);
+                EffectLegoExplosion();
                 currentTargetEnemy.injureHit++;
             }
             else if(amountPiece - 1 == currentTargetEnemy.injureHit)
             {
+                EffectLegoExplosion();
                 currentTargetEnemy.pieces[amountPiece - 1].SetActive(false);
                 KillEnemy(currentTargetEnemy);
             }
@@ -40,6 +42,13 @@ public class LegoEnemyManager : MonoBehaviour
         {
 
         }
+    }
+
+    public void EffectLegoExplosion()
+    {
+        GameManager.Instance.effectController
+                    .GenExplosion(currentTargetEnemy.pieces[currentTargetEnemy.injureHit].transform,
+                    GameManager.Instance.colorDic[currentTargetEnemy.mainColor]);
     }
 
     public void KillEnemy(LegoEnemy removedEnemy)

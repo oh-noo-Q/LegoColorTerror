@@ -9,6 +9,8 @@ public class GameManager : MonoBehaviour
 
     public PlayerManager playerManager;
     public LegoEnemyManager enemyManager;
+    public EffectController effectController;
+    public ColorMatDictionary colorDic;
 
     private void Awake()
     {

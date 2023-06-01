@@ -37,13 +37,5 @@ public class LegoEnemy : MonoBehaviour
     {
         Destroy(gameObject);
     }
-
-    public void EffectDie(GameObject enemyExplosionPrefab)
-    {
-        GameObject explosion = Instantiate(enemyExplosionPrefab, transform.position,
-            enemyExplosionPrefab.transform.rotation);
-        explosion.transform.SetParent(transform);
-        Destroy(explosion, 1.0f);
-    }
 }
 

@@ -13,7 +13,6 @@ public class EnemySpawner : MonoBehaviour
     public MapSpawner mapSpawner;
     public LegoEnemyManager enemyManager;
     public GameObject[] enemyPrf;
-    public ColorMatDictionary colorDic;
 
     [Space(10)]
     public int spaceSize;
@@ -56,10 +55,10 @@ public class EnemySpawner : MonoBehaviour
 
             LegoEnemy legoEnemy = newEnemy.GetComponent<LegoEnemy>();
             int colorRan = Random.Range(0, 5);
-            Debug.Log(colorRan +": time" + Time.time);
+            Debug.Log(colorRan + "time:" + Time.time);
             for(int i = 0; i < legoEnemy.pieces.Count; i++)
             {
-                legoEnemy.pieces[i].GetComponent<Renderer>().material = colorDic[(LegoColor)colorRan];
+                legoEnemy.pieces[i].GetComponent<Renderer>().material = GameManager.Instance.colorDic[(LegoColor)colorRan];
             }
             legoEnemy.mainColor = (LegoColor)colorRan;
             legoEnemy.moveDirection = -mapSpawner.moveDirection;
