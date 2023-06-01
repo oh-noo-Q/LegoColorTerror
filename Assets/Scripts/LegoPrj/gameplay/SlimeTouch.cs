@@ -17,7 +17,7 @@ public class SlimeTouch : MonoBehaviour
             EventDispatcher.Instance.PostEvent(EventID.TabAttackLego, color);
 
             if (delayTimeTouch != null) StopCoroutine(delayTimeTouch);
-            delayTimeTouch = StartCoroutine(DelayTimeTouch());
+            delayTimeTouch = StartCoroutine(DelayTimeTouch(0.1f));
         }
     }
 
@@ -26,9 +26,9 @@ public class SlimeTouch : MonoBehaviour
         
     }
 
-    IEnumerator DelayTimeTouch()
+    IEnumerator DelayTimeTouch(float time)
     {
-        yield return new WaitForSeconds(0.1f);
+        yield return new WaitForSeconds(time);
         onTouch = false;
     }
 
