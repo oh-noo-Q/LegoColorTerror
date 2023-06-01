@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.23920639, g: 0.46285397, b: 0.59558594, a: 1}
+  m_IndirectSpecularColor: {r: 0.23926362, g: 0.46301872, b: 0.59525585, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -342,7 +342,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   shake_decay: 0.0006
   shake_intensity: 0.003
-  shake_ratio: 0.06
+  shake_ratio: 0.15
   isShaking: 0
 --- !u!1 &804578062
 GameObject:
@@ -2845,7 +2845,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &919132148631567911
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2859,11 +2859,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   pieces:
-  - {fileID: 7623545440550465416}
-  - {fileID: 3469311691745991362}
-  - {fileID: 5682876609739141085}
-  - {fileID: 6348606209321440781}
   - {fileID: 8578709097854264752}
+  - {fileID: 6348606209321440781}
+  - {fileID: 5682876609739141085}
+  - {fileID: 3469311691745991362}
+  - {fileID: 7623545440550465416}
   mainColor: 2
   moveDirection: {x: 0, y: 0, z: 0}
   speed: 0
@@ -10312,7 +10312,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   pieces:
   - {fileID: 1104099175301447898}
-  mainColor: 0
+  mainColor: 1
   moveDirection: {x: 0, y: 0, z: 0}
   speed: 0
   distanceDie: {fileID: 0}
@@ -11460,7 +11460,7 @@ MonoBehaviour:
   - {fileID: 2207566359712169622}
   - {fileID: 2080785061400937565}
   - {fileID: 7106677874928953024}
-  mainColor: 0
+  mainColor: 4
   moveDirection: {x: 0, y: 0, z: 0}
   speed: 0
   distanceDie: {fileID: 0}

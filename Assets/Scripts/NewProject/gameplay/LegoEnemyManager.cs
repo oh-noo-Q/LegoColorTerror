@@ -14,6 +14,11 @@ public class LegoEnemyManager : MonoBehaviour
         EventDispatcher.Instance.RegisterListener(EventID.TabAttackLego, AttackEnemy);
     }
 
+    private void OnDestroy()
+    {
+        EventDispatcher.Instance.RemoveListener(EventID.TabAttackLego, AttackEnemy);
+    }
+
     void AttackEnemy(object obj)
     {
         if (currentTargetEnemy == null) return;
@@ -27,6 +32,7 @@ public class LegoEnemyManager : MonoBehaviour
             }
             else if(amountPiece - 1 == currentTargetEnemy.injureHit)
             {
+                currentTargetEnemy.pieces[amountPiece - 1].SetActive(false);
                 KillEnemy(currentTargetEnemy);
             }
         }
