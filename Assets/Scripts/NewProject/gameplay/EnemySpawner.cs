@@ -1,12 +1,19 @@
+using RotaryHeart.Lib.SerializableDictionary;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+[System.Serializable]
+public class ColorMatDictionary : SerializableDictionaryBase<LegoColor, Material>
+{
+
+}
 public class EnemySpawner : MonoBehaviour
 {
     public MapSpawner mapSpawner;
     public LegoEnemyManager enemyManager;
     public GameObject[] enemyPrf;
+    public ColorMatDictionary colorDic;
 
     [Space(10)]
     public int spaceSize;
