@@ -2845,7 +2845,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &919132148631567911
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2920,8 +2920,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   pieces:
   - {fileID: 7623545440469762300}
-  - {fileID: 3469311691661112758}
   - {fileID: 5682876609654177961}
+  - {fileID: 3469311691661112758}
   - {fileID: 6348606209368619385}
   mainColor: 3
   moveDirection: {x: 0, y: 0, z: 0}
@@ -10297,7 +10297,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &7502175313023577024
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11456,7 +11456,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d3583e8d090fa19438b3c167e381f972, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  pieces: []
+  pieces:
+  - {fileID: 2207566359712169622}
+  - {fileID: 2080785061400937565}
+  - {fileID: 7106677874928953024}
   mainColor: 0
   moveDirection: {x: 0, y: 0, z: 0}
   speed: 0
