@@ -4,12 +4,9 @@
 TagManager:
   serializedVersion: 2
   tags:
-  - Ball
-  - CollectedBall
-  - RootBall
-  - Wall
-  - Coin
-  - FinishPosition
+  - Enemy
+  - Bullet
+  - Slime
   layers:
   - Default
   - TransparentFX
@@ -18,7 +15,7 @@ TagManager:
   - Water
   - UI
   - 
-  - Ball
+  - 
   - 
   - 
   - 

@@ -226,14 +226,6 @@ public class EnemyManager : MonoBehaviour
         Destroy(enemy.gameObject, 2.0f);
     }
 
-    void ShootEnemy(Transform endPoint)
-    {
-        Bullet beam = Instantiate(beamPrefab, transform);
-        beam.Initialize(endPoint.position + new Vector3(0, 30, 0), endPoint.position);
-
-        Destroy(beam.gameObject, 1.5f);
-    }
-
     void ClearEnemy(object obj)
     {
         for(int i = 0; i < enemyParent.childCount; i++)

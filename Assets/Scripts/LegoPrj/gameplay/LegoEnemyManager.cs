@@ -7,6 +7,7 @@ public class LegoEnemyManager : MonoBehaviour
     public List<LegoEnemy> enemies;
     public LegoEnemy currentTargetEnemy;
 
+    public Bullet bullet;
     public GameObject effectKill;
 
     private void Awake()
@@ -27,6 +28,7 @@ public class LegoEnemyManager : MonoBehaviour
             int amountPiece = currentTargetEnemy.pieces.Count;
             if (currentTargetEnemy.injureHit < amountPiece - 1)
             {
+                
                 currentTargetEnemy.pieces[currentTargetEnemy.injureHit].SetActive(false);
                 EffectLegoExplosion();
                 currentTargetEnemy.injureHit++;

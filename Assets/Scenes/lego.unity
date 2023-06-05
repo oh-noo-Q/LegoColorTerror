@@ -16740,7 +16740,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 919132148716507474}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.1, y: 0, z: 8.3}
+  m_LocalPosition: {x: 3.06, y: 0, z: -3.48}
   m_LocalScale: {x: 0.8, y: 0.8, z: 0.8}
   m_Children:
   - {fileID: 4306643202606039410}
@@ -16790,7 +16790,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 919132148631567910}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 5.3, y: 0, z: 26.96}
+  m_LocalPosition: {x: 6.33, y: 0, z: -3.93}
   m_LocalScale: {x: 0.8, y: 0.8, z: 0.8}
   m_Children:
   - {fileID: 4306643202521165318}
@@ -17205,9 +17205,10 @@ GameObject:
   - component: {fileID: 543450653157172380}
   - component: {fileID: 919132148631567911}
   - component: {fileID: 919132148631567912}
+  - component: {fileID: 919132148631567913}
   m_Layer: 0
   m_Name: quai_5
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -17254,6 +17255,19 @@ Animator:
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorControllerStateOnDisable: 0
+--- !u!65 &919132148631567913
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 919132148631567910}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Size: {x: 3.7869697, y: 7.361379, z: 1.7470831}
+  m_Center: {x: -0.06797522, y: 3.758814, z: 0.060343146}
 --- !u!1 &919132148716507474
 GameObject:
   m_ObjectHideFlags: 0
@@ -17265,9 +17279,10 @@ GameObject:
   - component: {fileID: 543450652971617256}
   - component: {fileID: 919132148716507475}
   - component: {fileID: 919132148716507476}
+  - component: {fileID: 919132148716507477}
   m_Layer: 0
   m_Name: quai_4
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -17313,6 +17328,19 @@ Animator:
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorControllerStateOnDisable: 0
+--- !u!65 &919132148716507477
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 919132148716507474}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Size: {x: 3.654462, y: 5.3404884, z: 2.010435}
+  m_Center: {x: -0.032735467, y: 2.7288804, z: -0.002899021}
 --- !u!1 &919132148769039106
 GameObject:
   m_ObjectHideFlags: 0
@@ -17328,7 +17356,7 @@ GameObject:
   - component: {fileID: 919132148769039108}
   m_Layer: 0
   m_Name: slime (1)
-  m_TagString: Untagged
+  m_TagString: Slime
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -17375,7 +17403,7 @@ GameObject:
   - component: {fileID: 919132148806175447}
   m_Layer: 0
   m_Name: slime (2)
-  m_TagString: Untagged
+  m_TagString: Slime
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -17422,7 +17450,7 @@ GameObject:
   - component: {fileID: 919132149134500779}
   m_Layer: 0
   m_Name: slime (4)
-  m_TagString: Untagged
+  m_TagString: Slime
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -17469,7 +17497,7 @@ GameObject:
   - component: {fileID: 919132149171169511}
   m_Layer: 0
   m_Name: slime
-  m_TagString: Untagged
+  m_TagString: Slime
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -17516,7 +17544,7 @@ GameObject:
   - component: {fileID: 919132149375099711}
   m_Layer: 0
   m_Name: slime (3)
-  m_TagString: Untagged
+  m_TagString: Slime
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -22736,7 +22764,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4438998854685704892}
   m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0, y: 0, z: -0.045498222}
+  m_LocalPosition: {x: -0.39, y: -0.46, z: -0.045498222}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 6604571835330986378}
@@ -22939,9 +22967,10 @@ GameObject:
   - component: {fileID: 6604571835330986378}
   - component: {fileID: 5828774729049463601}
   - component: {fileID: 5828774729049463602}
+  - component: {fileID: 5828774729049463603}
   m_Layer: 0
   m_Name: quai_2 (1)
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -22985,6 +23014,19 @@ Animator:
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorControllerStateOnDisable: 0
+--- !u!65 &5828774729049463603
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5828774729049463600}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Size: {x: 2.03867, y: 5.548026, z: 1.9179548}
+  m_Center: {x: -0.029941201, y: 2.7050838, z: -0.02742523}
 --- !u!4 &5901452234500528491
 Transform:
   m_ObjectHideFlags: 0
@@ -23863,7 +23905,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5828774729049463600}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: -3.68}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 7486912528279718672}
@@ -24334,7 +24376,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7502175313023577023}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -4.78, y: 0, z: 0}
+  m_LocalPosition: {x: -6.17, y: 0, z: -4.49}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 2835107408175130369}
@@ -24657,9 +24699,10 @@ GameObject:
   - component: {fileID: 7158124292856213765}
   - component: {fileID: 7502175313023577024}
   - component: {fileID: 7502175313023577025}
+  - component: {fileID: 7502175313023577026}
   m_Layer: 0
   m_Name: quai_1 1
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -24702,6 +24745,19 @@ Animator:
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorControllerStateOnDisable: 0
+--- !u!65 &7502175313023577026
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7502175313023577023}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Size: {x: 1.9619474, y: 3.5826173, z: 1.9665351}
+  m_Center: {x: -0.007549286, y: 1.6716251, z: -0.007622957}
 --- !u!1 &7519898546087611190
 GameObject:
   m_ObjectHideFlags: 0
@@ -25274,7 +25330,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8785749930206713331}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 4.66}
+  m_LocalPosition: {x: -2.6, y: 0, z: -3.95}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 5685915467968857555}
@@ -25803,9 +25859,10 @@ GameObject:
   - component: {fileID: 8261450749977956169}
   - component: {fileID: 8785749930206713332}
   - component: {fileID: 8785749930206713333}
+  - component: {fileID: 8785749930206713334}
   m_Layer: 0
   m_Name: quai_3 (1)
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -25850,6 +25907,19 @@ Animator:
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorControllerStateOnDisable: 0
+--- !u!65 &8785749930206713334
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8785749930206713331}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Size: {x: 1.9476285, y: 7.317152, z: 1.8136504}
+  m_Center: {x: -0.051288605, y: 3.6849542, z: -0.056654096}
 --- !u!33 &8795445045726319725
 MeshFilter:
   m_ObjectHideFlags: 0
