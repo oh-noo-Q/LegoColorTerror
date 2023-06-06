@@ -7,7 +7,7 @@ public class LegoEnemyManager : MonoBehaviour
     public List<LegoEnemy> enemies;
     public LegoEnemy currentTargetEnemy;
 
-    public Bullet bullet;
+    public Bullet bulletPrf;
     public GameObject effectKill;
 
     private void Awake()
@@ -23,26 +23,20 @@ public class LegoEnemyManager : MonoBehaviour
     void AttackEnemy(object obj)
     {
         if (currentTargetEnemy == null) return;
-        if(currentTargetEnemy.mainColor == (LegoColor)obj)
-        {
-            int amountPiece = currentTargetEnemy.pieces.Count;
-            if (currentTargetEnemy.injureHit < amountPiece - 1)
-            {
-                
-                currentTargetEnemy.pieces[currentTargetEnemy.injureHit].SetActive(false);
-                EffectLegoExplosion();
-                currentTargetEnemy.injureHit++;
-            }
-            else if(amountPiece - 1 == currentTargetEnemy.injureHit)
-            {
-                EffectLegoExplosion();
-                currentTargetEnemy.pieces[amountPiece - 1].SetActive(false);
-                KillEnemy(currentTargetEnemy);
-            }
-        }
-        else
-        {
+        SlimeTouch ownerSlime = (SlimeTouch)obj;
 
+        int amountPiece = currentTargetEnemy.pieces.Count;
+        if (currentTargetEnemy.injureHit <= amountPiece - 1)
+        {
+            Bullet newBullet = Instantiate(bulletPrf);
+            newBullet.gameObject.SetActive(true);
+            newBullet.transform.position = ownerSlime.posOnCurve.position;
+            newBullet.owner = ownerSlime.posOnCurve;
+            newBullet.SetColor(ownerSlime.color);
+            newBullet.targetPiece = currentTargetEnemy.injureHit;
+            newBullet.target = currentTargetEnemy.pieces[currentTargetEnemy.injureHit].transform;
+            if(currentTargetEnemy.mainColor == ownerSlime.color)
+                currentTargetEnemy.injureHit++;
         }
     }
 

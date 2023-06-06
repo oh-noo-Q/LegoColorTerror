@@ -6,6 +6,7 @@ public class SlimeTouch : MonoBehaviour
 {
     public LegoColor color;
     public Collider boxCollider;
+    public Transform posOnCurve;
 
     Coroutine delayTimeTouch;
     bool onTouch;
@@ -14,7 +15,7 @@ public class SlimeTouch : MonoBehaviour
         if (!onTouch)
         {
             onTouch = true;
-            EventDispatcher.Instance.PostEvent(EventID.TabAttackLego, color);
+            EventDispatcher.Instance.PostEvent(EventID.TabAttackLego, this);
 
             if (delayTimeTouch != null) StopCoroutine(delayTimeTouch);
             delayTimeTouch = StartCoroutine(DelayTimeTouch(0.1f));

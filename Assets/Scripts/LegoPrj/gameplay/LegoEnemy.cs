@@ -40,10 +40,24 @@ public class LegoEnemy : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
+        Debug.Log("Collision oce");
         if(other.CompareTag("Bullet"))
         {
-            pieces[injureHit].SetActive(false);
-            injureHit++;
+            Bullet bulletColision = other.GetComponent<Bullet>();
+            if (bulletColision.color == mainColor)
+            {
+                pieces[bulletColision.targetPiece].SetActive(false);
+                GameManager.Instance.effectController
+                        .GenExplosion(pieces[bulletColision.targetPiece].transform,
+                        GameManager.Instance.colorDic[mainColor]);
+                if (bulletColision.targetPiece == pieces.Count - 1)
+                    GameManager.Instance.enemyManager.KillEnemy(this);
+                Destroy(bulletColision.gameObject);
+            }
+            else
+            {
+                bulletColision.CounterAttack();
+            }
         }
     }
 }

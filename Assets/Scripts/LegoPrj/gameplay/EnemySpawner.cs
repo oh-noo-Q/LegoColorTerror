@@ -55,7 +55,6 @@ public class EnemySpawner : MonoBehaviour
 
             LegoEnemy legoEnemy = newEnemy.GetComponent<LegoEnemy>();
             int colorRan = Random.Range(0, 5);
-            Debug.Log(colorRan + "time:" + Time.time);
             for(int i = 0; i < legoEnemy.pieces.Count; i++)
             {
                 legoEnemy.pieces[i].GetComponent<Renderer>().material = GameManager.Instance.colorDic[(LegoColor)colorRan];
