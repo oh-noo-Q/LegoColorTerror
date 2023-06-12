@@ -35,8 +35,12 @@ public class LegoEnemyManager : MonoBehaviour
             newBullet.SetColor(ownerSlime.color);
             newBullet.targetPiece = currentTargetEnemy.injureHit;
             newBullet.target = currentTargetEnemy.pieces[currentTargetEnemy.injureHit].transform;
-            if(currentTargetEnemy.mainColor == ownerSlime.color)
+            if (currentTargetEnemy.mainColor == ownerSlime.color)
+            {
+                if (currentTargetEnemy.gameObject.GetComponent<FlyLego>() != null && currentTargetEnemy.injureHit == 0)
+                    return;
                 currentTargetEnemy.injureHit++;
+            }
         }
     }
 

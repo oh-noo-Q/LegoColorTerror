@@ -23,7 +23,7 @@ public class LegoEnemy : MonoBehaviour
 
     public int injureHit = 0;
 
-    private void Update()
+    virtual protected void Update()
     {
         transform.Translate(moveDirection * speed * Time.deltaTime);
         if(Mathf.Abs(transform.position.z - distanceDie.position.z) < 0.5f)
@@ -38,9 +38,8 @@ public class LegoEnemy : MonoBehaviour
         Destroy(gameObject);
     }
 
-    private void OnTriggerEnter(Collider other)
+    protected virtual void OnTriggerEnter(Collider other)
     {
-        Debug.Log("Collision oce");
         if(other.CompareTag("Bullet"))
         {
             Bullet bulletColision = other.GetComponent<Bullet>();

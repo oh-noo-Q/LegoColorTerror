@@ -13,15 +13,18 @@ public class EnemySpawner : MonoBehaviour
     public MapSpawner mapSpawner;
     public LegoEnemyManager enemyManager;
     public GameObject[] enemyPrf;
+    public GameObject[] flyEnemy;
 
     [Space(10)]
     public int spaceSize;
     public Transform leftLimit, rightLimit;
+    public int amountNormalLego, amountFlyLego;
 
     public float speed;
     public Transform distanceDie;
 
     public float delaySpawn = 0.6f;
+
     float deltaTime = 0;
     float xLeftLimit, xRightLimit;
 

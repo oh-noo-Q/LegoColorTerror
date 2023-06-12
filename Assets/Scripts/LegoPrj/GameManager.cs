@@ -18,6 +18,7 @@ public class GameManager : MonoBehaviour
         {
             Instance = this;
         }
+        Time.timeScale = 0.5f;
     }
 
     public void RestartGame()
