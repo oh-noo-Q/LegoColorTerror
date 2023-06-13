@@ -17,7 +17,7 @@ public class PlayerManager : MonoBehaviour
         EventDispatcher.Instance.PostEvent(EventID.OnUpdateHealth, health);
         if(health == 0)
         {
-            GameManager.Instance.ReloadScene();
+            GameManager.Instance.FinishGameEndless();
         }
     }
 }

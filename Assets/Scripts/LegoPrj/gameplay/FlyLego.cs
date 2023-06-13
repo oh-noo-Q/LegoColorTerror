@@ -1,9 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using DG.Tweening;
 
 public class FlyLego : LegoEnemy
 {
+    [HideInInspector]
     public bool isFlying;
 
     private void Awake()
@@ -27,6 +29,12 @@ public class FlyLego : LegoEnemy
                 if (bulletColision.color == mainColor)
                 {
                     isFlying = false;
+                    transform.eulerAngles = Vector3.zero;
+                    transform.DOLocalMoveY(0, 0.3f);
+                }
+                else
+                {
+                    bulletColision.CounterAttack();
                 }
             }
         }
