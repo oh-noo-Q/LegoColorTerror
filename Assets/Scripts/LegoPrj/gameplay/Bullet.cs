@@ -35,8 +35,9 @@ public class Bullet : MonoBehaviour
     {
         if (target != null)
         {
-            transform.position = Vector3.MoveTowards(transform.position, target.position, speed * Time.deltaTime);
-            RotateToTarget(target);
+            Vector3 realTarget = target.position;
+            transform.position = Vector3.MoveTowards(transform.position, realTarget, speed * Time.deltaTime);
+            //RotateToTarget(target);
         }
         if(isCounter && transform.position == target.position)
         {
@@ -48,7 +49,7 @@ public class Bullet : MonoBehaviour
     {
         target = owner;
         isCounter = true;
-        transform.DOLocalRotate(new Vector3(90, 180, 180f), 0.1f);
+        transform.eulerAngles = new Vector3(90, 180, 180f);
     }
 
     private void OnTriggerEnter(Collider other)

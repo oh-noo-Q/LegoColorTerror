@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using DG.Tweening;
 
 public class LegoEnemyManager : MonoBehaviour
 {
@@ -9,7 +10,9 @@ public class LegoEnemyManager : MonoBehaviour
 
     public Bullet bulletPrf;
     public GameObject effectKill;
+    public GameObject targetPrf;
 
+    GameObject currentTargetObject;
     private void Awake()
     {
         EventDispatcher.Instance.RegisterListener(EventID.TabAttackLego, AttackEnemy);
@@ -34,7 +37,14 @@ public class LegoEnemyManager : MonoBehaviour
             newBullet.owner = ownerSlime.posOnCurve;
             newBullet.SetColor(ownerSlime.color);
             newBullet.targetPiece = currentTargetEnemy.injureHit;
-            newBullet.target = currentTargetEnemy.pieces[currentTargetEnemy.injureHit].transform;
+            if(currentTargetEnemy.gameObject.GetComponent<FlyLego>() != null
+                && currentTargetEnemy.gameObject.GetComponent<FlyLego>().isFlying)
+            {
+                newBullet.target = currentTargetEnemy.transform;
+                //currentTargetEnemy.gameObject.GetComponent<FlyLego>().isFlying = false;
+            }
+            else
+                newBullet.target = currentTargetEnemy.pieces[currentTargetEnemy.injureHit].transform;
             if (currentTargetEnemy.mainColor == ownerSlime.color)
             {
                 if (currentTargetEnemy.gameObject.GetComponent<FlyLego>() != null && currentTargetEnemy.injureHit == 0)
@@ -55,6 +65,28 @@ public class LegoEnemyManager : MonoBehaviour
     {
         enemies.Remove(removedEnemy);
         removedEnemy.Die();
-        if (enemies.Count > 0) currentTargetEnemy = enemies[0];
+        if(enemies.Count == 0 && GameManager.Instance.enemySpawner.CheckEndLevel())
+        {
+            GameManager.Instance.NextRound();
+            return;
+        }
+        if (enemies.Count > 0) SetTargetEnemy(enemies[0]);
+    }
+
+    public void SetTargetEnemy(LegoEnemy enemy)
+    {
+        currentTargetEnemy = enemy;
+        if (currentTargetObject == null)
+        {
+            currentTargetObject = Instantiate(targetPrf, enemy.targetIconPosition);
+            currentTargetObject.transform.DOLocalMoveY(-2, 0.5f).SetLoops(-1, LoopType.Yoyo);
+        }
+        else
+        {
+            currentTargetObject.transform.DOKill();
+            currentTargetObject.transform.SetParent(enemy.targetIconPosition);
+            currentTargetObject.transform.localPosition = Vector3.zero;
+            currentTargetObject.transform.DOLocalMoveY(-2, 0.5f).SetLoops(-1, LoopType.Yoyo);
+        }
     }
 }

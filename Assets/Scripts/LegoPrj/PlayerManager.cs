@@ -15,7 +15,7 @@ public class PlayerManager : MonoBehaviour
     {
         health += (int)obj;
         EventDispatcher.Instance.PostEvent(EventID.OnUpdateHealth, health);
-        if(health == 0)
+        if(health <= 0)
         {
             GameManager.Instance.FinishGameEndless();
         }

@@ -1,18 +1,20 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class MainMenuUIManager : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
+    public Button startBtn;
+
+    private void Awake()
     {
-        
+        startBtn.onClick.AddListener(StartOnClick);
     }
 
-    // Update is called once per frame
-    void Update()
+    void StartOnClick()
     {
-        
+        GameManager.Instance.StartEndless();
+        gameObject.SetActive(false);
     }
 }

@@ -5,15 +5,33 @@ using UnityEngine;
 [System.Serializable]
 public class LevelGameplay
 {
+    [HideInInspector]
+    public string name;
+
     [Header("LegoColor")]
     public int level;
     public float speedEnemy;
-    public float delaySpawnEnemy;
+    public float xSpeedFly = 1;
+    public float delaySpawn;
+    public DetailEnemyLevel[] detailEnemies;
+    public DetailEnemyLevel[] detailFlyEnemies;
 
     [Space(20)]
+    [HideInInspector] 
     public int endLevelAmountEnemy;
+    [HideInInspector]
     public int[] typeEnemy;
+    [HideInInspector]
     public bool changeEnemy;
+    [HideInInspector]
     public bool changeColor;
+    [HideInInspector]
     public int amountColor;
+}
+
+[System.Serializable]
+public class DetailEnemyLevel
+{
+    public int id;
+    public int quantity;
 }

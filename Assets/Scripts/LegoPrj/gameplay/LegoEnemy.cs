@@ -16,6 +16,7 @@ public class LegoEnemy : MonoBehaviour
 {
     public List<GameObject> pieces;
     public LegoColor mainColor;
+    public Transform targetIconPosition;
 
     public Vector3 moveDirection;
     public float speed;

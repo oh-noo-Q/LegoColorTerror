@@ -60,7 +60,7 @@ public class EnemyManager : MonoBehaviour
     private void ChangeLevelGameplay(int level)
     {
         LevelGameplay levelGameplay = gameplayData.levelGameplayData[level];
-        timeDelaySpawn = levelGameplay.delaySpawnEnemy;
+        timeDelaySpawn = levelGameplay.delaySpawn;
         if (amountColor != levelGameplay.amountColor)
         {
             amountColor = levelGameplay.amountColor;
