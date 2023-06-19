@@ -6,24 +6,28 @@ using DG.Tweening;
 public class FlyLego : LegoEnemy
 {
     public Transform modelTrans;
+    public Rigidbody rigid;
     [HideInInspector]
     public bool isFlying;
+
+    float fallingForce = 1000000f;
 
     private void Awake()
     {
         isFlying = true;
+        rigid = GetComponent<Rigidbody>();
+        rigid.useGravity = false;
 
     }
     protected override void Update()
     {
-        base.Update();
         if (GameManager.Instance.enemyManager.currentTargetEnemy == null) return;
-        if (gameObject == null) return;
         if(Vector3.Distance(transform.position, distanceDie.position) < 
             Vector3.Distance(GameManager.Instance.enemyManager.currentTargetEnemy.transform.position, distanceDie.position))
         {
             GameManager.Instance.enemyManager.SetTargetEnemy(this);
         }
+        base.Update();
 
     }
 
@@ -37,14 +41,16 @@ public class FlyLego : LegoEnemy
                 if (bulletColision.color == mainColor)
                 {
                     isFlying = false;
-                    transform.DOLocalMoveY(0, 0.3f);
+                    rigid.AddForce(Vector3.down * fallingForce, ForceMode.Force);
+                    //transform.position = new Vector3(transform.position.x, 0, transform.position.z);
+                    //transform.DOLocalMoveY(0, 0.3f);
                     modelTrans.DORotate(new Vector3(0, 0, 0), 0.3f);
+                    Destroy(bulletColision.gameObject);
                 }
                 else
                 {
                     bulletColision.CounterAttack();
                 }
-                Destroy(bulletColision.gameObject);
             }
         }
         else

@@ -18,10 +18,10 @@ MonoBehaviour:
     speedEnemy: 5
     xSpeedFly: 0
     delaySpawn: 1.5
-    detailEnemies: []
-    detailFlyEnemies:
+    detailEnemies:
     - id: 1
       quantity: 17
+    detailFlyEnemies: []
     endLevelAmountEnemy: 9
     typeEnemy: 0000000001000000
     changeEnemy: 1

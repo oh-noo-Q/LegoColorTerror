@@ -79,12 +79,14 @@ public class LegoEnemyManager : MonoBehaviour
         if (currentTargetObject == null)
         {
             currentTargetObject = Instantiate(targetPrf, enemy.targetIconPosition);
+            currentTargetObject.GetComponent<Renderer>().material = GameManager.Instance.colorDic[enemy.mainColor];
             currentTargetObject.transform.DOLocalMoveY(-2, 0.5f).SetLoops(-1, LoopType.Yoyo);
         }
         else
         {
             currentTargetObject.transform.DOKill();
             currentTargetObject.transform.SetParent(enemy.targetIconPosition);
+            currentTargetObject.GetComponent<Renderer>().material = GameManager.Instance.colorDic[enemy.mainColor];
             currentTargetObject.transform.localPosition = Vector3.zero;
             currentTargetObject.transform.DOLocalMoveY(-2, 0.5f).SetLoops(-1, LoopType.Yoyo);
         }

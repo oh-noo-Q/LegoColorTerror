@@ -44,7 +44,7 @@ public class GameManager : MonoBehaviour
 
     public void FinishGameEndless()
     {
-        PauseGame();
+        ReloadScene();
         UILegoManager.Instance.ShowMainMenu();
     }
 

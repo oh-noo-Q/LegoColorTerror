@@ -9,6 +9,13 @@ public class UILegoManager : MonoBehaviour
     [SerializeField] MainMenuUIManager mainMenu;
     [SerializeField] InGameUIManager inGameUI;
 
+    private void Awake()
+    {
+        if(Instance == null)
+        {
+            Instance = this;
+        }
+    }
     public void ShowMainMenu()
     {
         mainMenu.gameObject.SetActive(true);

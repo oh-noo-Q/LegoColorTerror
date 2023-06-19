@@ -16,6 +16,11 @@ public class Bullet : MonoBehaviour
     [SerializeField] float speedRotation;
     private bool isCounter;
 
+    private void Awake()
+    {
+        Destroy(gameObject, 3f);    
+    }
+
     public Bullet(Transform _owner, LegoColor _color)
     {
         this.owner = _owner;
@@ -41,6 +46,7 @@ public class Bullet : MonoBehaviour
         }
         if(isCounter && transform.position == target.position)
         {
+            EventDispatcher.Instance.PostEvent(EventID.OnChangeValueHealth, -1);
             Destroy(gameObject);
         }
     }
