@@ -1,6 +1,7 @@
 using UnityEngine;
 
-namespace Complete
+
+namespace AmazingAssets.CurvedWorld.Example
 {
     public class ShellExplosion : MonoBehaviour
     {

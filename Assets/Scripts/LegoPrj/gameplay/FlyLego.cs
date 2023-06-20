@@ -43,6 +43,7 @@ public class FlyLego : LegoEnemy
                     if (blockDamage > 0)
                     {
                         blockDamage--;
+                        UILegoManager.Instance.inGameUI.SetBlockText(blockDamage);
                         Destroy(bulletColision.gameObject);
                         return;
                     }
@@ -50,6 +51,7 @@ public class FlyLego : LegoEnemy
                     { 
                         isFlying = false;
                         rigid.AddForce(Vector3.down * fallingForce, ForceMode.Force);
+                        speed = speed / buffSpeed;
                         
                         modelTrans.DORotate(new Vector3(0, 0, 0), 0.3f);
                         Destroy(bulletColision.gameObject);
@@ -58,6 +60,7 @@ public class FlyLego : LegoEnemy
                 else
                 {
                     blockDamage++;
+                    UILegoManager.Instance.inGameUI.SetBlockText(blockDamage);
                     //bulletColision.CounterAttack();
                 }
             }

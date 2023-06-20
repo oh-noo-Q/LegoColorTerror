@@ -1,2361 +1,2385 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using System.Collections.Generic;
-using System.IO;
+
 using UnityEngine;
 using UnityEditor;
 
 
-namespace AmazingAssets
+namespace AmazingAssets.CurvedWorldEditor
 {
-    namespace CurvedWorldEditor
+    public class CurvedWorldEditorWindow : EditorWindow
     {
-        public class CurvedWorldEditorWindow : EditorWindow
+        public enum TAB { Manage, Controllers, RenderersOverview, CurvedWorldKeywords, Activator, ShaderPackages, About }
+        enum RENDERERS_OVERVIEW_MODE { Scene, SelectedOjects }
+        enum SEARCH_OPTION { ShaderName, MaterialName, Keyword }
+
+
+        static string[] preferencesNames = new string[] { "Manage", "Controllers", "Renderers Overview", "Curved World Keywords", "Activator", "Shader Packages", "About" };
+
+
+        public static CurvedWorldEditorWindow activeWindow;
+
+
+        #region Properties
+        public TAB gTab;
+        public CurvedWorld.BEND_TYPE gBendType = CurvedWorld.BEND_TYPE.ClassicRunner_X_Positive;
+        public int gBendID = 1;
+
+        static CurvedWorld.CurvedWorldController[] gSceneControllers;
+
+        RENDERERS_OVERVIEW_MODE gRenderersOverviewMode;
+        List<EditorUtilities.ShaderOverview> gRenderersOverviewList;
+        SEARCH_OPTION gRenderersOverviewSearchOption;
+        string gRenderersOverviewFilter;
+        bool gRenderersOverviewFilterExclude;
+        static int gRenderersOverviewModeRectWidth;
+        static EditorUtilities.ShaderOverview gRenderersOverviewEditIndex = null;
+        static string gRenderersOverviewEditString = string.Empty;
+        int gRenderersOverviewChangedShaderIndex;
+
+        public Shader gCurvedWorldKeywordsShader;
+        public static EditorUtilities.ShaderCurvedWorldKeywordsInfo gCurvedWorldKeywordsShaderInfo;
+
+        static List<Shader> gActivatorShaders;
+        string gActivatorPath;
+
+        static string[] shaderPackages;
+        #endregion
+
+
+        #region Resources
+        static GUIStyle guiStyleOptionsHeader;
+        static int guiStyleOptionsHeaderHeight = 0;
+        static GUIStyle guiStyleControllersButton;
+        static GUIStyle guiStyleAnalyzeSaveButton;
+
+        static Vector2 scroll;
+        static Vector2 mousePosition;
+
+        static GUIStyle guiStyleButtonTab;
+
+        Texture2D iconForum, iconManual, iconSupport, iconRate, iconMore, iconMaterial, iconShader, iconSelection;
+        #endregion
+
+
+
+        [MenuItem("Window/Amazing Assets/" + AssetInfo.assetName, false, 1601)]
+        static public void ShowWindow()
         {
-            public static CurvedWorldEditorWindow activeWindow;
+            EditorWindow window = EditorWindow.GetWindow(typeof(CurvedWorldEditorWindow));
+            window.titleContent = new GUIContent(AssetInfo.assetName);
 
-            public enum TAB { Manage, Controllers, RenderersOverview, CurvedWorldKeywords, Activator, ShaderPackages, About }
-            static string[] preferencesNames = new string[] { "Manage", "Controllers", "Renderers Overview", "Curved World Keywords", "Activator", "Shader Packages", "About" };
+            window.minSize = new Vector2(750, 600);
 
-            enum RENDERERS_OVERVIEW_MODE { Scene, SelectedOjects }
-            enum SEARCH_OPTION { ShaderName, MaterialName, Keyword }
-
-            public TAB gTab;
+            activeWindow = (CurvedWorldEditorWindow)window;
 
 
 
-            public CurvedWorld.BEND_TYPE gBendType = CurvedWorld.BEND_TYPE.ClassicRunner_X_Positive;
-            public int gBendID = 1;
+            //Rebuild
+            EditorUtilities.RebuildProjectBendsInfo();
+        }
 
-            static CurvedWorld.CurvedWorldController[] gSceneControllers;
+        private void OnDestroy()
+        {
+            activeWindow = null;
 
-            RENDERERS_OVERVIEW_MODE gRenderersOverviewMode;
-            List<EditorUtilities.ShaderOverview> gRenderersOverviewList;
-            SEARCH_OPTION gRenderersOverviewSearchOption;
-            string gRenderersOverviewFilter;
-            bool gRenderersOverviewFilterExclude;
-            static int gRenderersOverviewModeRectWidth;
-            static EditorUtilities.ShaderOverview gRenderersOverviewEditIndex = null;
-            static string gRenderersOverviewEditString = string.Empty;
+            if (CurvedWorldMaterialDuplicateEditorWindow.window != null)
+                CurvedWorldMaterialDuplicateEditorWindow.window.Close();
 
-            public Shader gCurvedWorldKeywordsShader;
-            public static EditorUtilities.ShaderCurvedWorldKeywordsInfo gCurvedWorldKeywordsShaderInfo;
+            if (CurvedWorldBendSettingsEditorWindow.window != null)
+                CurvedWorldBendSettingsEditorWindow.window.Close();
+        }
 
-            static List<Shader> gActivatorShaders;
-            string gActivatorPath;
+        private void OnDisable()
+        {
+            activeWindow = null;
+        }
 
-            static string[] shaderPackages;
+        void OnFocus()
+        {
+            gSceneControllers = null;
 
+            if (gTab == TAB.RenderersOverview)
+                RebuildSceneShadersOverview();
 
-            static GUIStyle guiStyleOptionsHeader;
-            static int guiStyleOptionsHeaderHeight = 0;
-            static GUIStyle guiStyleControllersButton;
-            static GUIStyle guiStyleAnalyzeSaveButton;
-
-            static Vector2 scroll;
-            static Vector2 mousePosition;
-
-            static GUIStyle guiStyleButtonTab;
+            if (gTab == TAB.CurvedWorldKeywords)
+                gCurvedWorldKeywordsShaderInfo = new EditorUtilities.ShaderCurvedWorldKeywordsInfo(gCurvedWorldKeywordsShader);
 
 
+            shaderPackages = null;
 
-            [MenuItem("Window/Amazing Assets/Curved World", false, 513)]
-            static public void ShowWindow()
+            Undo.undoRedoPerformed -= CallbackUndo;
+            Undo.undoRedoPerformed += CallbackUndo;
+
+
+            UnityEditor.EditorUtility.ClearProgressBar();
+        }
+
+        void OnGUI()
+        {
+            activeWindow = this;
+
+
+            if (Event.current != null)
+                mousePosition = Event.current.mousePosition;
+
+
+            LoadResources();
+
+            GUILayout.Space(10);
+            using (new EditorGUIHelper.EditorGUILayoutBeginHorizontal())
             {
-                EditorWindow window = EditorWindow.GetWindow(typeof(CurvedWorldEditorWindow));
-                window.titleContent = new GUIContent("Curved World");
+                GUILayout.Space(5);
+                DrawOptions();
 
-                window.minSize = new Vector2(750, 600);
-
-                activeWindow = (CurvedWorldEditorWindow)window;
-
-
-
-                //Rebuild
-                EditorUtilities.RebuildProjectBendsInfo();
+                GUILayout.Space(5);
+                scroll = EditorGUILayout.BeginScrollView(scroll);
+                DrawTabs();
+                EditorGUILayout.EndScrollView();
             }
 
 
-            private void OnDestroy()
+            if (Event.current.keyCode == KeyCode.Escape)
             {
-                activeWindow = null;
+                gRenderersOverviewEditIndex = null;
+                gRenderersOverviewEditString = string.Empty;
+                GUIUtility.keyboardControl = 0;
 
-                if (CurvedWorldMaterialDuplicateEditorWindow.window != null)
-                    CurvedWorldMaterialDuplicateEditorWindow.window.Close();
+                Repaint();
+            }
+        }
 
-                if (CurvedWorldBendSettingsEditorWindow.window != null)
-                    CurvedWorldBendSettingsEditorWindow.window.Close();
+
+
+        void LoadResources()
+        {
+            if (guiStyleOptionsHeader == null)
+            {
+                guiStyleOptionsHeader = new GUIStyle((GUIStyle)"SettingsHeader");
             }
 
-            private void OnDisable()
+            if (guiStyleOptionsHeaderHeight == 0)
+                guiStyleOptionsHeaderHeight = Mathf.CeilToInt(guiStyleOptionsHeader.CalcSize(new GUIContent("Manage")).y);
+
+
+            if (guiStyleControllersButton == null)
             {
-                activeWindow = null;
+                guiStyleControllersButton = new GUIStyle(EditorStyles.miniButtonRight);
+                guiStyleControllersButton.alignment = TextAnchor.MiddleLeft;
             }
 
-            void OnFocus()
+            if (guiStyleAnalyzeSaveButton == null)
             {
-                gSceneControllers = null;
-
-                if (gTab == TAB.RenderersOverview)
-                    RebuildSceneShadersOverview();
-
-                if(gTab == TAB.CurvedWorldKeywords)
-                    gCurvedWorldKeywordsShaderInfo = new EditorUtilities.ShaderCurvedWorldKeywordsInfo(gCurvedWorldKeywordsShader);
-
-
-                shaderPackages = null;
-
-                Undo.undoRedoPerformed -= CallbackUndo;
-                Undo.undoRedoPerformed += CallbackUndo;
-
-
-                UnityEditor.EditorUtility.ClearProgressBar();
+                guiStyleAnalyzeSaveButton = new GUIStyle(EditorStyles.miniButtonLeft);
+                guiStyleAnalyzeSaveButton.richText = true;
             }
 
-            void OnGUI()
+
+            if (gRenderersOverviewModeRectWidth == 0)
+                gRenderersOverviewModeRectWidth = Mathf.CeilToInt(EditorStyles.popup.CalcSize(new GUIContent("Selected Objects")).x + 10);
+
+
+            if (guiStyleButtonTab == null)
+                guiStyleButtonTab = new GUIStyle(GUIStyle.none);
+            if (UnityEditor.EditorGUIUtility.isProSkin)
+                guiStyleButtonTab.normal.textColor = Color.white * 0.95f;
+
+            if (iconForum == null)
+                iconForum = EditorUtilities.LoadTexture("IconForum", TextureWrapMode.Clamp, false);
+
+            if (iconManual == null)
+                iconManual = EditorUtilities.LoadTexture("IconManual", TextureWrapMode.Clamp, false);
+
+            if (iconSupport == null)
+                iconSupport = EditorUtilities.LoadTexture("IconSupport", TextureWrapMode.Clamp, false);
+
+            if (iconRate == null)
+                iconRate = EditorUtilities.LoadTexture("IconRate", TextureWrapMode.Clamp, false);
+
+            if (iconMore == null)
+                iconMore = EditorUtilities.LoadTexture("IconMore", TextureWrapMode.Clamp, false);
+
+            if (iconMaterial == null)
+                iconMaterial = EditorUtilities.LoadTexture("IconMaterial", TextureWrapMode.Clamp, false);
+
+            if (iconShader == null)
+                iconShader = EditorUtilities.LoadTexture("IconShader", TextureWrapMode.Clamp, false);
+
+            if (iconSelection == null)
+                iconSelection = EditorUtilities.LoadTexture("IconSelection", TextureWrapMode.Clamp, false);
+        }
+
+        void DrawOptions()
+        {
+            using (new EditorGUIHelper.EditorGUILayoutBeginVertical(GUILayout.MaxWidth(100)))
             {
-                activeWindow = this;
 
-
-                if (Event.current != null)
-                    mousePosition = Event.current.mousePosition;
-
-
-                LoadResources();
-
-                GUILayout.Space(10);
-                using (new AmazingAssets.EditorGUIUtility.EditorGUILayoutBeginHorizontal())
-                {
-                    GUILayout.Space(5);
-                    DrawOptions();
-
-                    GUILayout.Space(5);
-                    scroll = EditorGUILayout.BeginScrollView(scroll);
-                    DrawTabs();
-                    EditorGUILayout.EndScrollView();
-                }
-
-
-                if (Event.current.keyCode == KeyCode.Escape)
-                {
-                    gRenderersOverviewEditIndex = null;
-                    gRenderersOverviewEditString = string.Empty;
-                    GUIUtility.keyboardControl = 0;
-
-                    Repaint();
-                }
-            }
-
-            void LoadResources()
-            {
-                if (guiStyleOptionsHeader == null)
-                {
-                    guiStyleOptionsHeader = new GUIStyle((GUIStyle)"SettingsHeader");
-                }
-
-                if (guiStyleOptionsHeaderHeight == 0)
-                    guiStyleOptionsHeaderHeight = Mathf.CeilToInt(guiStyleOptionsHeader.CalcSize(new GUIContent("Manage")).y);
-
-
-                if (guiStyleControllersButton == null)
-                {
-                    guiStyleControllersButton = new GUIStyle(EditorStyles.miniButtonRight);
-                    guiStyleControllersButton.alignment = TextAnchor.MiddleLeft;
-                }
-
-                if (guiStyleAnalyzeSaveButton == null)
-                {
-                    guiStyleAnalyzeSaveButton = new GUIStyle(EditorStyles.miniButtonLeft);
-                    guiStyleAnalyzeSaveButton.richText = true;
-                }
-
-
-                if (gRenderersOverviewModeRectWidth == 0)
-                    gRenderersOverviewModeRectWidth = Mathf.CeilToInt(EditorStyles.popup.CalcSize(new GUIContent("Selected Objects")).x + 10);
-
-
-                if (guiStyleButtonTab == null)
-                    guiStyleButtonTab = new GUIStyle(GUIStyle.none);
-                if (UnityEditor.EditorGUIUtility.isProSkin)
-                    guiStyleButtonTab.normal.textColor = Color.white * 0.95f;
-            }
-
-            void DrawOptions()
-            {
-                using (new AmazingAssets.EditorGUIUtility.EditorGUILayoutBeginVertical(GUILayout.MaxWidth(100)))
-                {
-
-                    for (int i = 0; i < preferencesNames.Length; i++)
-                    {
-                        EditorGUILayout.LabelField(string.Empty);
-                        Rect rc = GUILayoutUtility.GetLastRect();
-
-
-                        EditorGUI.DrawRect(rc, gTab == (TAB)i ? (EditorWindow.focusedWindow == this ? GUI.skin.settings.selectionColor : (UnityEditor.EditorGUIUtility.isProSkin ? Color.white * 0.45f : Color.gray * 0.1f)) : Color.clear);
-                        if (GUI.Button(rc, " " + preferencesNames[i], guiStyleButtonTab))
-                        {
-                            gTab = (TAB)i;
-
-                            if (gTab == TAB.Controllers)
-                                FindSceneCurvedWorldControllers();
-
-
-                            if (gTab == TAB.RenderersOverview)
-                                RebuildSceneShadersOverview();
-                        }
-                    }
-
-
-                    EditorGUI.DrawRect(new Rect(GUILayoutUtility.GetLastRect().xMax, 0, 1, this.position.height), Color.gray * 0.2f);
-                }
-            }
-
-            void DrawTabs()
-            {
-                EditorGUILayout.BeginVertical();
-
-                switch (gTab)
-                {
-                    case TAB.Manage: DrawTab_Manage(); break;
-                    case TAB.Controllers: DrawTab_Controllers(); break;
-                    case TAB.RenderersOverview: DrawTab_RenderersOverview(); break;
-                    case TAB.CurvedWorldKeywords: DrawTab_CurvedWorldKeywords(); break;
-                    case TAB.Activator: DrawTab_Activator(); break;
-                    case TAB.ShaderPackages: Draw_ShaderPackages(); break;
-                    case TAB.About: Draw_AboutTab(); break;
-
-                    default: break;
-                }
-
-
-                EditorGUILayout.EndVertical();
-            }
-
-            void DrawTab_Manage()
-            {
-                EditorGUILayout.LabelField(preferencesNames[(int)TAB.Manage], guiStyleOptionsHeader, GUILayout.Height(guiStyleOptionsHeaderHeight));
-                GUILayout.Space(15);
-
-
-
-                EditorGUILayout.LabelField("Bend Type");
-                Rect rc = GUILayoutUtility.GetLastRect();
-                rc.xMin += UnityEditor.EditorGUIUtility.labelWidth;
-                if (GUI.Button(rc, EditorUtilities.GetBendTypeNameInfo(gBendType).forLable, EditorStyles.popup))
-                {
-                    GenericMenu menu = EditorUtilities.BuildBendTypesMenu(gBendType, CallbackBendTypeMenu);
-
-                    menu.DropDown(new Rect(rc.xMin, rc.yMin, 200, UnityEditor.EditorGUIUtility.singleLineHeight));
-                }
-
-                gBendID = EditorGUILayout.IntSlider("Bend ID", gBendID, 1, EditorUtilities.MAX_SUPPORTED_BEND_IDS);
-
-
-
-                GUILayout.Space(25);
-
-                string mainCGINCFilePath = EditorUtilities.GetBendFileLocation(gBendType, gBendID, EditorUtilities.EXTENSTION.cginc);
-                if (File.Exists(mainCGINCFilePath) == false)
-                {
-                    using (new AmazingAssets.EditorGUIUtility.GUIBackgroundColor(GUI.skin.settings.selectionColor))
-                    {
-                        if (GUILayout.Button("Generate"))
-                        {
-                            EditorUtilities.CreateCGINCFile(gBendType, gBendID);
-
-                            AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
-
-
-                            //Rebuild
-                            EditorUtilities.RebuildProjectBendsInfo();
-                        }
-                    }
-                }
-                else
-                {
-                    EditorGUILayout.LabelField("Source", EditorStyles.miniLabel);
-                    using (new AmazingAssets.EditorGUIUtility.EditorGUILayoutBeginVertical(EditorStyles.helpBox))
-                    {
-                        using (new AmazingAssets.EditorGUIUtility.EditorGUILayoutBeginHorizontal())
-                        {
-                            EditorGUILayout.ObjectField("CGINC File", AssetDatabase.LoadAssetAtPath(mainCGINCFilePath, typeof(UnityEngine.Object)), typeof(UnityEngine.Object), false);
-
-                            using (new AmazingAssets.EditorGUIUtility.GUIBackgroundColor(GUI.skin.settings.selectionColor))
-                            {
-                                if (GUILayout.Button("Copy Path", GUILayout.MaxWidth(100)))
-                                {
-                                    TextEditor te = new TextEditor();
-                                    te.text = "\"" + mainCGINCFilePath + "\"";
-                                    te.text = te.text.Replace(Path.DirectorySeparatorChar, '/');
-                                    te.text = "#include " + te.text.Replace('\\', '/');
-                                    te.SelectAll();
-                                    te.Copy();
-                                }
-                            }
-                        }
-
-                        using (new AmazingAssets.EditorGUIUtility.EditorGUILayoutBeginHorizontal())
-                        {
-                            EditorGUILayout.TextField("Method Name", Path.GetFileNameWithoutExtension(mainCGINCFilePath));
-
-                            using (new AmazingAssets.EditorGUIUtility.GUIBackgroundColor(GUI.skin.settings.selectionColor))
-                            {
-                                if (GUILayout.Button("Copy", GUILayout.MaxWidth(100)))
-                                {
-                                    TextEditor te = new TextEditor();
-                                    te.text = Path.GetFileNameWithoutExtension(mainCGINCFilePath);
-                                    te.SelectAll();
-                                    te.Copy();
-                                }
-                            }
-                        }
-                    }
-
-                    GUILayout.Space(15);
-                    EditorGUILayout.LabelField("Keywords", EditorStyles.miniLabel);
-                    using (new AmazingAssets.EditorGUIUtility.EditorGUILayoutBeginVertical(EditorStyles.helpBox))
-                    {
-                        using (new AmazingAssets.EditorGUIUtility.EditorGUILayoutBeginHorizontal())
-                        {
-                            EditorGUILayout.TextField("Bend Type", EditorUtilities.shaderKeywordPrefix_BendType + gBendType.ToString().ToUpperInvariant());
-
-                            using (new AmazingAssets.EditorGUIUtility.GUIBackgroundColor(GUI.skin.settings.selectionColor))
-                            {
-                                if (GUILayout.Button("Copy", GUILayout.MaxWidth(100)))
-                                {
-                                    TextEditor te = new TextEditor();
-                                    te.text = EditorUtilities.shaderKeywordPrefix_BendType + gBendType.ToString().ToUpperInvariant();
-                                    te.SelectAll();
-                                    te.Copy();
-                                }
-                            }
-                        }
-
-                        using (new AmazingAssets.EditorGUIUtility.EditorGUILayoutBeginHorizontal())
-                        {
-                            EditorGUILayout.TextField("Bend ID", EditorUtilities.shaderKeywordPrefix_BendID + gBendID);
-
-                            using (new AmazingAssets.EditorGUIUtility.GUIBackgroundColor(GUI.skin.settings.selectionColor))
-                            {
-                                if (GUILayout.Button("Copy", GUILayout.MaxWidth(100)))
-                                {
-                                    TextEditor te = new TextEditor();
-                                    te.text = EditorUtilities.shaderKeywordPrefix_BendID + gBendID;
-                                    te.SelectAll();
-                                    te.Copy();
-                                }
-                            }
-                        }
-                    }
-
-
-                    GUILayout.Space(15);
-                    EditorGUILayout.LabelField("Custom Shader", EditorStyles.miniLabel);
-                    using (new AmazingAssets.EditorGUIUtility.EditorGUILayoutBeginVertical(EditorStyles.helpBox))
-                    {
-                        using (new AmazingAssets.EditorGUIUtility.EditorGUILayoutBeginHorizontal())
-                        {
-                            EditorGUILayout.LabelField("Material Properties");
-
-                            using (new AmazingAssets.EditorGUIUtility.GUIBackgroundColor(GUI.skin.settings.selectionColor))
-                            {
-                                if (GUILayout.Button("Copy", GUILayout.MaxWidth(100)))
-                                {
-                                    TextEditor te = new TextEditor();
-                                    te.text = "[CurvedWorldBendSettings] _CurvedWorldBendSettings(\"" + (int)gBendType + "|" + gBendID + "|1\", Vector) = (0, 0, 0, 0)";
-                                    te.SelectAll();
-                                    te.Copy();
-                                }
-                            }
-                        }
-
-                        using (new AmazingAssets.EditorGUIUtility.EditorGUILayoutBeginHorizontal())
-                        {
-                            EditorGUILayout.LabelField("Definitions");
-
-                            using (new AmazingAssets.EditorGUIUtility.GUIBackgroundColor(GUI.skin.settings.selectionColor))
-                            {
-                                if (GUILayout.Button("Copy", GUILayout.MaxWidth(100)))
-                                {
-                                    TextEditor te = new TextEditor();
-                                    te.text = "#define " + EditorUtilities.shaderKeywordPrefix_BendType + (gBendType).ToString().ToUpperInvariant();
-                                    te.text += System.Environment.NewLine + "#define " + EditorUtilities.shaderKeywordPrefix_BendID + gBendID;
-                                    te.text += System.Environment.NewLine + "#pragma shader_feature_local " + EditorUtilities.shaderKeywordName_CurvedWorldDisabled;
-                                    te.text += System.Environment.NewLine + "#pragma shader_feature_local " + EditorUtilities.shaderKeywordName_BendTransformNormal;
-
-
-                                    te.text += System.Environment.NewLine + EditorUtilities.GetCoreTransformFilePathForShader();
-
-                                    te.SelectAll();
-                                    te.Copy();
-                                }
-                            }
-                        }
-
-                        using (new AmazingAssets.EditorGUIUtility.EditorGUILayoutBeginHorizontal())
-                        {
-                            EditorGUILayout.LabelField("Vertex Transformations");
-
-                            using (new AmazingAssets.EditorGUIUtility.GUIBackgroundColor(GUI.skin.settings.selectionColor))
-                            {
-                                if (GUILayout.Button("Copy", GUILayout.MaxWidth(100)))
-                                {
-                                    TextEditor te = new TextEditor();
-                                    te.text = "#if defined(CURVEDWORLD_IS_INSTALLED) && !defined(CURVEDWORLD_DISABLED_ON)";
-                                    te.text += System.Environment.NewLine + "   #ifdef CURVEDWORLD_NORMAL_TRANSFORMATION_ON";
-
-
-                                    te.text += System.Environment.NewLine + "      CURVEDWORLD_TRANSFORM_VERTEX_AND_NORMAL(v.vertex, v.normal, v.tangent)";
-                                    te.text += System.Environment.NewLine + "   #else";
-                                    te.text += System.Environment.NewLine + "      CURVEDWORLD_TRANSFORM_VERTEX(v.vertex)";
-
-
-                                    te.text += System.Environment.NewLine + "   #endif";
-                                    te.text += System.Environment.NewLine + "#endif";
-
-                                    te.SelectAll();
-                                    te.Copy();
-                                }
-                            }
-                        }
-                    }
-
-
-                    GUILayout.Space(15);
-                    using (new AmazingAssets.EditorGUIUtility.EditorGUILayoutBeginHorizontal())
-                    {
-                        //Unity Shader Graph
-                        using (new AmazingAssets.EditorGUIUtility.EditorGUILayoutBeginVertical(EditorStyles.helpBox))
-                        {
-                            EditorGUILayout.LabelField("Unity Shader Sub-Graph", EditorStyles.miniLabel);
-
-                            using (new AmazingAssets.EditorGUIUtility.GUIEnabled(EditorUtilities.CanGenerateUnityShaderGrap()))
-                            {
-                                using (new AmazingAssets.EditorGUIUtility.EditorGUILayoutBeginHorizontal())
-                                {
-                                    if (GUILayout.Button(new GUIContent("Vertex", "Vertex Transformation"), EditorStyles.miniButtonLeft))
-                                    {
-                                        string subGrapFileLocation = EditorUtilities.GetBendFileLocation(gBendType, gBendID, EditorUtilities.EXTENSTION.UnityShaderGraphVertex);
-
-                                        if (File.Exists(subGrapFileLocation))
-                                        {
-                                            PingObject(subGrapFileLocation);
-                                        }
-                                        else
-                                        {
-                                            string fileGIUD = AssetDatabase.AssetPathToGUID(mainCGINCFilePath);
-
-                                            if (string.IsNullOrEmpty(fileGIUD) == false)
-                                            {
-                                                EditorUtilities.CreateSubGraphFile(gBendType, gBendID, fileGIUD, EditorUtilities.EXTENSTION.UnityShaderGraphVertex);
-
-                                                AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
-
-
-                                                PingObject(EditorUtilities.GetBendFileLocation(gBendType, gBendID, EditorUtilities.EXTENSTION.UnityShaderGraphVertex));
-                                            }
-                                        }
-                                    }
-
-                                    if (GUILayout.Button(new GUIContent("Vertex + Normal", "Vertex And Normal Transformation"), EditorStyles.miniButtonRight))
-                                    {
-                                        string subGrapFileLocation = EditorUtilities.GetBendFileLocation(gBendType, gBendID, EditorUtilities.EXTENSTION.UnityShaderGraphNormal);
-
-                                        if (File.Exists(subGrapFileLocation))
-                                        {
-                                            PingObject(subGrapFileLocation);
-                                        }
-                                        else
-                                        {
-                                            string fileGIUD = AssetDatabase.AssetPathToGUID(mainCGINCFilePath);
-
-                                            if (string.IsNullOrEmpty(fileGIUD) == false)
-                                            {
-                                                EditorUtilities.CreateSubGraphFile(gBendType, gBendID, fileGIUD, EditorUtilities.EXTENSTION.UnityShaderGraphNormal);
-
-                                                AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
-
-
-                                                PingObject(EditorUtilities.GetBendFileLocation(gBendType, gBendID, EditorUtilities.EXTENSTION.UnityShaderGraphNormal));
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        //Amplify Shader Editor
-                        GUILayout.Space(5);
-                        using (new AmazingAssets.EditorGUIUtility.EditorGUILayoutBeginVertical(EditorStyles.helpBox))
-                        {
-                            EditorGUILayout.LabelField("Amplify Shader Function", EditorStyles.miniLabel);
-
-                            using (new AmazingAssets.EditorGUIUtility.GUIEnabled(EditorUtilities.CanGenerateAmplifyShaderFuntion()))
-                            {
-                                using (new AmazingAssets.EditorGUIUtility.EditorGUILayoutBeginHorizontal())
-                                {
-                                    if (GUILayout.Button(new GUIContent("Vertex", "Vertex Transformation"), EditorStyles.miniButtonLeft))
-                                    {
-                                        string subGrapFileLocation = EditorUtilities.GetBendFileLocation(gBendType, gBendID, EditorUtilities.EXTENSTION.AmplifyShaderEditorVertex);
-
-                                        if (File.Exists(subGrapFileLocation))
-                                        {
-                                            PingObject(subGrapFileLocation);
-                                        }
-                                        else
-                                        {
-                                            string fileGIUD = AssetDatabase.AssetPathToGUID(mainCGINCFilePath);
-
-                                            if (string.IsNullOrEmpty(fileGIUD) == false)
-                                            {
-                                                EditorUtilities.CreateSubGraphFile(gBendType, gBendID, fileGIUD, EditorUtilities.EXTENSTION.AmplifyShaderEditorVertex);
-
-                                                AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
-
-
-                                                PingObject(EditorUtilities.GetBendFileLocation(gBendType, gBendID, EditorUtilities.EXTENSTION.AmplifyShaderEditorVertex));
-                                            }
-                                        }
-                                    }
-
-                                    if (GUILayout.Button(new GUIContent("Vertex + Normal", "Vertex And Normal Transformation"), EditorStyles.miniButtonMid))
-                                    {
-                                        string subGrapFileLocation = EditorUtilities.GetBendFileLocation(gBendType, gBendID, EditorUtilities.EXTENSTION.AmplifyShaderEditorNormal);
-
-                                        if (File.Exists(subGrapFileLocation))
-                                        {
-                                            PingObject(subGrapFileLocation);
-                                        }
-                                        else
-                                        {
-                                            string fileGIUD = AssetDatabase.AssetPathToGUID(mainCGINCFilePath);
-
-                                            if (string.IsNullOrEmpty(fileGIUD) == false)
-                                            {
-                                                EditorUtilities.CreateSubGraphFile(gBendType, gBendID, fileGIUD, EditorUtilities.EXTENSTION.AmplifyShaderEditorNormal);
-
-                                                AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
-
-
-                                                PingObject(EditorUtilities.GetBendFileLocation(gBendType, gBendID, EditorUtilities.EXTENSTION.AmplifyShaderEditorNormal));
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-
-                    GUILayout.Space(15);
-                    EditorGUILayout.LabelField("Definitions", EditorStyles.miniLabel);
-                    using (new AmazingAssets.EditorGUIUtility.EditorGUILayoutBeginVertical(EditorStyles.helpBox))
-                    {
-                        using (new AmazingAssets.EditorGUIUtility.EditorGUILayoutBeginHorizontal())
-                        {
-                            EditorGUILayout.TextField("Curved World Installed", "CURVEDWORLD_IS_INSTALLED");
-
-                            using (new AmazingAssets.EditorGUIUtility.GUIBackgroundColor(GUI.skin.settings.selectionColor))
-                            {
-                                if (GUILayout.Button("Copy", GUILayout.MaxWidth(100)))
-                                {
-                                    TextEditor te = new TextEditor();
-                                    te.text = "CURVEDWORLD_IS_INSTALLED";
-                                    te.SelectAll();
-                                    te.Copy();
-                                }
-                            }
-                        }
-
-                        using (new AmazingAssets.EditorGUIUtility.EditorGUILayoutBeginHorizontal())
-                        {
-                            EditorGUILayout.TextField("Normal Transformation On", "CURVEDWORLD_NORMAL_TRANSFORMATION_ON");
-
-                            using (new AmazingAssets.EditorGUIUtility.GUIBackgroundColor(GUI.skin.settings.selectionColor))
-                            {
-                                if (GUILayout.Button("Copy", GUILayout.MaxWidth(100)))
-                                {
-                                    TextEditor te = new TextEditor();
-                                    te.text = "CURVEDWORLD_NORMAL_TRANSFORMATION_ON";
-                                    te.SelectAll();
-                                    te.Copy();
-                                }
-                            }
-                        }
-                    }
-
-
-                    GUILayout.Space(15);
-                    EditorGUILayout.LabelField("Transformation Macros", EditorStyles.miniLabel);
-                    using (new AmazingAssets.EditorGUIUtility.EditorGUILayoutBeginVertical(EditorStyles.helpBox))
-                    {
-                        using (new AmazingAssets.EditorGUIUtility.EditorGUILayoutBeginHorizontal())
-                        {
-                            EditorGUILayout.TextField("Vertex", "CURVEDWORLD_TRANSFORM_VERTEX");
-
-                            using (new AmazingAssets.EditorGUIUtility.GUIBackgroundColor(GUI.skin.settings.selectionColor))
-                            {
-                                if (GUILayout.Button("Copy", GUILayout.MaxWidth(100)))
-                                {
-                                    TextEditor te = new TextEditor();
-                                    te.text = "CURVEDWORLD_TRANSFORM_VERTEX";
-                                    te.SelectAll();
-                                    te.Copy();
-                                }
-                            }
-                        }
-
-                        using (new AmazingAssets.EditorGUIUtility.EditorGUILayoutBeginHorizontal())
-                        {
-                            EditorGUILayout.TextField("Vertex And Normal", "CURVEDWORLD_TRANSFORM_VERTEX_AND_NORMAL");
-
-                            using (new AmazingAssets.EditorGUIUtility.GUIBackgroundColor(GUI.skin.settings.selectionColor))
-                            {
-                                if (GUILayout.Button("Copy", GUILayout.MaxWidth(100)))
-                                {
-                                    TextEditor te = new TextEditor();
-                                    te.text = "CURVEDWORLD_TRANSFORM_VERTEX_AND_NORMAL";
-                                    te.SelectAll();
-                                    te.Copy();
-                                }
-                            }
-                        }
-                    }
-
-
-
-
-                    //if (GUILayout.Button("Regenrerate Core Transform File"))
-                    //{
-                    //    GenerateCoreTransformFile();
-                    //}
-                }
-            }
-
-            void DrawTab_Controllers()
-            {
-                EditorGUILayout.LabelField(preferencesNames[(int)TAB.Controllers], guiStyleOptionsHeader, GUILayout.Height(guiStyleOptionsHeaderHeight));
-                GUILayout.Space(15);
-
-                if (gSceneControllers == null)
-                    FindSceneCurvedWorldControllers();
-
-                if (gSceneControllers.Length == 0 || (gSceneControllers.Length == 1 && gSceneControllers[0] == null))
-                {
-                    using (new AmazingAssets.EditorGUIUtility.GUIBackgroundColor(GUI.skin.settings.selectionColor))
-                    {
-                        if (GUILayout.Button("Create"))
-                        {
-                            GameObject gameObject = new GameObject("Curved World Controller");
-                            Undo.RegisterCreatedObjectUndo(gameObject, "Created Curved World Controller");
-
-                            gameObject.transform.position = Vector3.zero;
-                            gameObject.transform.rotation = Quaternion.identity;
-                            gameObject.transform.localScale = Vector3.one;
-
-                            gameObject.AddComponent<CurvedWorld.CurvedWorldController>();
-
-
-                            gSceneControllers = null;
-                            Repaint();
-                        }
-                    }
-                }
-                else
-                {
-
-                    for (int i = 0; i < gSceneControllers.Length; i++)
-                    {
-                        if (gSceneControllers[i] != null)
-                        {
-                            using (new AmazingAssets.EditorGUIUtility.GUILayoutBeginVertical(EditorStyles.helpBox))
-                            {
-                                string headerName = " [ID: " + gSceneControllers[i].bendID + "]   " + EditorUtilities.GetBendTypeNameInfo(gSceneControllers[i].bendType).forLable;
-
-                                using (new AmazingAssets.EditorGUIUtility.GUIBackgroundColor(GUI.skin.settings.selectionColor))
-                                {
-                                    using (new AmazingAssets.EditorGUIUtility.GUIEnabled(gSceneControllers[i].enabled && gSceneControllers[i].gameObject.activeInHierarchy))
-                                    {
-                                        if (GUILayout.Button(headerName, guiStyleControllersButton))
-                                        {
-                                            gSceneControllers[i].isExpanded = !gSceneControllers[i].isExpanded;
-                                        }
-                                    }
-                                }
-
-
-
-                                if (gSceneControllers[i].isExpanded)
-                                {
-                                    using (new AmazingAssets.EditorGUIUtility.GUIEnabled(gSceneControllers[i].gameObject.activeInHierarchy))
-                                    {
-                                        EditorGUILayout.ObjectField("Object", gSceneControllers[i].gameObject, typeof(GameObject), false);
-
-
-                                        bool isEnabled = gSceneControllers[i].enabled;
-                                        EditorGUI.BeginChangeCheck();
-                                        isEnabled = EditorGUILayout.Toggle("Enable", gSceneControllers[i].enabled);
-                                        if (EditorGUI.EndChangeCheck())
-                                        {
-                                            Undo.RecordObject(gSceneControllers[i], "Script enabled");
-                                            gSceneControllers[i].enabled = isEnabled;
-                                        }
-                                    }
-
-                                    Editor editor = Editor.CreateEditor(gSceneControllers[i]);
-                                    editor.OnInspectorGUI();
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            void DrawTab_RenderersOverview()
-            {
-                EditorGUILayout.LabelField(preferencesNames[(int)TAB.RenderersOverview], guiStyleOptionsHeader, GUILayout.Height(guiStyleOptionsHeaderHeight));
-                GUILayout.Space(15);
-
-
-
-                if (gRenderersOverviewList == null)
-                    RebuildSceneShadersOverview();
-
-
-                Rect materialsAndShadersCountRect;
-                int totalMaterialsCount = 0;
-                List<Shader> totalShadersCount = new List<Shader>();
-
-
-                using (new AmazingAssets.EditorGUIUtility.EditorGUILayoutBeginHorizontal())
-                {
-                    EditorGUI.BeginChangeCheck();
-                    using (new AmazingAssets.EditorGUIUtility.GUIBackgroundColor(gRenderersOverviewMode == RENDERERS_OVERVIEW_MODE.SelectedOjects ? Color.yellow : Color.white))
-                    {
-                        gRenderersOverviewMode = (RENDERERS_OVERVIEW_MODE)EditorGUILayout.EnumPopup(gRenderersOverviewMode, GUILayout.Width(gRenderersOverviewModeRectWidth));
-                    }
-                    if (EditorGUI.EndChangeCheck())
-                    {
-                        RebuildSceneShadersOverview();
-                    }
-
-                    using (new AmazingAssets.EditorGUIUtility.GUIBackgroundColor(string.IsNullOrEmpty(gRenderersOverviewFilter) ? Color.white : Color.yellow))
-                    {
-                        gRenderersOverviewFilter = EditorGUILayout.TextField(string.Empty, gRenderersOverviewFilter, EditorStyles.toolbarSearchField);
-                    }
-
-                    using (new AmazingAssets.EditorGUIUtility.GUIEnabled(!string.IsNullOrEmpty(gRenderersOverviewFilter)))
-                    {
-                        gRenderersOverviewSearchOption = (SEARCH_OPTION)EditorGUILayout.EnumPopup(gRenderersOverviewSearchOption, GUILayout.MaxWidth(110));
-
-
-                        Rect incudeRect = EditorGUILayout.GetControlRect(GUILayout.MaxWidth(129));
-                        if (GUI.Toggle(new Rect(incudeRect.xMin, incudeRect.yMin, incudeRect.width * 0.5f, incudeRect.height), !gRenderersOverviewFilterExclude, "Include", "Button"))
-                        {
-                            gRenderersOverviewFilterExclude = false;
-                        }
-                        if (GUI.Toggle(new Rect(incudeRect.xMin + incudeRect.width * 0.5f, incudeRect.yMin, incudeRect.width * 0.5f, incudeRect.height), gRenderersOverviewFilterExclude, "Exclude", "Button"))
-                        {
-                            gRenderersOverviewFilterExclude = true;
-                        }
-                    }
-                }
-
-                using (new AmazingAssets.EditorGUIUtility.EditorGUILayoutBeginHorizontal())
+                for (int i = 0; i < preferencesNames.Length; i++)
                 {
                     EditorGUILayout.LabelField(string.Empty);
-
-                    //Material & Shaders icon
-                    materialsAndShadersCountRect = GUILayoutUtility.GetLastRect();
+                    Rect rc = GUILayoutUtility.GetLastRect();
 
 
-                    using (new AmazingAssets.EditorGUIUtility.GUIBackgroundColor(GUI.skin.settings.selectionColor))
+                    EditorGUI.DrawRect(rc, gTab == (TAB)i ? (EditorWindow.focusedWindow == this ? GUI.skin.settings.selectionColor : (UnityEditor.EditorGUIUtility.isProSkin ? Color.white * 0.45f : Color.gray * 0.1f)) : Color.clear);
+                    if (GUI.Button(rc, " " + preferencesNames[i], guiStyleButtonTab))
                     {
-                        Rect buttonRect = EditorGUILayout.GetControlRect(GUILayout.MaxWidth(129));
+                        gTab = (TAB)i;
 
-                        if (GUI.Button(new Rect(buttonRect.xMin, buttonRect.yMin, buttonRect.width - 20, buttonRect.height), "Refresh", EditorStyles.miniButtonLeft))
-                        {
+                        if (gTab == TAB.Controllers)
+                            FindSceneCurvedWorldControllers();
+
+
+                        if (gTab == TAB.RenderersOverview)
                             RebuildSceneShadersOverview();
-                            Repaint();
-                        }
+                    }
+                }
 
-                        if (GUI.Button(new Rect(buttonRect.xMax - 20, buttonRect.yMin, 20, buttonRect.height), "≡", EditorStyles.miniButtonRight))
+
+                EditorGUI.DrawRect(new Rect(GUILayoutUtility.GetLastRect().xMax, 0, 1, this.position.height), Color.gray * 0.2f);
+            }
+        }
+
+        void DrawTabs()
+        {
+            EditorGUILayout.BeginVertical();
+
+            switch (gTab)
+            {
+                case TAB.Manage: DrawTab_Manage(); break;
+                case TAB.Controllers: DrawTab_Controllers(); break;
+                case TAB.RenderersOverview: DrawTab_RenderersOverview(); break;
+                case TAB.CurvedWorldKeywords: DrawTab_CurvedWorldKeywords(); break;
+                case TAB.Activator: DrawTab_Activator(); break;
+                case TAB.ShaderPackages: Draw_ShaderPackages(); break;
+                case TAB.About: Draw_AboutTab(); break;
+
+                default: break;
+            }
+
+
+            EditorGUILayout.EndVertical();
+        }
+
+
+
+        void DrawTab_Manage()
+        {
+            EditorGUILayout.LabelField(preferencesNames[(int)TAB.Manage], guiStyleOptionsHeader, GUILayout.Height(guiStyleOptionsHeaderHeight));
+            GUILayout.Space(15);
+
+
+
+            EditorGUILayout.LabelField("Bend Type");
+            Rect rc = GUILayoutUtility.GetLastRect();
+            rc.xMin += UnityEditor.EditorGUIUtility.labelWidth;
+            if (GUI.Button(rc, EditorUtilities.GetBendTypeNameInfo(gBendType).forLable, EditorStyles.popup))
+            {
+                GenericMenu menu = EditorUtilities.BuildBendTypesMenu(gBendType, CallbackBendTypeMenu);
+
+                menu.DropDown(new Rect(rc.xMin, rc.yMin, 200, UnityEditor.EditorGUIUtility.singleLineHeight));
+            }
+
+            gBendID = EditorGUILayout.IntSlider("Bend ID", gBendID, 1, EditorUtilities.MAX_SUPPORTED_BEND_IDS);
+
+
+
+            GUILayout.Space(25);
+
+            string mainCGINCFilePath = EditorUtilities.GetBendFileLocation(gBendType, gBendID, EditorUtilities.EXTENSTION.cginc);
+            if (File.Exists(mainCGINCFilePath) == false)
+            {
+                using (new EditorGUIHelper.GUIBackgroundColor(GUI.skin.settings.selectionColor))
+                {
+                    if (GUILayout.Button("Generate"))
+                    {
+                        EditorUtilities.CreateCGINCFile(gBendType, gBendID);
+
+                        AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
+
+
+                        //Rebuild
+                        EditorUtilities.RebuildProjectBendsInfo();
+                    }
+                }
+            }
+            else
+            {
+                EditorGUILayout.LabelField("Source", EditorStyles.miniLabel);
+                using (new EditorGUIHelper.EditorGUILayoutBeginVertical(EditorStyles.helpBox))
+                {
+                    using (new EditorGUIHelper.EditorGUILayoutBeginHorizontal())
+                    {
+                        EditorGUILayout.ObjectField("CGINC File", AssetDatabase.LoadAssetAtPath(mainCGINCFilePath, typeof(UnityEngine.Object)), typeof(UnityEngine.Object), false);
+
+                        using (new EditorGUIHelper.GUIBackgroundColor(GUI.skin.settings.selectionColor))
                         {
-                            gRenderersOverviewEditIndex = null;
+                            if (GUILayout.Button("Copy Path", GUILayout.MaxWidth(100)))
+                            {
+                                TextEditor te = new TextEditor();
+                                te.text = "\"" + mainCGINCFilePath + "\"";
+                                te.text = te.text.Replace(Path.DirectorySeparatorChar, '/');
+                                te.text = "#include " + te.text.Replace('\\', '/');
+                                te.SelectAll();
+                                te.Copy();
+                            }
+                        }
+                    }
 
+                    using (new EditorGUIHelper.EditorGUILayoutBeginHorizontal())
+                    {
+                        EditorGUILayout.TextField("Method Name", Path.GetFileNameWithoutExtension(mainCGINCFilePath));
 
-                            GenericMenu menu = new GenericMenu();
+                        using (new EditorGUIHelper.GUIBackgroundColor(GUI.skin.settings.selectionColor))
+                        {
+                            if (GUILayout.Button("Copy", GUILayout.MaxWidth(100)))
+                            {
+                                TextEditor te = new TextEditor();
+                                te.text = Path.GetFileNameWithoutExtension(mainCGINCFilePath);
+                                te.SelectAll();
+                                te.Copy();
+                            }
+                        }
+                    }
+                }
 
-                            menu.AddItem(new GUIContent("Replace Materials With Duplicates"), false, CallbackRenderersOverviewDuplicateMaterials, null);
-                            menu.AddItem(new GUIContent("Change Curved World Bend Settings"), false, CallbackRenderersOverviewAdjustCurvedWorld, null);
-                            menu.AddSeparator(string.Empty);
-                            menu.AddItem(new GUIContent("Generate Missing Curved World CGINC Files"), false, CallbackGenerateMissingCurvedWorldFiles);
+                GUILayout.Space(15);
+                EditorGUILayout.LabelField("Keywords", EditorStyles.miniLabel);
+                using (new EditorGUIHelper.EditorGUILayoutBeginVertical(EditorStyles.helpBox))
+                {
+                    using (new EditorGUIHelper.EditorGUILayoutBeginHorizontal())
+                    {
+                        EditorGUILayout.TextField("Bend Type", EditorUtilities.shaderKeywordPrefix_BendType + gBendType.ToString().ToUpperInvariant());
 
-                            menu.ShowAsContext();
+                        using (new EditorGUIHelper.GUIBackgroundColor(GUI.skin.settings.selectionColor))
+                        {
+                            if (GUILayout.Button("Copy", GUILayout.MaxWidth(100)))
+                            {
+                                TextEditor te = new TextEditor();
+                                te.text = EditorUtilities.shaderKeywordPrefix_BendType + gBendType.ToString().ToUpperInvariant();
+                                te.SelectAll();
+                                te.Copy();
+                            }
+                        }
+                    }
+
+                    using (new EditorGUIHelper.EditorGUILayoutBeginHorizontal())
+                    {
+                        EditorGUILayout.TextField("Bend ID", EditorUtilities.shaderKeywordPrefix_BendID + gBendID);
+
+                        using (new EditorGUIHelper.GUIBackgroundColor(GUI.skin.settings.selectionColor))
+                        {
+                            if (GUILayout.Button("Copy", GUILayout.MaxWidth(100)))
+                            {
+                                TextEditor te = new TextEditor();
+                                te.text = EditorUtilities.shaderKeywordPrefix_BendID + gBendID;
+                                te.SelectAll();
+                                te.Copy();
+                            }
                         }
                     }
                 }
 
 
-                GUILayout.Space(20);
-
-                for (int i = 0; i < gRenderersOverviewList.Count; i++)
+                GUILayout.Space(15);
+                EditorGUILayout.LabelField("Custom Shader", EditorStyles.miniLabel);
+                using (new EditorGUIHelper.EditorGUILayoutBeginVertical(EditorStyles.helpBox))
                 {
-                    if (gRenderersOverviewList[i] == null || gRenderersOverviewList[i].shader == null || gRenderersOverviewList[i].materialsInfo == null || gRenderersOverviewList[i].materialsInfo.Count == 0)
-                        continue;
-
-
-                    if (string.IsNullOrEmpty(gRenderersOverviewFilter) == false)
+                    using (new EditorGUIHelper.EditorGUILayoutBeginHorizontal())
                     {
-                        if (gRenderersOverviewSearchOption == SEARCH_OPTION.ShaderName)
+                        EditorGUILayout.LabelField("Material Properties");
+
+                        using (new EditorGUIHelper.GUIBackgroundColor(GUI.skin.settings.selectionColor))
                         {
-                            if (gRenderersOverviewList[i].shader.name.Contains(gRenderersOverviewFilter, true) == gRenderersOverviewFilterExclude)
-                                continue;
+                            if (GUILayout.Button("Copy", GUILayout.MaxWidth(100)))
+                            {
+                                TextEditor te = new TextEditor();
+                                te.text = "[CurvedWorldBendSettings] _CurvedWorldBendSettings(\"" + (int)gBendType + "|" + gBendID + "|1\", Vector) = (0, 0, 0, 0)";
+                                te.SelectAll();
+                                te.Copy();
+                            }
                         }
-                        else if (gRenderersOverviewSearchOption == SEARCH_OPTION.MaterialName)
+                    }
+
+                    using (new EditorGUIHelper.EditorGUILayoutBeginHorizontal())
+                    {
+                        EditorGUILayout.LabelField("Definitions");
+
+                        using (new EditorGUIHelper.GUIBackgroundColor(GUI.skin.settings.selectionColor))
                         {
-                            if (gRenderersOverviewList[i].materialsInfo.Where(m => m != null && m.material != null && m.material.name.Contains(gRenderersOverviewFilter, true) != gRenderersOverviewFilterExclude).Count() == 0)
-                                continue;
+                            if (GUILayout.Button("Copy", GUILayout.MaxWidth(100)))
+                            {
+                                TextEditor te = new TextEditor();
+                                te.text = "#define " + EditorUtilities.shaderKeywordPrefix_BendType + (gBendType).ToString().ToUpperInvariant();
+                                te.text += System.Environment.NewLine + "#define " + EditorUtilities.shaderKeywordPrefix_BendID + gBendID;
+                                te.text += System.Environment.NewLine + "#pragma shader_feature_local " + EditorUtilities.shaderKeywordName_CurvedWorldDisabled;
+                                te.text += System.Environment.NewLine + "#pragma shader_feature_local " + EditorUtilities.shaderKeywordName_BendTransformNormal;
+
+
+                                te.text += System.Environment.NewLine + EditorUtilities.GetCoreTransformFilePathForShader();
+
+                                te.SelectAll();
+                                te.Copy();
+                            }
                         }
-                        else if (gRenderersOverviewSearchOption == SEARCH_OPTION.Keyword)
+                    }
+
+                    using (new EditorGUIHelper.EditorGUILayoutBeginHorizontal())
+                    {
+                        EditorGUILayout.LabelField("Vertex Transformations");
+
+                        using (new EditorGUIHelper.GUIBackgroundColor(GUI.skin.settings.selectionColor))
                         {
-                            if (gRenderersOverviewList[i].keywordsTooltip.Contains(gRenderersOverviewFilter, true) == gRenderersOverviewFilterExclude)
-                                continue;
+                            if (GUILayout.Button("Copy", GUILayout.MaxWidth(100)))
+                            {
+                                TextEditor te = new TextEditor();
+                                te.text = "#if defined(CURVEDWORLD_IS_INSTALLED) && !defined(CURVEDWORLD_DISABLED_ON)";
+                                te.text += System.Environment.NewLine + "   #ifdef CURVEDWORLD_NORMAL_TRANSFORMATION_ON";
+
+
+                                te.text += System.Environment.NewLine + "      CURVEDWORLD_TRANSFORM_VERTEX_AND_NORMAL(v.vertex, v.normal, v.tangent)";
+                                te.text += System.Environment.NewLine + "   #else";
+                                te.text += System.Environment.NewLine + "      CURVEDWORLD_TRANSFORM_VERTEX(v.vertex)";
+
+
+                                te.text += System.Environment.NewLine + "   #endif";
+                                te.text += System.Environment.NewLine + "#endif";
+
+                                te.SelectAll();
+                                te.Copy();
+                            }
+                        }
+                    }
+                }
+
+
+                GUILayout.Space(15);
+                using (new EditorGUIHelper.EditorGUILayoutBeginHorizontal())
+                {
+                    //Unity Shader Graph
+                    using (new EditorGUIHelper.EditorGUILayoutBeginVertical(EditorStyles.helpBox))
+                    {
+                        EditorGUILayout.LabelField("Unity Shader Sub-Graph", EditorStyles.miniLabel);
+
+                        using (new EditorGUIHelper.GUIEnabled(EditorUtilities.CanGenerateUnityShaderGrap()))
+                        {
+                            using (new EditorGUIHelper.EditorGUILayoutBeginHorizontal())
+                            {
+                                if (GUILayout.Button(new GUIContent("Vertex", "Vertex Transformation"), EditorStyles.miniButtonLeft))
+                                {
+                                    string subGrapFileLocation = EditorUtilities.GetBendFileLocation(gBendType, gBendID, EditorUtilities.EXTENSTION.UnityShaderGraphVertex);
+
+                                    if (File.Exists(subGrapFileLocation))
+                                    {
+                                        PingObject(subGrapFileLocation);
+                                    }
+                                    else
+                                    {
+                                        string fileGIUD = AssetDatabase.AssetPathToGUID(mainCGINCFilePath);
+
+                                        if (string.IsNullOrEmpty(fileGIUD) == false)
+                                        {
+                                            EditorUtilities.CreateSubGraphFile(gBendType, gBendID, fileGIUD, EditorUtilities.EXTENSTION.UnityShaderGraphVertex);
+
+                                            AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
+
+
+                                            PingObject(EditorUtilities.GetBendFileLocation(gBendType, gBendID, EditorUtilities.EXTENSTION.UnityShaderGraphVertex));
+                                        }
+                                    }
+                                }
+
+                                if (GUILayout.Button(new GUIContent("Vertex + Normal", "Vertex And Normal Transformation"), EditorStyles.miniButtonRight))
+                                {
+                                    string subGrapFileLocation = EditorUtilities.GetBendFileLocation(gBendType, gBendID, EditorUtilities.EXTENSTION.UnityShaderGraphNormal);
+
+                                    if (File.Exists(subGrapFileLocation))
+                                    {
+                                        PingObject(subGrapFileLocation);
+                                    }
+                                    else
+                                    {
+                                        string fileGIUD = AssetDatabase.AssetPathToGUID(mainCGINCFilePath);
+
+                                        if (string.IsNullOrEmpty(fileGIUD) == false)
+                                        {
+                                            EditorUtilities.CreateSubGraphFile(gBendType, gBendID, fileGIUD, EditorUtilities.EXTENSTION.UnityShaderGraphNormal);
+
+                                            AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
+
+
+                                            PingObject(EditorUtilities.GetBendFileLocation(gBendType, gBendID, EditorUtilities.EXTENSTION.UnityShaderGraphNormal));
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    //Amplify Shader Editor
+                    GUILayout.Space(5);
+                    using (new EditorGUIHelper.EditorGUILayoutBeginVertical(EditorStyles.helpBox))
+                    {
+                        EditorGUILayout.LabelField("Amplify Shader Function", EditorStyles.miniLabel);
+
+                        using (new EditorGUIHelper.GUIEnabled(EditorUtilities.CanGenerateAmplifyShaderFuntion()))
+                        {
+                            using (new EditorGUIHelper.EditorGUILayoutBeginHorizontal())
+                            {
+                                if (GUILayout.Button(new GUIContent("Vertex", "Vertex Transformation"), EditorStyles.miniButtonLeft))
+                                {
+                                    string subGrapFileLocation = EditorUtilities.GetBendFileLocation(gBendType, gBendID, EditorUtilities.EXTENSTION.AmplifyShaderEditorVertex);
+
+                                    if (File.Exists(subGrapFileLocation))
+                                    {
+                                        PingObject(subGrapFileLocation);
+                                    }
+                                    else
+                                    {
+                                        string fileGIUD = AssetDatabase.AssetPathToGUID(mainCGINCFilePath);
+
+                                        if (string.IsNullOrEmpty(fileGIUD) == false)
+                                        {
+                                            EditorUtilities.CreateSubGraphFile(gBendType, gBendID, fileGIUD, EditorUtilities.EXTENSTION.AmplifyShaderEditorVertex);
+
+                                            AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
+
+
+                                            PingObject(EditorUtilities.GetBendFileLocation(gBendType, gBendID, EditorUtilities.EXTENSTION.AmplifyShaderEditorVertex));
+                                        }
+                                    }
+                                }
+
+                                if (GUILayout.Button(new GUIContent("Vertex + Normal", "Vertex And Normal Transformation"), EditorStyles.miniButtonMid))
+                                {
+                                    string subGrapFileLocation = EditorUtilities.GetBendFileLocation(gBendType, gBendID, EditorUtilities.EXTENSTION.AmplifyShaderEditorNormal);
+
+                                    if (File.Exists(subGrapFileLocation))
+                                    {
+                                        PingObject(subGrapFileLocation);
+                                    }
+                                    else
+                                    {
+                                        string fileGIUD = AssetDatabase.AssetPathToGUID(mainCGINCFilePath);
+
+                                        if (string.IsNullOrEmpty(fileGIUD) == false)
+                                        {
+                                            EditorUtilities.CreateSubGraphFile(gBendType, gBendID, fileGIUD, EditorUtilities.EXTENSTION.AmplifyShaderEditorNormal);
+
+                                            AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
+
+
+                                            PingObject(EditorUtilities.GetBendFileLocation(gBendType, gBendID, EditorUtilities.EXTENSTION.AmplifyShaderEditorNormal));
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+
+                GUILayout.Space(15);
+                EditorGUILayout.LabelField("Definitions", EditorStyles.miniLabel);
+                using (new EditorGUIHelper.EditorGUILayoutBeginVertical(EditorStyles.helpBox))
+                {
+                    using (new EditorGUIHelper.EditorGUILayoutBeginHorizontal())
+                    {
+                        EditorGUILayout.TextField("Curved World Installed", "CURVEDWORLD_IS_INSTALLED");
+
+                        using (new EditorGUIHelper.GUIBackgroundColor(GUI.skin.settings.selectionColor))
+                        {
+                            if (GUILayout.Button("Copy", GUILayout.MaxWidth(100)))
+                            {
+                                TextEditor te = new TextEditor();
+                                te.text = "CURVEDWORLD_IS_INSTALLED";
+                                te.SelectAll();
+                                te.Copy();
+                            }
+                        }
+                    }
+
+                    using (new EditorGUIHelper.EditorGUILayoutBeginHorizontal())
+                    {
+                        EditorGUILayout.TextField("Normal Transformation On", "CURVEDWORLD_NORMAL_TRANSFORMATION_ON");
+
+                        using (new EditorGUIHelper.GUIBackgroundColor(GUI.skin.settings.selectionColor))
+                        {
+                            if (GUILayout.Button("Copy", GUILayout.MaxWidth(100)))
+                            {
+                                TextEditor te = new TextEditor();
+                                te.text = "CURVEDWORLD_NORMAL_TRANSFORMATION_ON";
+                                te.SelectAll();
+                                te.Copy();
+                            }
+                        }
+                    }
+                }
+
+
+                GUILayout.Space(15);
+                EditorGUILayout.LabelField("Transformation Macros", EditorStyles.miniLabel);
+                using (new EditorGUIHelper.EditorGUILayoutBeginVertical(EditorStyles.helpBox))
+                {
+                    using (new EditorGUIHelper.EditorGUILayoutBeginHorizontal())
+                    {
+                        EditorGUILayout.TextField("Vertex", "CURVEDWORLD_TRANSFORM_VERTEX");
+
+                        using (new EditorGUIHelper.GUIBackgroundColor(GUI.skin.settings.selectionColor))
+                        {
+                            if (GUILayout.Button("Copy", GUILayout.MaxWidth(100)))
+                            {
+                                TextEditor te = new TextEditor();
+                                te.text = "CURVEDWORLD_TRANSFORM_VERTEX";
+                                te.SelectAll();
+                                te.Copy();
+                            }
+                        }
+                    }
+
+                    using (new EditorGUIHelper.EditorGUILayoutBeginHorizontal())
+                    {
+                        EditorGUILayout.TextField("Vertex And Normal", "CURVEDWORLD_TRANSFORM_VERTEX_AND_NORMAL");
+
+                        using (new EditorGUIHelper.GUIBackgroundColor(GUI.skin.settings.selectionColor))
+                        {
+                            if (GUILayout.Button("Copy", GUILayout.MaxWidth(100)))
+                            {
+                                TextEditor te = new TextEditor();
+                                te.text = "CURVEDWORLD_TRANSFORM_VERTEX_AND_NORMAL";
+                                te.SelectAll();
+                                te.Copy();
+                            }
+                        }
+                    }
+                }
+
+
+
+
+                //if (GUILayout.Button("Regenrerate Core Transform File"))
+                //{
+                //    GenerateCoreTransformFile();
+
+                //    GenerateAllFilesCGINC();
+                //}
+            }
+        }
+
+        void DrawTab_Controllers()
+        {
+            EditorGUILayout.LabelField(preferencesNames[(int)TAB.Controllers], guiStyleOptionsHeader, GUILayout.Height(guiStyleOptionsHeaderHeight));
+            GUILayout.Space(15);
+
+            if (gSceneControllers == null)
+                FindSceneCurvedWorldControllers();
+
+            if (gSceneControllers.Length == 0 || (gSceneControllers.Length == 1 && gSceneControllers[0] == null))
+            {
+                using (new EditorGUIHelper.GUIBackgroundColor(GUI.skin.settings.selectionColor))
+                {
+                    if (GUILayout.Button("Create"))
+                    {
+                        GameObject gameObject = new GameObject("Curved World Controller");
+                        Undo.RegisterCreatedObjectUndo(gameObject, "Created Curved World Controller");
+
+                        gameObject.transform.position = Vector3.zero;
+                        gameObject.transform.rotation = Quaternion.identity;
+                        gameObject.transform.localScale = Vector3.one;
+
+                        gameObject.AddComponent<CurvedWorld.CurvedWorldController>();
+
+
+                        gSceneControllers = null;
+                        Repaint();
+                    }
+                }
+            }
+            else
+            {
+
+                for (int i = 0; i < gSceneControllers.Length; i++)
+                {
+                    if (gSceneControllers[i] != null)
+                    {
+                        using (new EditorGUIHelper.GUILayoutBeginVertical(EditorStyles.helpBox))
+                        {
+                            string headerName = " [ID: " + gSceneControllers[i].bendID + "]   " + EditorUtilities.GetBendTypeNameInfo(gSceneControllers[i].bendType).forLable;
+
+                            using (new EditorGUIHelper.GUIBackgroundColor(GUI.skin.settings.selectionColor))
+                            {
+                                using (new EditorGUIHelper.GUIEnabled(gSceneControllers[i].enabled && gSceneControllers[i].gameObject.activeInHierarchy))
+                                {
+                                    if (GUILayout.Button(headerName, guiStyleControllersButton))
+                                    {
+                                        gSceneControllers[i].isExpanded = !gSceneControllers[i].isExpanded;
+                                    }
+                                }
+                            }
+
+
+
+                            if (gSceneControllers[i].isExpanded)
+                            {
+                                using (new EditorGUIHelper.GUIEnabled(gSceneControllers[i].gameObject.activeInHierarchy))
+                                {
+                                    EditorGUILayout.ObjectField("Object", gSceneControllers[i].gameObject, typeof(GameObject), false);
+
+
+                                    bool isEnabled = gSceneControllers[i].enabled;
+                                    EditorGUI.BeginChangeCheck();
+                                    isEnabled = EditorGUILayout.Toggle("Enable", gSceneControllers[i].enabled);
+                                    if (EditorGUI.EndChangeCheck())
+                                    {
+                                        Undo.RecordObject(gSceneControllers[i], "Script enabled");
+                                        gSceneControllers[i].enabled = isEnabled;
+                                    }
+                                }
+
+                                Editor editor = Editor.CreateEditor(gSceneControllers[i]);
+                                editor.OnInspectorGUI();
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        void DrawTab_RenderersOverview()
+        {
+            EditorGUILayout.LabelField(preferencesNames[(int)TAB.RenderersOverview], guiStyleOptionsHeader, GUILayout.Height(guiStyleOptionsHeaderHeight));
+            GUILayout.Space(15);
+
+
+
+            if (gRenderersOverviewList == null)
+                RebuildSceneShadersOverview();
+
+
+            Rect materialsAndShadersCountRect;
+            int totalMaterialsCount = 0;
+            List<Shader> totalShadersCount = new List<Shader>();
+
+
+            using (new EditorGUIHelper.EditorGUILayoutBeginHorizontal())
+            {
+                EditorGUI.BeginChangeCheck();
+                using (new EditorGUIHelper.GUIBackgroundColor(gRenderersOverviewMode == RENDERERS_OVERVIEW_MODE.SelectedOjects ? Color.yellow : Color.white))
+                {
+                    gRenderersOverviewMode = (RENDERERS_OVERVIEW_MODE)EditorGUILayout.EnumPopup(gRenderersOverviewMode, GUILayout.Width(gRenderersOverviewModeRectWidth));
+                }
+                if (EditorGUI.EndChangeCheck())
+                {
+                    RebuildSceneShadersOverview();
+                }
+
+                using (new EditorGUIHelper.GUIBackgroundColor(string.IsNullOrEmpty(gRenderersOverviewFilter) ? Color.white : Color.yellow))
+                {
+                    gRenderersOverviewFilter = EditorGUILayout.TextField(string.Empty, gRenderersOverviewFilter, EditorStyles.toolbarSearchField);
+                }
+
+                using (new EditorGUIHelper.GUIEnabled(!string.IsNullOrEmpty(gRenderersOverviewFilter)))
+                {
+                    gRenderersOverviewSearchOption = (SEARCH_OPTION)EditorGUILayout.EnumPopup(gRenderersOverviewSearchOption, GUILayout.MaxWidth(110));
+
+
+                    Rect incudeRect = EditorGUILayout.GetControlRect(GUILayout.MaxWidth(129));
+                    if (GUI.Toggle(new Rect(incudeRect.xMin, incudeRect.yMin, incudeRect.width * 0.5f, incudeRect.height), !gRenderersOverviewFilterExclude, "Include", "Button"))
+                    {
+                        gRenderersOverviewFilterExclude = false;
+                    }
+                    if (GUI.Toggle(new Rect(incudeRect.xMin + incudeRect.width * 0.5f, incudeRect.yMin, incudeRect.width * 0.5f, incudeRect.height), gRenderersOverviewFilterExclude, "Exclude", "Button"))
+                    {
+                        gRenderersOverviewFilterExclude = true;
+                    }
+                }
+            }
+
+            using (new EditorGUIHelper.EditorGUILayoutBeginHorizontal())
+            {
+                EditorGUILayout.LabelField(string.Empty);
+
+                //Material & Shaders icon
+                materialsAndShadersCountRect = GUILayoutUtility.GetLastRect();
+
+
+                using (new EditorGUIHelper.GUIBackgroundColor(GUI.skin.settings.selectionColor))
+                {
+                    Rect buttonRect = EditorGUILayout.GetControlRect(GUILayout.MaxWidth(129));
+
+                    if (GUI.Button(new Rect(buttonRect.xMin, buttonRect.yMin, buttonRect.width - 20, buttonRect.height), "Refresh", EditorStyles.miniButtonLeft))
+                    {
+                        RebuildSceneShadersOverview();
+                        Repaint();
+                    }
+
+                    if (GUI.Button(new Rect(buttonRect.xMax - 20, buttonRect.yMin, 20, buttonRect.height), "≡", EditorStyles.miniButtonRight))
+                    {
+                        gRenderersOverviewEditIndex = null;
+
+
+                        GenericMenu menu = new GenericMenu();
+
+                        menu.AddItem(new GUIContent("Replace Materials With Duplicates"), false, CallbackRenderersOverviewDuplicateMaterials, null);
+                        menu.AddItem(new GUIContent("Change Curved World Bend Settings"), false, CallbackRenderersOverviewAdjustCurvedWorld, null);
+                        menu.AddSeparator(string.Empty);
+                        menu.AddItem(new GUIContent("Generate Missing Curved World CGINC Files"), false, CallbackGenerateMissingCurvedWorldFiles);
+
+                        menu.ShowAsContext();
+                    }
+                }
+            }
+
+
+            GUILayout.Space(20);
+
+            for (int i = 0; i < gRenderersOverviewList.Count; i++)
+            {
+                if (gRenderersOverviewList[i] == null || gRenderersOverviewList[i].shader == null || gRenderersOverviewList[i].materialsInfo == null || gRenderersOverviewList[i].materialsInfo.Count == 0)
+                    continue;
+
+
+                if (string.IsNullOrEmpty(gRenderersOverviewFilter) == false)
+                {
+                    if (gRenderersOverviewSearchOption == SEARCH_OPTION.ShaderName)
+                    {
+                        if (gRenderersOverviewList[i].shader.name.Contains(gRenderersOverviewFilter, true) == gRenderersOverviewFilterExclude)
+                            continue;
+                    }
+                    else if (gRenderersOverviewSearchOption == SEARCH_OPTION.MaterialName)
+                    {
+                        if (gRenderersOverviewList[i].materialsInfo.Where(m => m != null && m.material != null && m.material.name.Contains(gRenderersOverviewFilter, true) != gRenderersOverviewFilterExclude).Count() == 0)
+                            continue;
+                    }
+                    else if (gRenderersOverviewSearchOption == SEARCH_OPTION.Keyword)
+                    {
+                        if (gRenderersOverviewList[i].keywordsTooltip.Contains(gRenderersOverviewFilter, true) == gRenderersOverviewFilterExclude)
+                            continue;
+                    }
+                }
+
+
+                //Count shaders
+                if (totalShadersCount.Contains(gRenderersOverviewList[i].shader) == false)
+                    totalShadersCount.Add(gRenderersOverviewList[i].shader);
+
+
+
+                using (new EditorGUIHelper.EditorGUILayoutBeginVertical(EditorStyles.helpBox))
+                {
+                    //Shader Name
+                    using (new EditorGUIHelper.EditorGUILayoutBeginHorizontal())
+                    {
+                        Rect changeRect = EditorGUILayout.GetControlRect();
+
+
+                        using (new EditorGUIHelper.GUIBackgroundColor(GUI.skin.settings.selectionColor))
+                        {
+                            EditorGUI.ObjectField(GUILayoutUtility.GetLastRect(), gRenderersOverviewList[i].shader, typeof(Shader), false);
+
+                            using (new EditorGUIHelper.GUIEnabled(gRenderersOverviewList[i].AllMaterialsAreBuiltInResources() ? false : true))
+                            {
+                                Rect buttonDrawRect = EditorGUILayout.GetControlRect(false, 20, GUILayout.MaxWidth(125));
+                                if (GUI.Button(buttonDrawRect, "Change"))
+                                {
+                                    gRenderersOverviewChangedShaderIndex = i;
+
+                                    ShaderSelectionDropdown shaderSelection = new ShaderSelectionDropdown(CallBackRenderersOverviewShaderChanged);
+                                    shaderSelection.Show(buttonDrawRect);
+                                }
+                            }
                         }
                     }
 
 
-                    //Count shaders
-                    if (totalShadersCount.Contains(gRenderersOverviewList[i].shader) == false)
-                        totalShadersCount.Add(gRenderersOverviewList[i].shader);
-
-
-
-                    using (new AmazingAssets.EditorGUIUtility.EditorGUILayoutBeginVertical(EditorStyles.helpBox))
+                    //Keywords
+                    using (new EditorGUIHelper.EditorGUILayoutBeginHorizontal())
                     {
-                        //Shader Name
-                        using (new AmazingAssets.EditorGUIUtility.EditorGUILayoutBeginHorizontal())
+                        if (gRenderersOverviewEditIndex != null && gRenderersOverviewEditIndex == gRenderersOverviewList[i])
                         {
-                            Rect changeRect = EditorGUILayout.GetControlRect();
-                            EditorGUI.DrawRect(changeRect, GUI.skin.settings.selectionColor);
-                            EditorGUI.LabelField(changeRect, " " + gRenderersOverviewList[i].shader.name);
-
-
-                            using (new AmazingAssets.EditorGUIUtility.GUIBackgroundColor(GUI.skin.settings.selectionColor))
+                            using (new EditorGUIHelper.GUIBackgroundColor(Color.yellow))
                             {
-                                if (GUI.Button(GUILayoutUtility.GetLastRect(), string.Empty, GUIStyle.none))
+                                gRenderersOverviewEditString = EditorGUILayout.TextArea(gRenderersOverviewEditString);
+                            }
+
+                            using (new EditorGUIHelper.GUIBackgroundColor(Color.yellow))
+                            {
+                                if (GUILayout.Button("Done", GUILayout.MaxWidth(125)))
                                 {
-                                    UnityEditor.EditorGUIUtility.PingObject(gRenderersOverviewList[i].shader);
+                                    gRenderersOverviewList[i].SetNewKeywords(gRenderersOverviewEditString);
+
+                                    gRenderersOverviewEditIndex = null;
+                                    gRenderersOverviewEditString = string.Empty;
+
+                                    GUIUtility.keyboardControl = 0;
+
+
+                                    gRenderersOverviewList.Clear();
+                                    gRenderersOverviewList = null;
+                                    break;
                                 }
+                            }
+                        }
+                        else
+                        {
+                            EditorGUILayout.LabelField(new GUIContent(gRenderersOverviewList[i].keywordsString, gRenderersOverviewList[i].keywordsTooltip), EditorStyles.miniLabel);
 
-                                using (new AmazingAssets.EditorGUIUtility.GUIEnabled(gRenderersOverviewList[i].AllMaterialsAreBuiltInResources() ? false : true))
+
+                            using (new EditorGUIHelper.GUIBackgroundColor(GUI.skin.settings.selectionColor))
+                            {
+                                if (GUILayout.Button("Edit", GUILayout.MaxWidth(125)))
                                 {
-                                    if (GUILayout.Button("Change", GUILayout.MaxWidth(125)))
+                                    gRenderersOverviewEditIndex = gRenderersOverviewList[i];
+                                    gRenderersOverviewEditString = gRenderersOverviewList[i].keywordsTooltip;
+                                }
+                            }
+                        }
+                    }
+
+
+                    //Materials
+                    int materialsCount = gRenderersOverviewList[i].materialsInfo.Count;
+                    if (string.IsNullOrEmpty(gRenderersOverviewFilter) == false && gRenderersOverviewSearchOption == SEARCH_OPTION.MaterialName)
+                    {
+                        materialsCount = gRenderersOverviewList[i].materialsInfo.Where(m => m != null && m.material != null && m.material.name.Contains(gRenderersOverviewFilter, true) != gRenderersOverviewFilterExclude).Count();
+                    }
+
+                    gRenderersOverviewList[i].foldout = EditorGUILayout.Foldout(gRenderersOverviewList[i].foldout, " Materials (" + materialsCount + ")", false);
+
+                    totalMaterialsCount += materialsCount;
+
+
+                    if (gRenderersOverviewList[i].foldout)
+                    {
+                        for (int m = 0; m < gRenderersOverviewList[i].materialsInfo.Count; m++)
+                        {
+                            if (gRenderersOverviewList[i].materialsInfo[m] == null)
+                                continue;
+
+
+                            if (string.IsNullOrEmpty(gRenderersOverviewFilter) ||
+                                gRenderersOverviewSearchOption != SEARCH_OPTION.MaterialName ||
+                                (gRenderersOverviewSearchOption == SEARCH_OPTION.MaterialName && gRenderersOverviewList[i].materialsInfo[m].material.name.Contains(gRenderersOverviewFilter, true) != gRenderersOverviewFilterExclude))
+                            {
+                                using (new EditorGUIHelper.EditorGUILayoutBeginHorizontal())
+                                {
+                                    using (new EditorGUIHelper.GUIEnabled(gRenderersOverviewList[i].materialsInfo[m].isBuiltInresource ? false : true))
                                     {
-                                        ShaderInfo[] allShaderInfo = ShaderUtil.GetAllShaderInfo();
-                                        List<string> mainShaders = new List<string>();
-                                        List<string> legacyShaders = new List<string>();
+                                        EditorGUILayout.ObjectField(string.Empty, gRenderersOverviewList[i].materialsInfo[m].material, typeof(Material), false);
+                                    }
 
-                                        foreach (ShaderInfo shaderInfo in allShaderInfo)
-                                        {
-                                            if (!shaderInfo.name.StartsWith("Deprecated") && !shaderInfo.name.StartsWith("Hidden"))
-                                            {
-                                                if (shaderInfo.hasErrors == false &&
-                                                    shaderInfo.supported &&
-                                                    string.IsNullOrEmpty(shaderInfo.name) == false &&
-                                                    shaderInfo.name.StartsWith("Hidden/") == false)
-                                                {
-                                                    if (shaderInfo.name.StartsWith("Legacy Shaders/"))
-                                                        legacyShaders.Add(shaderInfo.name);
-                                                    else
-                                                        mainShaders.Add(shaderInfo.name);
-                                                }
-                                            }
-                                        }
-                                        mainShaders.Sort();
-                                        legacyShaders.Sort();
+                                    Rect buttonRect = EditorGUILayout.GetControlRect(GUILayout.MaxWidth(125));
 
+                                    //Find References
+                                    if (GUI.Button(new Rect(buttonRect.xMin, buttonRect.yMin, buttonRect.width - 40, buttonRect.height), "Find Ref", EditorStyles.miniButtonLeft))
+                                    {
+                                        Transform saveCurrentTransform = Selection.activeTransform;
 
+                                        Selection.instanceIDs = new int[] { gRenderersOverviewList[i].materialsInfo[m].material.GetInstanceID() };
+                                        EditorApplication.ExecuteMenuItem("Assets/Find References In Scene");
+
+                                        Selection.activeTransform = saveCurrentTransform;
+                                    }
+
+                                    if (GUI.Button(new Rect(buttonRect.xMax - 40, buttonRect.yMin, 20, buttonRect.height), "☼", EditorStyles.miniButtonLeft))
+                                    {
+                                        PingObject(gRenderersOverviewList[i].materialsInfo[m].material);
+                                    }
+
+                                    if (GUI.Button(new Rect(buttonRect.xMax - 20, buttonRect.yMin, 20, buttonRect.height), "≡", EditorStyles.miniButtonRight))
+                                    {
                                         GenericMenu menu = new GenericMenu();
-                                        foreach (var item in mainShaders)
-                                        {
-                                            menu.AddItem(new GUIContent(item), gRenderersOverviewList[i].shader.name == item, CallBackRenderersOverviewShaderChanged, i + "_" + item);
-                                        }
 
-                                        if (legacyShaders.Count > 0)
-                                        {
-                                            menu.AddSeparator(string.Empty);
+                                        menu.AddItem(new GUIContent("Replace Material With Duplicate"), false, CallbackRenderersOverviewDuplicateMaterials, gRenderersOverviewList[i].materialsInfo[m].material);
 
-                                            foreach (var item in legacyShaders)
-                                            {
-                                                menu.AddItem(new GUIContent(item), gRenderersOverviewList[i].shader.name == item, CallBackRenderersOverviewShaderChanged, i + "_" + item);
-                                            }
-                                        }
+                                        if (EditorUtilities.HasShaderCurvedWorldBendSettingsProperty(gRenderersOverviewList[i].materialsInfo[m].material.shader))
+                                            menu.AddItem(new GUIContent("Change Curved World Bend Settings"), false, CallbackRenderersOverviewAdjustCurvedWorld, gRenderersOverviewList[i].materialsInfo[m].material);
+                                        else
+                                            menu.AddDisabledItem(new GUIContent("Change Curved World Bend Settings"));
 
                                         menu.ShowAsContext();
                                     }
                                 }
                             }
                         }
-
-
-                        //Keywords
-                        using (new AmazingAssets.EditorGUIUtility.EditorGUILayoutBeginHorizontal())
-                        {
-                            if (gRenderersOverviewEditIndex != null && gRenderersOverviewEditIndex == gRenderersOverviewList[i])
-                            {
-                                using (new AmazingAssets.EditorGUIUtility.GUIBackgroundColor(Color.yellow))
-                                {
-                                    gRenderersOverviewEditString = EditorGUILayout.TextArea(gRenderersOverviewEditString);
-                                }
-
-                                using (new AmazingAssets.EditorGUIUtility.GUIBackgroundColor(Color.yellow))
-                                {
-                                    if (GUILayout.Button("Done", GUILayout.MaxWidth(125)))
-                                    {
-                                        gRenderersOverviewList[i].SetNewKeywords(gRenderersOverviewEditString);
-
-                                        gRenderersOverviewEditIndex = null;
-                                        gRenderersOverviewEditString = string.Empty;
-
-                                        GUIUtility.keyboardControl = 0;
-
-
-                                        gRenderersOverviewList.Clear();
-                                        gRenderersOverviewList = null;
-                                        break;
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                EditorGUILayout.LabelField(new GUIContent(gRenderersOverviewList[i].keywordsString, gRenderersOverviewList[i].keywordsTooltip), EditorStyles.miniLabel);
-
-
-                                using (new AmazingAssets.EditorGUIUtility.GUIBackgroundColor(GUI.skin.settings.selectionColor))
-                                {
-                                    if (GUILayout.Button("Edit", GUILayout.MaxWidth(125)))
-                                    {
-                                        gRenderersOverviewEditIndex = gRenderersOverviewList[i];
-                                        gRenderersOverviewEditString = gRenderersOverviewList[i].keywordsTooltip;
-                                    }
-                                }
-                            }
-                        }
-
-
-                        //Materials
-                        int materialsCount = gRenderersOverviewList[i].materialsInfo.Count;
-                        if (string.IsNullOrEmpty(gRenderersOverviewFilter) == false && gRenderersOverviewSearchOption == SEARCH_OPTION.MaterialName)
-                        {
-                            materialsCount = gRenderersOverviewList[i].materialsInfo.Where(m => m != null && m.material != null && m.material.name.Contains(gRenderersOverviewFilter, true) != gRenderersOverviewFilterExclude).Count();
-                        }
-
-                        gRenderersOverviewList[i].foldout = EditorGUILayout.Foldout(gRenderersOverviewList[i].foldout, " Materials (" + materialsCount + ")", false);
-
-                        totalMaterialsCount += materialsCount;
-
-
-                        if (gRenderersOverviewList[i].foldout)
-                        {
-                            for (int m = 0; m < gRenderersOverviewList[i].materialsInfo.Count; m++)
-                            {
-                                if (gRenderersOverviewList[i].materialsInfo[m] == null)
-                                    continue;
-
-
-                                if (string.IsNullOrEmpty(gRenderersOverviewFilter) ||
-                                    gRenderersOverviewSearchOption != SEARCH_OPTION.MaterialName ||
-                                    (gRenderersOverviewSearchOption == SEARCH_OPTION.MaterialName && gRenderersOverviewList[i].materialsInfo[m].material.name.Contains(gRenderersOverviewFilter, true) != gRenderersOverviewFilterExclude))
-                                {
-                                    using (new AmazingAssets.EditorGUIUtility.EditorGUILayoutBeginHorizontal())
-                                    {
-                                        using (new AmazingAssets.EditorGUIUtility.GUIEnabled(gRenderersOverviewList[i].materialsInfo[m].isBuiltInresource ? false : true))
-                                        {
-                                            EditorGUILayout.ObjectField(string.Empty, gRenderersOverviewList[i].materialsInfo[m].material, typeof(Material), false);
-                                        }
-
-                                        Rect buttonRect = EditorGUILayout.GetControlRect(GUILayout.MaxWidth(125));
-
-                                        //Find References
-                                        if (GUI.Button(new Rect(buttonRect.xMin, buttonRect.yMin, buttonRect.width - 40, buttonRect.height), "Find Ref", EditorStyles.miniButtonLeft))
-                                        {
-                                            Transform saveCurrentTransform = Selection.activeTransform;
-
-                                            Selection.instanceIDs = new int[] { gRenderersOverviewList[i].materialsInfo[m].material.GetInstanceID() };
-                                            EditorApplication.ExecuteMenuItem("Assets/Find References In Scene");
-
-                                            Selection.activeTransform = saveCurrentTransform;
-                                        }
-
-                                        if (GUI.Button(new Rect(buttonRect.xMax - 40, buttonRect.yMin, 20, buttonRect.height), "☼", EditorStyles.miniButtonLeft))
-                                        {
-                                            PingObject(gRenderersOverviewList[i].materialsInfo[m].material);
-                                        }
-
-                                        if (GUI.Button(new Rect(buttonRect.xMax - 20, buttonRect.yMin, 20, buttonRect.height), "≡", EditorStyles.miniButtonRight))
-                                        {
-                                            GenericMenu menu = new GenericMenu();
-
-                                            menu.AddItem(new GUIContent("Replace Material With Duplicate"), false, CallbackRenderersOverviewDuplicateMaterials, gRenderersOverviewList[i].materialsInfo[m].material);
-
-                                            if (EditorUtilities.HasShaderCurvedWorldBendSettingsProperty(gRenderersOverviewList[i].materialsInfo[m].material.shader))
-                                                menu.AddItem(new GUIContent("Change Curved World Bend Settings"), false, CallbackRenderersOverviewAdjustCurvedWorld, gRenderersOverviewList[i].materialsInfo[m].material);
-                                            else
-                                                menu.AddDisabledItem(new GUIContent("Change Curved World Bend Settings"));
-
-                                            menu.ShowAsContext();
-                                        }
-                                    }
-                                }
-                            }
-                        }
                     }
-
-                    GUILayout.Space(5);
                 }
 
-
-
-                materialsAndShadersCountRect.yMin += 2;
-                materialsAndShadersCountRect.yMax += 2;
-                if (gRenderersOverviewMode == RENDERERS_OVERVIEW_MODE.SelectedOjects)
-                {
-                    GUI.Box(materialsAndShadersCountRect, new GUIContent(Selection.gameObjects == null ? "0" : Selection.gameObjects.Length.ToString(), UnityEditor.EditorGUIUtility.IconContent("Selectable Icon").image), EditorStyles.label);
-                    materialsAndShadersCountRect.xMin += 55;
-                }
-
-                //Shaders count                
-                GUI.Box(materialsAndShadersCountRect, new GUIContent(totalShadersCount.Count.ToString(), UnityEditor.EditorGUIUtility.IconContent("Shader Icon").image), EditorStyles.label);
-
-                //Material count
-                materialsAndShadersCountRect.xMin += 55;
-                GUI.Box(materialsAndShadersCountRect, new GUIContent(totalMaterialsCount.ToString(), UnityEditor.EditorGUIUtility.IconContent("Material Icon").image), EditorStyles.label);
+                GUILayout.Space(5);
             }
 
-            void DrawTab_CurvedWorldKeywords()
+
+
+            materialsAndShadersCountRect.yMin += 2;
+            materialsAndShadersCountRect.yMax += 2;
+            if (gRenderersOverviewMode == RENDERERS_OVERVIEW_MODE.SelectedOjects)
             {
-                EditorGUILayout.LabelField(preferencesNames[(int)TAB.CurvedWorldKeywords], guiStyleOptionsHeader, GUILayout.Height(guiStyleOptionsHeaderHeight));
-                GUILayout.Space(15);
+                GUI.Box(materialsAndShadersCountRect, new GUIContent(Selection.gameObjects == null ? "0" : Selection.gameObjects.Length.ToString(), iconSelection), EditorStyles.label);
+                materialsAndShadersCountRect.xMin += 55;
+            }
+
+            //Shaders count                
+            GUI.Box(materialsAndShadersCountRect, new GUIContent(totalShadersCount.Count.ToString(), iconShader), EditorStyles.label);
+
+            //Material count
+            materialsAndShadersCountRect.xMin += 55;
+            GUI.Box(materialsAndShadersCountRect, new GUIContent(totalMaterialsCount.ToString(), iconMaterial), EditorStyles.label);
+        }
+
+        void DrawTab_CurvedWorldKeywords()
+        {
+            EditorGUILayout.LabelField(preferencesNames[(int)TAB.CurvedWorldKeywords], guiStyleOptionsHeader, GUILayout.Height(guiStyleOptionsHeaderHeight));
+            GUILayout.Space(15);
 
 
 
-                EditorGUI.BeginChangeCheck();
-                using (new AmazingAssets.EditorGUIUtility.EditorGUILayoutBeginHorizontal())
+            EditorGUI.BeginChangeCheck();
+            using (new EditorGUIHelper.EditorGUILayoutBeginHorizontal())
+            {
+                using (new EditorGUIHelper.EditorGUILayoutBeginHorizontal())
                 {
-                    using (new AmazingAssets.EditorGUIUtility.EditorGUILayoutBeginHorizontal())
+                    gCurvedWorldKeywordsShader = (Shader)EditorGUILayout.ObjectField("Shader", gCurvedWorldKeywordsShader, typeof(Shader), true);
+
+
+                    using (new EditorGUIHelper.GUIBackgroundColor(GUI.skin.settings.selectionColor))
                     {
-                        gCurvedWorldKeywordsShader = (Shader)EditorGUILayout.ObjectField("Shader", gCurvedWorldKeywordsShader, typeof(Shader), true);
-
-
-                        using (new AmazingAssets.EditorGUIUtility.GUIBackgroundColor(GUI.skin.settings.selectionColor))
+                        using (new EditorGUIHelper.GUIEnabled(gCurvedWorldKeywordsShader != null))
                         {
-                            using (new AmazingAssets.EditorGUIUtility.GUIEnabled(gCurvedWorldKeywordsShader != null))
+                            if (GUILayout.Button("Reload", EditorStyles.miniButtonLeft, GUILayout.MaxWidth(100)))
                             {
-                                if (GUILayout.Button("Reload", EditorStyles.miniButtonLeft, GUILayout.MaxWidth(100)))
-                                {
-                                    //Rebuild info
-                                    EditorUtilities.RebuildProjectBendsInfo();
+                                //Rebuild info
+                                EditorUtilities.RebuildProjectBendsInfo();
 
 
-                                    gCurvedWorldKeywordsShaderInfo = new EditorUtilities.ShaderCurvedWorldKeywordsInfo(gCurvedWorldKeywordsShader);
+                                gCurvedWorldKeywordsShaderInfo = new EditorUtilities.ShaderCurvedWorldKeywordsInfo(gCurvedWorldKeywordsShader);
 
-                                    Repaint();
-                                }
+                                Repaint();
                             }
+                        }
 
-                            GUILayout.Space(3);
-                            using (new AmazingAssets.EditorGUIUtility.GUIEnabled(gCurvedWorldKeywordsShader != null && gCurvedWorldKeywordsShaderInfo != null && gCurvedWorldKeywordsShaderInfo.IsCurvedWorldShader() && EditorUtilities.IsShaderCurvedWorldTerrain(gCurvedWorldKeywordsShader) == false))
+                        GUILayout.Space(3);
+                        using (new EditorGUIHelper.GUIEnabled(gCurvedWorldKeywordsShader != null && gCurvedWorldKeywordsShaderInfo != null && gCurvedWorldKeywordsShaderInfo.IsCurvedWorldShader() && EditorUtilities.IsShaderCurvedWorldTerrain(gCurvedWorldKeywordsShader) == false))
+                        {
+                            if (GUILayout.Button("≡", EditorStyles.miniButtonRight, GUILayout.MaxWidth(20)))
                             {
-                                if (GUILayout.Button("≡", EditorStyles.miniButtonRight, GUILayout.MaxWidth(20)))
-                                {
-                                    GenericMenu menu = new GenericMenu();
+                                GenericMenu menu = new GenericMenu();
 
-                                    menu.AddItem(new GUIContent("Uncheck all"), false, CallbackCurvedWorldKeywordsUnckechAll);
-                                    menu.AddSeparator(string.Empty);
+                                menu.AddItem(new GUIContent("Uncheck all"), false, CallbackCurvedWorldKeywordsUnckechAll);
+                                menu.AddSeparator(string.Empty);
 
 
-                                    string label = EditorUtilities.BendSettingsToString(gCurvedWorldKeywordsShaderInfo.GetSelectedBendTypes(), gCurvedWorldKeywordsShaderInfo.GetSelectedBendIDs(), false);
+                                string label = EditorUtilities.BendSettingsToString(gCurvedWorldKeywordsShaderInfo.GetSelectedBendTypes(), gCurvedWorldKeywordsShaderInfo.GetSelectedBendIDs(), false);
 
-                                    menu.AddItem(new GUIContent("Rewrite all project Curved World shaders"), false, CallbackCurvedWorldKeywordsRewriteAllProjectShaders, label);
+                                menu.AddItem(new GUIContent("Rewrite all project Curved World shaders"), false, CallbackCurvedWorldKeywordsRewriteAllProjectShaders, label);
 
-                                    menu.ShowAsContext();
-                                }
+                                menu.ShowAsContext();
                             }
                         }
                     }
                 }
-                if (EditorGUI.EndChangeCheck() || gCurvedWorldKeywordsShaderInfo == null)
+            }
+            if (EditorGUI.EndChangeCheck() || gCurvedWorldKeywordsShaderInfo == null)
+            {
+                gCurvedWorldKeywordsShaderInfo = new EditorUtilities.ShaderCurvedWorldKeywordsInfo(gCurvedWorldKeywordsShader);
+            }
+
+            bool shaderIsCurvedWorldTerrain = EditorUtilities.IsShaderCurvedWorldTerrain(gCurvedWorldKeywordsShader);
+
+
+            if (gCurvedWorldKeywordsShader != null && gCurvedWorldKeywordsShaderInfo.IsCurvedWorldShader())
+            {
+                Rect saveButtonRect;
+
+                using (new EditorGUIHelper.EditorGUILayoutBeginHorizontal())
                 {
-                    gCurvedWorldKeywordsShaderInfo = new EditorUtilities.ShaderCurvedWorldKeywordsInfo(gCurvedWorldKeywordsShader);
+                    using (new EditorGUIHelper.GUIEnabled(shaderIsCurvedWorldTerrain == false))
+                    {
+                        EditorGUILayout.LabelField(string.Empty, GUILayout.MaxWidth(150));
+
+                        saveButtonRect = EditorGUILayout.GetControlRect();
+
+                        using (new EditorGUIHelper.GUIBackgroundColor(GUI.skin.settings.selectionColor))
+                        {
+                            if (GUILayout.Button("≡", EditorStyles.miniButtonRight, GUILayout.MaxWidth(20)))
+                            {
+                                GenericMenu menu = new GenericMenu();
+
+                                menu.AddItem(new GUIContent("shader_feature"), false, CallbackCurvedWorldKeywordsMultiCompile, false);
+                                menu.AddItem(new GUIContent("multi_compile"), false, CallbackCurvedWorldKeywordsMultiCompile, true);
+
+                                menu.ShowAsContext();
+                            }
+                        }
+                    }
                 }
 
-                bool shaderIsCurvedWorldTerrain = EditorUtilities.IsShaderCurvedWorldTerrain(gCurvedWorldKeywordsShader);
 
 
-                if (gCurvedWorldKeywordsShader != null && gCurvedWorldKeywordsShaderInfo.IsCurvedWorldShader())
+
+                #region Save Button
+                int usedKeywordsCount = gCurvedWorldKeywordsShaderInfo.selectedBendTypes.Count(x => x == true) == 1 ? 0 : gCurvedWorldKeywordsShaderInfo.selectedBendTypes.Count(x => x == true);
+                usedKeywordsCount += gCurvedWorldKeywordsShaderInfo.selectedBendIDs.Count(x => x == true) == 1 ? 0 : gCurvedWorldKeywordsShaderInfo.selectedBendIDs.Count(x => x == true);
+
+                bool isValed = false;
+                if (usedKeywordsCount < 65 &&
+                    gCurvedWorldKeywordsShaderInfo.selectedBendIDs.Count(x => x == true) > 0 &&
+                    gCurvedWorldKeywordsShaderInfo.selectedBendTypes.Count(x => x == true) > 0 &&
+                    shaderIsCurvedWorldTerrain == false)
                 {
-                    Rect saveButtonRect;
+                    isValed = true;
+                }
 
-                    using (new AmazingAssets.EditorGUIUtility.EditorGUILayoutBeginHorizontal())
+
+                using (new EditorGUIHelper.GUIEnabled(isValed))
+                {
+                    using (new EditorGUIHelper.GUIBackgroundColor(GUI.skin.settings.selectionColor))
                     {
-                        using (new AmazingAssets.EditorGUIUtility.GUIEnabled(shaderIsCurvedWorldTerrain == false))
+                        if (GUI.Button(saveButtonRect, "Save   <size=10>(Keywords: " + usedKeywordsCount + ")   " + (gCurvedWorldKeywordsShaderInfo.selecedMultiCompile ? "multi_compile" : "shader_feature") + "</size>", guiStyleAnalyzeSaveButton))
                         {
-                            EditorGUILayout.LabelField(string.Empty, GUILayout.MaxWidth(150));
 
-                            saveButtonRect = EditorGUILayout.GetControlRect();
-
-                            using (new AmazingAssets.EditorGUIUtility.GUIBackgroundColor(GUI.skin.settings.selectionColor))
-                            {
-                                if (GUILayout.Button("≡", EditorStyles.miniButtonRight, GUILayout.MaxWidth(20)))
-                                {
-                                    GenericMenu menu = new GenericMenu();
-
-                                    menu.AddItem(new GUIContent("shader_feature"), false, CallbackCurvedWorldKeywordsMultiCompile, false);
-                                    menu.AddItem(new GUIContent("multi_compile"), false, CallbackCurvedWorldKeywordsMultiCompile, true);
-
-                                    menu.ShowAsContext();
-                                }
-                            }
-                        }
-                    }
-
-
-
-
-                    #region Save Button
-                    int usedKeywordsCount = gCurvedWorldKeywordsShaderInfo.selectedBendTypes.Count(x => x == true) == 1 ? 0 : gCurvedWorldKeywordsShaderInfo.selectedBendTypes.Count(x => x == true);
-                    usedKeywordsCount += gCurvedWorldKeywordsShaderInfo.selectedBendIDs.Count(x => x == true) == 1 ? 0 : gCurvedWorldKeywordsShaderInfo.selectedBendIDs.Count(x => x == true);
-
-                    bool isValed = false;
-                    if (usedKeywordsCount < 65 &&
-                        gCurvedWorldKeywordsShaderInfo.selectedBendIDs.Count(x => x == true) > 0 &&
-                        gCurvedWorldKeywordsShaderInfo.selectedBendTypes.Count(x => x == true) > 0 &&
-                        shaderIsCurvedWorldTerrain == false)
-                    {
-                        isValed = true;
-                    }
-
-
-                    using (new AmazingAssets.EditorGUIUtility.GUIEnabled(isValed))
-                    {
-                        using (new AmazingAssets.EditorGUIUtility.GUIBackgroundColor(GUI.skin.settings.selectionColor))
-                        {
-                            if (GUI.Button(saveButtonRect, "Save   <size=10>(Keywords: " + usedKeywordsCount + ")   " + (gCurvedWorldKeywordsShaderInfo.selecedMultiCompile ? "multi_compile" : "shader_feature") + "</size>", guiStyleAnalyzeSaveButton))
-                            {
-
-                                List<CurvedWorld.BEND_TYPE> selectedBendTypes = new List<CurvedWorld.BEND_TYPE>();
-                                for (int i = 0; i < EditorUtilities.MAX_SUPPORTED_BEND_TYPES; i++)
-                                {
-                                    if (gCurvedWorldKeywordsShaderInfo.selectedBendTypes[i])
-                                        selectedBendTypes.Add((CurvedWorld.BEND_TYPE)i);
-                                }
-
-                                List<int> selectedIDs = new List<int>();
-                                for (int i = 0; i < EditorUtilities.MAX_SUPPORTED_BEND_IDS; i++)
-                                {
-                                    if (gCurvedWorldKeywordsShaderInfo.selectedBendIDs[i])
-                                        selectedIDs.Add(i + 1);    //ID indexes start from 1, not 0
-                                }
-
-
-                                //Create CGING files
-                                UnityEditor.EditorUtility.DisplayProgressBar("Hold On", string.Empty, 0);
-                                foreach (var itemBendType in selectedBendTypes)
-                                {
-                                    foreach (var itemBendID in selectedIDs)
-                                    {
-                                        EditorUtilities.CreateCGINCFile(itemBendType, itemBendID);
-                                    }
-                                }
-
-                                AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
-
-                                EditorUtilities.SetShaderBendSettings(gCurvedWorldKeywordsShader, selectedBendTypes.ToArray(), selectedIDs.ToArray(), gCurvedWorldKeywordsShaderInfo.selecedMultiCompile ? EditorUtilities.KEYWORDS_COMPILE.MultiCompile : EditorUtilities.KEYWORDS_COMPILE.ShaderFeature, true);
-
-                                UnityEditor.EditorUtility.ClearProgressBar();
-                            }
-                        }
-                    }
-                    #endregion
-
-
-                    #region Bend IDs
-                    GUILayout.Space(5);
-                    using (new AmazingAssets.EditorGUIUtility.GUIEnabled(shaderIsCurvedWorldTerrain == false))
-                    {
-                        int buttonsCountHorizontal = 16;
-
-                        GUIContent[] buttonNames = new GUIContent[EditorUtilities.MAX_SUPPORTED_BEND_IDS];
-                        for (int i = 0; i < EditorUtilities.MAX_SUPPORTED_BEND_IDS; i++)
-                        {
-                            buttonNames[i] = new GUIContent((i + 1).ToString());
-                        }
-                        Rect rc1 = EditorGUILayout.GetControlRect();
-                        Rect rc4 = EditorGUILayout.GetControlRect();
-
-                        Rect position = new Rect(rc1.xMin, rc1.yMin, rc1.width, (rc4.yMax - rc1.yMin));
-
-
-                        Rect[] rectArray = CalcButtonRects(position, buttonNames, buttonsCountHorizontal);
-
-                        for (int i = 0; i < rectArray.Length; i++)
-                        {
-                            bool isBendIDSupported = true;
-                            if (gCurvedWorldKeywordsShaderInfo.selectedBendIDs[i])
-                            {
-                                for (int j = 0; j < EditorUtilities.MAX_SUPPORTED_BEND_TYPES; j++)
-                                {
-                                    if (gCurvedWorldKeywordsShaderInfo.selectedBendTypes[j])
-                                    {
-                                        string bendFileLocation = EditorUtilities.GetBendFileLocation((CurvedWorld.BEND_TYPE)j, i + 1, EditorUtilities.EXTENSTION.cginc);
-                                        if (File.Exists(bendFileLocation) == false)
-                                        {
-                                            isBendIDSupported = false;
-
-                                            break;
-                                        }
-                                    }
-                                }
-                            }
-
-                            using (new AmazingAssets.EditorGUIUtility.GUIBackgroundColor(gCurvedWorldKeywordsShaderInfo.selectedBendIDs[i] ? (isBendIDSupported ? GUI.skin.settings.selectionColor : Color.red) : Color.white))
-                            {
-                                if (GUI.Button(rectArray[i], buttonNames[i]))
-                                    gCurvedWorldKeywordsShaderInfo.selectedBendIDs[i] = !gCurvedWorldKeywordsShaderInfo.selectedBendIDs[i];
-                            }
-                        }
-                    }
-                    #endregion
-
-
-                    #region Bend Types
-                    GUILayout.Space(5);
-                    using (new AmazingAssets.EditorGUIUtility.GUIEnabled(shaderIsCurvedWorldTerrain == false))
-                    {
-                        using (new AmazingAssets.EditorGUIUtility.EditorGUILayoutBeginVertical(EditorStyles.helpBox))
-                        {
+                            List<CurvedWorld.BEND_TYPE> selectedBendTypes = new List<CurvedWorld.BEND_TYPE>();
                             for (int i = 0; i < EditorUtilities.MAX_SUPPORTED_BEND_TYPES; i++)
                             {
-                                using (new AmazingAssets.EditorGUIUtility.EditorGUILayoutBeginHorizontal())
+                                if (gCurvedWorldKeywordsShaderInfo.selectedBendTypes[i])
+                                    selectedBendTypes.Add((CurvedWorld.BEND_TYPE)i);
+                            }
+
+                            List<int> selectedIDs = new List<int>();
+                            for (int i = 0; i < EditorUtilities.MAX_SUPPORTED_BEND_IDS; i++)
+                            {
+                                if (gCurvedWorldKeywordsShaderInfo.selectedBendIDs[i])
+                                    selectedIDs.Add(i + 1);    //ID indexes start from 1, not 0
+                            }
+
+
+                            //Create CGING files
+                            UnityEditor.EditorUtility.DisplayProgressBar("Hold On", string.Empty, 0);
+                            foreach (var itemBendType in selectedBendTypes)
+                            {
+                                foreach (var itemBendID in selectedIDs)
                                 {
-                                    GUILayout.Space(2);
-                                    Rect rc = EditorGUILayout.GetControlRect();
+                                    EditorUtilities.CreateCGINCFile(itemBendType, itemBendID);
+                                }
+                            }
 
-                                    if (gCurvedWorldKeywordsShaderInfo.selectedBendTypes[i])
+                            AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
+
+                            EditorUtilities.SetShaderBendSettings(gCurvedWorldKeywordsShader, selectedBendTypes.ToArray(), selectedIDs.ToArray(), gCurvedWorldKeywordsShaderInfo.selecedMultiCompile ? EditorUtilities.KEYWORDS_COMPILE.MultiCompile : EditorUtilities.KEYWORDS_COMPILE.ShaderFeature, true);
+
+                            UnityEditor.EditorUtility.ClearProgressBar();
+                        }
+                    }
+                }
+                #endregion
+
+
+                #region Bend IDs
+                GUILayout.Space(5);
+                using (new EditorGUIHelper.GUIEnabled(shaderIsCurvedWorldTerrain == false))
+                {
+                    int buttonsCountHorizontal = 16;
+
+                    GUIContent[] buttonNames = new GUIContent[EditorUtilities.MAX_SUPPORTED_BEND_IDS];
+                    for (int i = 0; i < EditorUtilities.MAX_SUPPORTED_BEND_IDS; i++)
+                    {
+                        buttonNames[i] = new GUIContent((i + 1).ToString());
+                    }
+                    Rect rc1 = EditorGUILayout.GetControlRect();
+                    Rect rc4 = EditorGUILayout.GetControlRect();
+
+                    Rect position = new Rect(rc1.xMin, rc1.yMin, rc1.width, (rc4.yMax - rc1.yMin));
+
+
+                    Rect[] rectArray = CalcButtonRects(position, buttonNames, buttonsCountHorizontal);
+
+                    for (int i = 0; i < rectArray.Length; i++)
+                    {
+                        bool isBendIDSupported = true;
+                        if (gCurvedWorldKeywordsShaderInfo.selectedBendIDs[i])
+                        {
+                            for (int j = 0; j < EditorUtilities.MAX_SUPPORTED_BEND_TYPES; j++)
+                            {
+                                if (gCurvedWorldKeywordsShaderInfo.selectedBendTypes[j])
+                                {
+                                    string bendFileLocation = EditorUtilities.GetBendFileLocation((CurvedWorld.BEND_TYPE)j, i + 1, EditorUtilities.EXTENSTION.cginc);
+                                    if (File.Exists(bendFileLocation) == false)
                                     {
-                                        bool isBendTypeSupported = true;
-                                        for (int j = 0; j < EditorUtilities.MAX_SUPPORTED_BEND_IDS; j++)
-                                        {
-                                            if (gCurvedWorldKeywordsShaderInfo.selectedBendIDs[j])
-                                            {
-                                                string bendFileLocation = EditorUtilities.GetBendFileLocation((CurvedWorld.BEND_TYPE)i, j + 1, EditorUtilities.EXTENSTION.cginc);
-                                                if (File.Exists(bendFileLocation) == false)
-                                                {
-                                                    isBendTypeSupported = false;
+                                        isBendIDSupported = false;
 
-                                                    break;
-                                                }
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+
+                        using (new EditorGUIHelper.GUIBackgroundColor(gCurvedWorldKeywordsShaderInfo.selectedBendIDs[i] ? (isBendIDSupported ? GUI.skin.settings.selectionColor : Color.red) : Color.white))
+                        {
+                            if (GUI.Button(rectArray[i], buttonNames[i]))
+                                gCurvedWorldKeywordsShaderInfo.selectedBendIDs[i] = !gCurvedWorldKeywordsShaderInfo.selectedBendIDs[i];
+                        }
+                    }
+                }
+                #endregion
+
+
+                #region Bend Types
+                GUILayout.Space(5);
+                using (new EditorGUIHelper.GUIEnabled(shaderIsCurvedWorldTerrain == false))
+                {
+                    using (new EditorGUIHelper.EditorGUILayoutBeginVertical(EditorStyles.helpBox))
+                    {
+                        for (int i = 0; i < EditorUtilities.MAX_SUPPORTED_BEND_TYPES; i++)
+                        {
+                            using (new EditorGUIHelper.EditorGUILayoutBeginHorizontal())
+                            {
+                                GUILayout.Space(2);
+                                Rect rc = EditorGUILayout.GetControlRect();
+
+                                if (gCurvedWorldKeywordsShaderInfo.selectedBendTypes[i])
+                                {
+                                    bool isBendTypeSupported = true;
+                                    for (int j = 0; j < EditorUtilities.MAX_SUPPORTED_BEND_IDS; j++)
+                                    {
+                                        if (gCurvedWorldKeywordsShaderInfo.selectedBendIDs[j])
+                                        {
+                                            string bendFileLocation = EditorUtilities.GetBendFileLocation((CurvedWorld.BEND_TYPE)i, j + 1, EditorUtilities.EXTENSTION.cginc);
+                                            if (File.Exists(bendFileLocation) == false)
+                                            {
+                                                isBendTypeSupported = false;
+
+                                                break;
                                             }
                                         }
-
-                                        EditorGUI.DrawRect(new Rect(rc.xMin - 2, rc.yMin, rc.width + 2, rc.height), isBendTypeSupported ? GUI.skin.settings.selectionColor : Color.red);
-
                                     }
 
+                                    EditorGUI.DrawRect(new Rect(rc.xMin - 2, rc.yMin, rc.width + 2, rc.height), isBendTypeSupported ? GUI.skin.settings.selectionColor : Color.red);
 
-                                    EditorUtilities.BendTypeNameInfo info = EditorUtilities.GetBendTypeNameInfo((CurvedWorld.BEND_TYPE)i);
-                                    gCurvedWorldKeywordsShaderInfo.selectedBendTypes[i] = EditorGUI.ToggleLeft(rc, info.forMenu, gCurvedWorldKeywordsShaderInfo.selectedBendTypes[i]);
                                 }
+
+
+                                EditorUtilities.BendTypeNameInfo info = EditorUtilities.GetBendTypeNameInfo((CurvedWorld.BEND_TYPE)i);
+                                gCurvedWorldKeywordsShaderInfo.selectedBendTypes[i] = EditorGUI.ToggleLeft(rc, info.forMenu, gCurvedWorldKeywordsShaderInfo.selectedBendTypes[i]);
                             }
                         }
                     }
-                    #endregion
                 }
-                else if (gCurvedWorldKeywordsShader != null)
-                {
-                    EditorGUILayout.HelpBox("Curved World keywords not found.", MessageType.Info);
-                }
+                #endregion
             }
-
-            void DrawTab_Activator()
+            else if (gCurvedWorldKeywordsShader != null)
             {
-                EditorGUILayout.LabelField(preferencesNames[(int)TAB.Activator], guiStyleOptionsHeader, GUILayout.Height(guiStyleOptionsHeaderHeight));
-                GUILayout.Space(15);
+                EditorGUILayout.HelpBox("Curved World keywords not found.", MessageType.Info);
+            }
+        }
+
+        void DrawTab_Activator()
+        {
+            EditorGUILayout.LabelField(preferencesNames[(int)TAB.Activator], guiStyleOptionsHeader, GUILayout.Height(guiStyleOptionsHeaderHeight));
+            GUILayout.Space(15);
 
 
-                bool folderExist = Directory.Exists(gActivatorPath);
+            bool folderExist = Directory.Exists(gActivatorPath);
 
-                using (new AmazingAssets.EditorGUIUtility.EditorGUILayoutBeginHorizontal())
+            using (new EditorGUIHelper.EditorGUILayoutBeginHorizontal())
+            {
+                using (new EditorGUIHelper.GUIBackgroundColor(folderExist ? Color.white : Color.red))
                 {
-                    using (new AmazingAssets.EditorGUIUtility.GUIBackgroundColor(folderExist ? Color.white : Color.red))
-                    {
-                        EditorGUILayout.LabelField("Asset Folder");
+                    EditorGUILayout.LabelField("Asset Folder");
 
-                        using (new AmazingAssets.EditorGUIUtility.GUIEnabled(folderExist))
+                    using (new EditorGUIHelper.GUIEnabled(folderExist))
+                    {
+                        Rect buttonRect = GUILayoutUtility.GetLastRect();
+                        buttonRect.xMin += UnityEditor.EditorGUIUtility.labelWidth;
+                        if (GUI.Button(buttonRect, folderExist ? gActivatorPath : "Invalid path", EditorStyles.textField))
                         {
-                            Rect buttonRect = GUILayoutUtility.GetLastRect();
-                            buttonRect.xMin += UnityEditor.EditorGUIUtility.labelWidth;
-                            if (GUI.Button(buttonRect, folderExist ? gActivatorPath : "Invalid path", EditorStyles.textField))
+                            if (folderExist)
                             {
-                                if (folderExist)
-                                {
-                                    UnityEditor.EditorUtility.FocusProjectWindow();
+                                UnityEditor.EditorUtility.FocusProjectWindow();
 
-                                    UnityEngine.Object obj = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(gActivatorPath);
+                                UnityEngine.Object obj = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(gActivatorPath);
 
-                                    if (obj != null)
-                                        UnityEditor.EditorGUIUtility.PingObject(obj);
-                                }
+                                if (obj != null)
+                                    UnityEditor.EditorGUIUtility.PingObject(obj);
                             }
-                        }
-                    }
-
-
-                    if (GUILayout.Button("Select", GUILayout.MaxWidth(100)))
-                    {
-                        GUIUtility.keyboardControl = 0;
-
-                        string initialPath = gActivatorPath;
-                        if (string.IsNullOrEmpty(initialPath) || Directory.Exists(initialPath) == false)
-                        {
-                            initialPath = Application.dataPath;
-                        }
-
-                        string tempPath = gActivatorPath;
-                        tempPath = UnityEditor.EditorUtility.OpenFolderPanel("Select folder within project Assets folder", initialPath, string.Empty);
-
-
-                        if (string.IsNullOrEmpty(tempPath))
-                        {
-
-                        }
-                        else if (tempPath.Contains(Application.dataPath) == false || Directory.Exists(tempPath) == false)
-                        {
-                            gActivatorPath = string.Empty;
-
-                            UnityEditor.EditorUtility.DisplayDialog("Invalid path", "Use path relative to the project folder.", "Ok");
-                        }
-                        else
-                        {
-                            gActivatorPath = tempPath.Replace(Application.dataPath, "Assets");
                         }
                     }
                 }
 
-                GUILayout.Space(15);
 
-
-                using (new AmazingAssets.EditorGUIUtility.GUIEnabled(Directory.Exists(gActivatorPath)))
+                if (GUILayout.Button("Select", GUILayout.MaxWidth(100)))
                 {
-                    using (new AmazingAssets.EditorGUIUtility.EditorGUILayoutBeginHorizontal())
+                    GUIUtility.keyboardControl = 0;
+
+                    string initialPath = gActivatorPath;
+                    if (string.IsNullOrEmpty(initialPath) || Directory.Exists(initialPath) == false)
                     {
-                        if (GUILayout.Button("Activate", GUILayout.MaxHeight(20)))
-                        {
-                            Debug.ClearDeveloperConsole();
-                            UnityEditor.EditorUtility.DisplayProgressBar("Hold On", string.Empty, 0);
+                        initialPath = Application.dataPath;
+                    }
 
-                            LoadActivatorShaders();
-
-
-                            int doneCount = 0;
-                            int skipCount = 0;
-                            int problemCount = 0;
-
-                            for (int i = 0; i < gActivatorShaders.Count; i++)
-                            {
-                                if (gActivatorShaders[i] != null)
-                                {
-                                    UnityEditor.EditorUtility.DisplayProgressBar("Activating", gActivatorShaders[i].name, 1.0f / gActivatorShaders.Count);
-
-                                    switch (EditorUtilities.ActivateShader(gActivatorShaders[i], true, false))
-                                    {
-                                        case EditorUtilities.ACTIVATE_STATE.Done: doneCount += 1; break;
-                                        case EditorUtilities.ACTIVATE_STATE.Skip: skipCount += 1; break;
-
-                                        case EditorUtilities.ACTIVATE_STATE.Problem:
-                                            {
-                                                problemCount += 1;
-                                            }
-                                            break;
-
-                                    }
-                                }
-                            }
-
-                            UnityEditor.EditorUtility.ClearProgressBar();
+                    string tempPath = gActivatorPath;
+                    tempPath = UnityEditor.EditorUtility.OpenFolderPanel("Select folder within project Assets folder", initialPath, string.Empty);
 
 
-                            this.ShowNotification(new GUIContent(string.Format("Activated: {0}" + System.Environment.NewLine + "Skip: {1}" + System.Environment.NewLine + "Problems: {2}", doneCount, skipCount, problemCount)), 5);
+                    if (string.IsNullOrEmpty(tempPath))
+                    {
 
+                    }
+                    else if (tempPath.Contains(Application.dataPath) == false || Directory.Exists(tempPath) == false)
+                    {
+                        gActivatorPath = string.Empty;
 
-                            if (doneCount > 0)
-                                AssetDatabase.Refresh();
-
-                        }
-
-                        if (GUILayout.Button("Deactivate", GUILayout.MaxHeight(20)))
-                        {
-                            Debug.ClearDeveloperConsole();
-                            UnityEditor.EditorUtility.DisplayProgressBar("Hold On", string.Empty, 0);
-
-                            LoadActivatorShaders();
-
-
-                            int doneCount = 0;
-                            int skipCount = 0;
-                            int problemCount = 0;
-
-                            for (int i = 0; i < gActivatorShaders.Count; i++)
-                            {
-                                if (gActivatorShaders[i] != null)
-                                {
-                                    UnityEditor.EditorUtility.DisplayProgressBar("Deactivating", gActivatorShaders[i].name, 1.0f / gActivatorShaders.Count);
-
-                                    switch (EditorUtilities.ActivateShader(gActivatorShaders[i], false, false))
-                                    {
-                                        case EditorUtilities.ACTIVATE_STATE.Done: doneCount += 1; break;
-                                        case EditorUtilities.ACTIVATE_STATE.Skip: skipCount += 1; break;
-
-                                        case EditorUtilities.ACTIVATE_STATE.Problem:
-                                            {
-                                                problemCount += 1;
-                                            }
-                                            break;
-                                    }
-                                }
-                            }
-
-                            UnityEditor.EditorUtility.ClearProgressBar();
-
-
-                            this.ShowNotification(new GUIContent(string.Format("Deactivated: {0}" + System.Environment.NewLine + "Skip: {1}" + System.Environment.NewLine + "Problems: {2}", doneCount, skipCount, problemCount)), 5);
-
-
-                            if (doneCount > 0)
-                                AssetDatabase.Refresh();
-                        }
+                        UnityEditor.EditorUtility.DisplayDialog("Invalid path", "Use path relative to the project folder.", "Ok");
+                    }
+                    else
+                    {
+                        gActivatorPath = tempPath.Replace(Application.dataPath, "Assets");
                     }
                 }
             }
 
-            void Draw_ShaderPackages()
-            {
-                EditorGUILayout.LabelField(preferencesNames[(int)TAB.ShaderPackages], guiStyleOptionsHeader, GUILayout.Height(guiStyleOptionsHeaderHeight));
-                GUILayout.Space(15);
+            GUILayout.Space(15);
 
-                if (shaderPackages == null)
+
+            using (new EditorGUIHelper.GUIEnabled(Directory.Exists(gActivatorPath)))
+            {
+                using (new EditorGUIHelper.EditorGUILayoutBeginHorizontal())
                 {
-                    string path = Path.Combine(EditorUtilities.GetCurvedWorldEditorFolderPath(), "Shaders", "Packages");
-                    if (string.IsNullOrEmpty(path) || Directory.Exists(path) == false)
+                    if (GUILayout.Button("Activate", GUILayout.MaxHeight(20)))
                     {
-                        shaderPackages = new string[0];
-                        return;
+                        Debug.ClearDeveloperConsole();
+                        UnityEditor.EditorUtility.DisplayProgressBar("Hold On", string.Empty, 0);
+
+                        LoadActivatorShaders();
+
+
+                        int doneCount = 0;
+                        int skipCount = 0;
+                        int problemCount = 0;
+
+                        for (int i = 0; i < gActivatorShaders.Count; i++)
+                        {
+                            if (gActivatorShaders[i] != null)
+                            {
+                                UnityEditor.EditorUtility.DisplayProgressBar("Activating", gActivatorShaders[i].name, 1.0f / gActivatorShaders.Count);
+
+                                switch (EditorUtilities.ActivateShader(gActivatorShaders[i], true, false))
+                                {
+                                    case EditorUtilities.ACTIVATE_STATE.Done: doneCount += 1; break;
+                                    case EditorUtilities.ACTIVATE_STATE.Skip: skipCount += 1; break;
+
+                                    case EditorUtilities.ACTIVATE_STATE.Problem:
+                                        {
+                                            problemCount += 1;
+                                        }
+                                        break;
+
+                                }
+                            }
+                        }
+
+                        UnityEditor.EditorUtility.ClearProgressBar();
+
+
+                        this.ShowNotification(new GUIContent(string.Format("Activated: {0}" + System.Environment.NewLine + "Skip: {1}" + System.Environment.NewLine + "Problems: {2}", doneCount, skipCount, problemCount)), 5);
+
+
+                        if (doneCount > 0)
+                            AssetDatabase.Refresh();
+
                     }
 
+                    if (GUILayout.Button("Deactivate", GUILayout.MaxHeight(20)))
+                    {
+                        Debug.ClearDeveloperConsole();
+                        UnityEditor.EditorUtility.DisplayProgressBar("Hold On", string.Empty, 0);
 
-                    shaderPackages = Directory.GetFiles(path, "*.unitypackage", SearchOption.AllDirectories);
+                        LoadActivatorShaders();
+
+
+                        int doneCount = 0;
+                        int skipCount = 0;
+                        int problemCount = 0;
+
+                        for (int i = 0; i < gActivatorShaders.Count; i++)
+                        {
+                            if (gActivatorShaders[i] != null)
+                            {
+                                UnityEditor.EditorUtility.DisplayProgressBar("Deactivating", gActivatorShaders[i].name, 1.0f / gActivatorShaders.Count);
+
+                                switch (EditorUtilities.ActivateShader(gActivatorShaders[i], false, false))
+                                {
+                                    case EditorUtilities.ACTIVATE_STATE.Done: doneCount += 1; break;
+                                    case EditorUtilities.ACTIVATE_STATE.Skip: skipCount += 1; break;
+
+                                    case EditorUtilities.ACTIVATE_STATE.Problem:
+                                        {
+                                            problemCount += 1;
+                                        }
+                                        break;
+                                }
+                            }
+                        }
+
+                        UnityEditor.EditorUtility.ClearProgressBar();
+
+
+                        this.ShowNotification(new GUIContent(string.Format("Deactivated: {0}" + System.Environment.NewLine + "Skip: {1}" + System.Environment.NewLine + "Problems: {2}", doneCount, skipCount, problemCount)), 5);
+
+
+                        if (doneCount > 0)
+                            AssetDatabase.Refresh();
+                    }
                 }
+            }
+        }
 
-                if (shaderPackages.Length == 0)
+        void Draw_ShaderPackages()
+        {
+            EditorGUILayout.LabelField(preferencesNames[(int)TAB.ShaderPackages], guiStyleOptionsHeader, GUILayout.Height(guiStyleOptionsHeaderHeight));
+            GUILayout.Space(15);
+
+            if (shaderPackages == null)
+            {
+                string path = Path.Combine(EditorUtilities.GetCurvedWorldEditorFolderPath(), "Shaders", "Packages");
+                if (string.IsNullOrEmpty(path) || Directory.Exists(path) == false)
+                {
+                    shaderPackages = new string[0];
                     return;
+                }
+
+
+                shaderPackages = Directory.GetFiles(path, "*.unitypackage", SearchOption.AllDirectories);
+            }
+
+            if (shaderPackages.Length == 0)
+                return;
 
 
 
-                string shadersFolderPath = Path.Combine(EditorUtilities.GetCurvedWorldEditorFolderPath(), "Shaders", "Custom");
+            string shadersFolderPath = Path.Combine(EditorUtilities.GetCurvedWorldEditorFolderPath(), "Shaders", "Custom");
 
 
-                bool needRefresh = false;
-                using (new AmazingAssets.EditorGUIUtility.EditorGUILayoutBeginVertical(EditorStyles.helpBox))
+            bool needRefresh = false;
+            using (new EditorGUIHelper.EditorGUILayoutBeginVertical(EditorStyles.helpBox))
+            {
+                for (int i = 0; i < shaderPackages.Length; i++)
                 {
-                    for (int i = 0; i < shaderPackages.Length; i++)
+                    if (shaderPackages[i] == null || string.IsNullOrEmpty(shaderPackages[i]))
+                        continue;
+
+                    string packageName = Path.GetFileNameWithoutExtension(shaderPackages[i]);
+                    string folderName = Path.Combine(shadersFolderPath, packageName);
+
+                    bool folderExist = Directory.Exists(folderName);
+
+
+                    int selectionID = -1;
+                    Rect selectionRect;
+
+                    using (new EditorGUIHelper.EditorGUILayoutBeginHorizontal())
                     {
-                        if (shaderPackages[i] == null || string.IsNullOrEmpty(shaderPackages[i]))
-                            continue;
-
-                        string packageName = Path.GetFileNameWithoutExtension(shaderPackages[i]);
-                        string folderName = Path.Combine(shadersFolderPath, packageName);
-
-                        bool folderExist = Directory.Exists(folderName);
+                        EditorGUILayout.LabelField(packageName);
+                        selectionRect = GUILayoutUtility.GetLastRect();
 
 
-                        int selectionID = -1;
-                        Rect selectionRect;
-
-                        using (new AmazingAssets.EditorGUIUtility.EditorGUILayoutBeginHorizontal())
+                        //Import
+                        using (new EditorGUIHelper.GUIEnabled(folderExist ? false : true))
                         {
-                            EditorGUILayout.LabelField(packageName);
-                            selectionRect = GUILayoutUtility.GetLastRect();
-
-
-                            //Import
-                            using (new AmazingAssets.EditorGUIUtility.GUIEnabled(folderExist ? false : true))
+                            using (new EditorGUIHelper.GUIBackgroundColor(folderExist ? Color.white : Color.green * 0.95f))
                             {
-                                using (new AmazingAssets.EditorGUIUtility.GUIBackgroundColor(folderExist ?Color.white : Color.green * 0.95f))
+                                if (GUILayout.Button(" Import "))
                                 {
-                                    if (GUILayout.Button(" Import "))
-                                    {
-                                        AssetDatabase.ImportPackage(shaderPackages[i], false);
+                                    AssetDatabase.ImportPackage(shaderPackages[i], false);
 
-                                        needRefresh = true;
+                                    needRefresh = true;
 
-                                        break;
-                                    }
+                                    break;
                                 }
                             }
-                            if (Event.current != null && GUILayoutUtility.GetLastRect().Contains(Event.current.mousePosition))
-                                selectionID = i;
+                        }
+                        if (Event.current != null && GUILayoutUtility.GetLastRect().Contains(Event.current.mousePosition))
+                            selectionID = i;
 
 
-                            //Reimport
-                            using (new AmazingAssets.EditorGUIUtility.GUIEnabled(folderExist))
+                        //Reimport
+                        using (new EditorGUIHelper.GUIEnabled(folderExist))
+                        {
+                            using (new EditorGUIHelper.GUIBackgroundColor(folderExist ? GUI.skin.settings.selectionColor : Color.white))
                             {
-                                using (new AmazingAssets.EditorGUIUtility.GUIBackgroundColor(folderExist ? GUI.skin.settings.selectionColor : Color.white))
+                                if (GUILayout.Button("Reimport"))
                                 {
-                                    if (GUILayout.Button("Reimport"))
-                                    {
-                                        AssetDatabase.ImportPackage(shaderPackages[i], false);
+                                    AssetDatabase.ImportPackage(shaderPackages[i], false);
 
-                                        needRefresh = true;
+                                    needRefresh = true;
 
-                                        break;
-                                    }
+                                    break;
                                 }
                             }
-                            if (Event.current != null && GUILayoutUtility.GetLastRect().Contains(Event.current.mousePosition))
-                                selectionID = i;
+                        }
+                        if (Event.current != null && GUILayoutUtility.GetLastRect().Contains(Event.current.mousePosition))
+                            selectionID = i;
 
 
-                            //Remove
-                            using (new AmazingAssets.EditorGUIUtility.GUIEnabled(folderExist))
+                        //Remove
+                        using (new EditorGUIHelper.GUIEnabled(folderExist))
+                        {
+                            using (new EditorGUIHelper.GUIBackgroundColor(folderExist ? Color.red * 0.95f : Color.white))
                             {
-                                using (new AmazingAssets.EditorGUIUtility.GUIBackgroundColor(folderExist ? Color.red * 0.95f : Color.white))
+                                if (GUILayout.Button("Remove"))
                                 {
-                                    if (GUILayout.Button("Remove"))
+                                    string removeFile = Path.Combine(shadersFolderPath, packageName);
+
+                                    FileUtil.DeleteFileOrDirectory(removeFile);
+                                    FileUtil.DeleteFileOrDirectory(removeFile + ".meta");
+
+
+                                    if (packageName.Contains("TextMesh Pro"))
                                     {
-                                        string removeFile = Path.Combine(shadersFolderPath, packageName);
+                                        removeFile = Path.Combine(EditorUtilities.GetCurvedWorldEditorFolderPath(), "Editor", "Material Editors", "TextMesh Pro");
+
 
                                         FileUtil.DeleteFileOrDirectory(removeFile);
                                         FileUtil.DeleteFileOrDirectory(removeFile + ".meta");
-
-
-                                        if (packageName == "TextMesh Pro")
-                                        {
-                                            removeFile = Path.Combine(EditorUtilities.GetCurvedWorldEditorFolderPath(), "Editor", "Material Editors", "TextMesh Pro");
-
-
-                                            FileUtil.DeleteFileOrDirectory(removeFile);
-                                            FileUtil.DeleteFileOrDirectory(removeFile + ".meta");
-                                        }
-
-                                        if (packageName == "SpeedTree")
-                                        {
-                                            removeFile = Path.Combine(EditorUtilities.GetCurvedWorldEditorFolderPath(), "Editor", "Material Editors", "SpeedTree");
-
-
-                                            FileUtil.DeleteFileOrDirectory(removeFile);
-                                            FileUtil.DeleteFileOrDirectory(removeFile + ".meta");
-                                        }
-
-                                        needRefresh = true;
                                     }
-                                }
-                            }
-                            if (Event.current != null && GUILayoutUtility.GetLastRect().Contains(Event.current.mousePosition))
-                                selectionID = i;
-                        }
 
-
-                        //Draw selection rect
-                        if (selectionID == i)
-                            //EditorGUI.HelpBox(GUILayoutUtility.GetLastRect(), string.Empty, MessageType.None);
-                            //EditorGUI.LabelField(GUILayoutUtility.GetLastRect(), "•");
-                            EditorGUI.DrawRect(selectionRect, Color.gray * 0.15f);
-                    }
-                }
-
-                if (needRefresh)
-                {
-                    AssetDatabase.Refresh();
-                }
-            }
-
-            void Draw_AboutTab()
-            {
-                EditorGUILayout.LabelField("Curved World", guiStyleOptionsHeader, GUILayout.Height(guiStyleOptionsHeaderHeight));
-                EditorGUILayout.LabelField("Installed Version: " + EditorUtilities.version, EditorStyles.miniLabel);
-                GUILayout.Space(15);
-
-
-                using (new AmazingAssets.EditorGUIUtility.EditorGUILayoutBeginHorizontal())
-                {
-                    if (GUILayout.Button(new GUIContent("Manual", UnityEditor.EditorGUIUtility.IconContent("vcs_document").image), GUILayout.MaxHeight(24)))
-                    {
-                        string filePath = Path.Combine(EditorUtilities.GetCurvedWorldEditorFolderPath(), "Documentation", "Manual.pdf");
-                        if (File.Exists(filePath))
-                        {
-                            filePath = filePath.Replace('/', Path.DirectorySeparatorChar);
-
-                            System.Diagnostics.Process fileopener = new System.Diagnostics.Process();
-                            fileopener.StartInfo.FileName = "explorer";
-                            fileopener.StartInfo.Arguments = "\"" + filePath + "\"";
-                            fileopener.Start();
-                        }
-                        else
-                        {
-                            Debug.LogWarning("File '" + filePath + "' does not exist.");
-                        }
-                    }
-
-                    if (GUILayout.Button(new GUIContent("Forum", UnityEditor.EditorGUIUtility.IconContent("BuildSettings.Web.Small").image), GUILayout.MaxHeight(24)))
-                    {
-                        Application.OpenURL(EditorUtilities.assetForumPath);
-                    }
-
-
-                    if (GUILayout.Button(new GUIContent("Support E-Mail", UnityEditor.EditorGUIUtility.IconContent("NetworkLobbyPlayer Icon").image), GUILayout.MaxHeight(24)))
-                    {
-                        Application.OpenURL(EditorUtilities.assetSupportMail);
-                    }
-
-
-                    if (GUILayout.Button(new GUIContent("Rate Asset", UnityEditor.EditorGUIUtility.IconContent("Favorite").image), GUILayout.MaxHeight(24)))
-                    {
-                        UnityEditorInternal.AssetStore.Open(EditorUtilities.assetStorePath);
-                    }
-                }
-            }
-
-
-
-            void GenerateCoreTransformFile()
-            {
-                string filePath = EditorUtilities.GetCoreTransformFilePath();
-
-
-                List<string> file = new List<string>();
-
-                file.Add("#ifndef CURVEDWORLD_TRANSFORM_CGINC");
-                file.Add("#define CURVEDWORLD_TRANSFORM_CGINC");
-                file.Add(System.Environment.NewLine);
-
-                file.Add("#ifndef CURVEDWORLD_IS_INSTALLED");
-                file.Add("#define CURVEDWORLD_IS_INSTALLED");
-                file.Add("#endif");
-                file.Add(System.Environment.NewLine);
-
-                foreach (CurvedWorld.BEND_TYPE bendType in Enum.GetValues(typeof(CurvedWorld.BEND_TYPE)))
-                {
-                    if ((int)bendType == 0)
-                        file.Add("#if defined (" + EditorUtilities.shaderKeywordPrefix_BendType + bendType.ToString().ToUpperInvariant() + ")");
-                    else
-                        file.Add("#elif defined (" + EditorUtilities.shaderKeywordPrefix_BendType + bendType.ToString().ToUpperInvariant() + ")");
-
-                    for (int i = 0; i < EditorUtilities.MAX_SUPPORTED_BEND_IDS; i++)
-                    {
-                        int ID = i + 1;
-
-                        if (ID == 1)
-                            file.Add("    #if defined (" + EditorUtilities.shaderKeywordPrefix_BendID + ID + ")");
-                        else
-                            file.Add("    #elif defined (" + EditorUtilities.shaderKeywordPrefix_BendID + ID + ")");
-
-
-                        string methodName = "CurvedWorld_" + bendType.ToString() + "_ID" + ID;
-                        file.Add("        #include \"../CGINC/" + EditorUtilities.GetBendTypeNameInfo(bendType).nameOnly + "/" + methodName + ".cginc\"");
-                        file.Add("        #define CURVEDWORLD_TRANSFORM_VERTEX_AND_NORMAL(v, n, t) " + methodName + "(v, n, t);");
-                        file.Add("        #define CURVEDWORLD_TRANSFORM_VERTEX(v)                  " + methodName + "(v);	");
-                    }
-
-                    file.Add("    #else");
-                    file.Add("        #define CURVEDWORLD_TRANSFORM_VERTEX_AND_NORMAL(v, n, t) ");
-                    file.Add("        #define CURVEDWORLD_TRANSFORM_VERTEX(v)    ");
-
-                    file.Add("    #endif");
-                }
-
-
-                file.Add("#else");
-                file.Add("    #define CURVEDWORLD_TRANSFORM_VERTEX_AND_NORMAL(v, n, t) ");
-                file.Add("    #define CURVEDWORLD_TRANSFORM_VERTEX(v)    ");
-
-                file.Add("#endif");
-                file.Add(System.Environment.NewLine);
-                file.Add("#endif");
-
-
-                File.WriteAllLines(filePath, file.ToArray());
-
-
-                AssetDatabase.ImportAsset(filePath, ImportAssetOptions.ForceUpdate);
-            }
-
-
-
-            void FindSceneCurvedWorldControllers()
-            {
-                gSceneControllers = Resources.FindObjectsOfTypeAll<CurvedWorld.CurvedWorldController>();
-
-                if (gSceneControllers == null)
-                    gSceneControllers = new CurvedWorld.CurvedWorldController[] { null };
-                else
-                    gSceneControllers = gSceneControllers.OrderBy(s => (s.bendType.ToString() + s.bendID.ToString())).ToArray();
-            }
-
-            public void RebuildSceneShadersOverview()
-            {
-                if (gRenderersOverviewList == null)
-                    gRenderersOverviewList = new List<EditorUtilities.ShaderOverview>();
-                else
-                {
-                    gRenderersOverviewList = gRenderersOverviewList.Where(c => c != null && c.shader != null).ToList();
-
-                    for (int i = 0; i < gRenderersOverviewList.Count; i++)
-                    {
-                        gRenderersOverviewList[i].materialsInfo = null;
-                    }
-                }
-
-                GameObject[] gameObjects = gRenderersOverviewMode == RENDERERS_OVERVIEW_MODE.Scene ? UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects() : Selection.gameObjects;
-
-
-                for (int i = 0; i < gameObjects.Length; i++)
-                {
-                    GameObject go = gameObjects[i];
-                    if (go == null)
-                        continue;
-
-
-                    Renderer[] renderers = go.GetComponentsInChildren<Renderer>(true);
-                    if (renderers != null && renderers.Length != 0)
-                    {
-                        for (int r = 0; r < renderers.Length; r++)
-                        {
-                            if (renderers[r] != null && renderers[r].sharedMaterials != null && renderers[r].sharedMaterials.Length != 0)
-                            {
-                                for (int m = 0; m < renderers[r].sharedMaterials.Length; m++)
-                                {
-                                    Material mat = renderers[r].sharedMaterials[m];
-                                    if (mat != null)
+                                    if (packageName == "SpeedTree")
                                     {
-                                        if (gRenderersOverviewList.Count == 0)
-                                            gRenderersOverviewList.Add(new EditorUtilities.ShaderOverview(mat));
-                                        else
-                                        {
-                                            int addIndex = -1;
-                                            for (int s = 0; s < gRenderersOverviewList.Count; s++)
-                                            {
-                                                if (gRenderersOverviewList[s].shader == mat.shader && gRenderersOverviewList[s].ContainSameKeywords(mat.shaderKeywords))
-                                                {
-                                                    addIndex = s;
-                                                    break;
-                                                }
-                                            }
+                                        removeFile = Path.Combine(EditorUtilities.GetCurvedWorldEditorFolderPath(), "Editor", "Material Editors", "SpeedTree");
 
 
-                                            if (addIndex == -1)
-                                            {
-                                                gRenderersOverviewList.Add(new EditorUtilities.ShaderOverview(mat));
-                                            }
-                                            else
-                                            {
-                                                gRenderersOverviewList[addIndex].AddMaterial(mat);
-                                            }
-                                        }
+                                        FileUtil.DeleteFileOrDirectory(removeFile);
+                                        FileUtil.DeleteFileOrDirectory(removeFile + ".meta");
                                     }
+
+                                    needRefresh = true;
                                 }
                             }
                         }
+                        if (Event.current != null && GUILayoutUtility.GetLastRect().Contains(Event.current.mousePosition))
+                            selectionID = i;
                     }
+
+
+                    //Draw selection rect
+                    if (selectionID == i)
+                        //EditorGUI.HelpBox(GUILayoutUtility.GetLastRect(), string.Empty, MessageType.None);
+                        //EditorGUI.LabelField(GUILayoutUtility.GetLastRect(), "•");
+                        EditorGUI.DrawRect(selectionRect, Color.gray * 0.15f);
                 }
-
-
-                //Sort
-                //gShaderOverview = gShaderOverview.OrderBy(s => (s.shader.name + s.keywordsString)).ToList();
-
-                //for (int i = 0; i < gShaderOverview.Count; i++)
-                //{
-                //    gShaderOverview[i].materialsInfo = gShaderOverview[i].materialsInfo.OrderBy(m => m.material.name).ToList();
-                //}
             }
 
-            List<Renderer> GetShaderOverviewRenderersByMaterial(List<Material> materials)
+            if (needRefresh)
             {
-                List<Renderer> renderers = new List<Renderer>();
+                UnityEditor.AssetDatabase.Refresh();
+            }
+        }
+
+        void Draw_AboutTab()
+        {
+            EditorGUILayout.LabelField("Curved World", guiStyleOptionsHeader, GUILayout.Height(guiStyleOptionsHeaderHeight));
+            using (new EditorGUIHelper.GUIEnabled(false))
+            {
+                EditorGUILayout.LabelField("Installed version " + AssetInfo.assetVersion, EditorStyles.miniLabel);
+            }
+
+            float buttonHeight = 30;
+            float buttonWidth = this.position.width * 0.25f;
 
 
-                GameObject[] gameObjects = gRenderersOverviewMode == RENDERERS_OVERVIEW_MODE.Scene ? UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects() : Selection.gameObjects;
+            GUILayout.Space(15);
 
+            string manualFilePass = Path.Combine(EditorUtilities.GetCurvedWorldEditorFolderPath(), "Documentation", "Manual.pdf");
 
-                for (int i = 0; i < gameObjects.Length; i++)
+            if (GUILayout.Button(new GUIContent("Documentation", iconManual), GUILayout.MaxHeight(buttonHeight), GUILayout.Width(buttonWidth)))
+            {
+                Application.OpenURL(AssetInfo.assetManualLocation);
+            }
+
+            if (GUILayout.Button(new GUIContent("Forum", iconForum), GUILayout.MaxHeight(buttonHeight), GUILayout.Width(buttonWidth), GUILayout.Width(buttonWidth)))
+            {
+                Application.OpenURL(AssetInfo.assetForumPath);
+            }
+
+            if (GUILayout.Button(new GUIContent("Support & Bug Report", iconSupport, AssetInfo.assetSupportMail + "\nRight click to copy to the clipboard"), GUILayout.MaxHeight(buttonHeight), GUILayout.Width(buttonWidth)))
+            {
+                if (Event.current.button == 1)   //Right click
                 {
-                    GameObject go = gameObjects[i];
-                    if (go == null)
-                        continue;
+                    TextEditor te = new TextEditor();
+                    te.text = AssetInfo.assetSupportMail;
+                    te.SelectAll();
+                    te.Copy();
 
 
-                    Renderer[] objectRenderers = go.GetComponentsInChildren<Renderer>(true);
-                    if (objectRenderers != null && objectRenderers.Length > 0)
-                    {
-                        for (int r = 0; r < objectRenderers.Length; r++)
-                        {
-                            if (objectRenderers[r] != null && objectRenderers[r].sharedMaterials != null && objectRenderers[r].sharedMaterials.Intersect(materials).Any())
-                            {
-                                renderers.Add(objectRenderers[r]);
-                            }
-                        }
-                    }
+
+                    StackTraceLogType save = Application.GetStackTraceLogType(LogType.Log);
+                    Application.SetStackTraceLogType(LogType.Log, StackTraceLogType.None);
+
+                    Debug.Log(AssetInfo.assetSupportMail + "\n");
+
+                    Application.SetStackTraceLogType(LogType.Log, save);
                 }
-
-
-                renderers = renderers.Distinct().ToList();
-
-                return renderers;
+                else
+                {
+                    Application.OpenURL("mailto:" + AssetInfo.assetSupportMail);
+                }
             }
 
-            List<Material> GetShaderOverviewMaterials()
-            {
-                List<Material> materials = new List<Material>();
 
+            GUILayout.Space(15);
+            if (GUILayout.Button(new GUIContent("Rate Asset", iconRate), GUILayout.MaxHeight(buttonHeight), GUILayout.Width(buttonWidth)))
+            {
+                UnityEditorInternal.AssetStore.Open(AssetInfo.assetStorePath);
+            }
+
+            if (GUILayout.Button(new GUIContent("More Assets ", iconMore), GUILayout.MaxHeight(buttonHeight), GUILayout.Width(buttonWidth)))
+            {
+                Application.OpenURL(AssetInfo.publisherPage);
+            }
+        }
+
+
+
+        void GenerateCoreTransformFile()
+        {
+            string filePath = EditorUtilities.GetCoreTransformFilePath();
+
+
+            List<string> file = new List<string>();
+
+            file.Add("#ifndef CURVEDWORLD_TRANSFORM_CGINC");
+            file.Add("#define CURVEDWORLD_TRANSFORM_CGINC");
+            file.Add(System.Environment.NewLine);
+
+            file.Add("#ifndef CURVEDWORLD_IS_INSTALLED");
+            file.Add("#define CURVEDWORLD_IS_INSTALLED");
+            file.Add("#endif");
+            file.Add(System.Environment.NewLine);
+
+            foreach (CurvedWorld.BEND_TYPE bendType in Enum.GetValues(typeof(CurvedWorld.BEND_TYPE)))
+            {
+                if ((int)bendType == 0)
+                    file.Add("#if defined (" + EditorUtilities.shaderKeywordPrefix_BendType + bendType.ToString().ToUpperInvariant() + ")");
+                else
+                    file.Add("#elif defined (" + EditorUtilities.shaderKeywordPrefix_BendType + bendType.ToString().ToUpperInvariant() + ")");
+
+                for (int i = 0; i < EditorUtilities.MAX_SUPPORTED_BEND_IDS; i++)
+                {
+                    int ID = i + 1;
+
+                    if (ID == 1)
+                        file.Add("    #if defined (" + EditorUtilities.shaderKeywordPrefix_BendID + ID + ")");
+                    else
+                        file.Add("    #elif defined (" + EditorUtilities.shaderKeywordPrefix_BendID + ID + ")");
+
+
+                    string methodName = "CurvedWorld_" + bendType.ToString() + "_ID" + ID;
+                    file.Add("        #include \"../CGINC/" + EditorUtilities.GetBendTypeNameInfo(bendType).nameOnly + "/" + methodName + ".cginc\"");
+                    file.Add("        #define CURVEDWORLD_TRANSFORM_VERTEX_AND_NORMAL(v, n, t) " + methodName + "(v, n, t);");
+                    file.Add("        #define CURVEDWORLD_TRANSFORM_VERTEX(v)                  " + methodName + "(v);	");
+                }
+
+                file.Add("    #else");
+                file.Add("        #define CURVEDWORLD_TRANSFORM_VERTEX_AND_NORMAL(v, n, t) ");
+                file.Add("        #define CURVEDWORLD_TRANSFORM_VERTEX(v)    ");
+
+                file.Add("    #endif");
+            }
+
+
+            file.Add("#else");
+            file.Add("    #define CURVEDWORLD_TRANSFORM_VERTEX_AND_NORMAL(v, n, t) ");
+            file.Add("    #define CURVEDWORLD_TRANSFORM_VERTEX(v)    ");
+
+            file.Add("#endif");
+            file.Add(System.Environment.NewLine);
+            file.Add("#endif");
+
+
+            File.WriteAllLines(filePath, file.ToArray());
+
+
+            AssetDatabase.ImportAsset(filePath, ImportAssetOptions.ForceUpdate);
+        }
+
+        void GenerateAllFilesCGINC()
+        {
+            foreach (CurvedWorld.BEND_TYPE bendType in System.Enum.GetValues(typeof(CurvedWorld.BEND_TYPE)))
+            {
+                for (int i = 1; i < EditorUtilities.MAX_SUPPORTED_BEND_IDS + 1; i++)
+                {
+                    EditorUtilities.CreateCGINCFile(bendType, i);
+                }
+            }
+
+            AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
+
+            //Rebuild
+            EditorUtilities.RebuildProjectBendsInfo();
+        }
+
+
+
+        void FindSceneCurvedWorldControllers()
+        {
+            gSceneControllers = Resources.FindObjectsOfTypeAll<CurvedWorld.CurvedWorldController>();
+
+            if (gSceneControllers == null)
+                gSceneControllers = new CurvedWorld.CurvedWorldController[] { null };
+            else
+                gSceneControllers = gSceneControllers.OrderBy(s => (s.bendType.ToString() + s.bendID.ToString())).ToArray();
+        }
+
+        public void RebuildSceneShadersOverview()
+        {
+            if (gRenderersOverviewList == null)
+                gRenderersOverviewList = new List<EditorUtilities.ShaderOverview>();
+            else
+            {
+                gRenderersOverviewList = gRenderersOverviewList.Where(c => c != null && c.shader != null).ToList();
 
                 for (int i = 0; i < gRenderersOverviewList.Count; i++)
                 {
-                    if (gRenderersOverviewList[i] == null || gRenderersOverviewList[i].shader == null || gRenderersOverviewList[i].materialsInfo == null || gRenderersOverviewList[i].materialsInfo.Count == 0)
+                    gRenderersOverviewList[i].materialsInfo = null;
+                }
+            }
+
+            GameObject[] gameObjects = gRenderersOverviewMode == RENDERERS_OVERVIEW_MODE.Scene ? UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects() : Selection.gameObjects;
+
+
+            for (int i = 0; i < gameObjects.Length; i++)
+            {
+                GameObject go = gameObjects[i];
+                if (go == null)
+                    continue;
+
+
+                Renderer[] renderers = go.GetComponentsInChildren<Renderer>(true);
+                if (renderers != null && renderers.Length != 0)
+                {
+                    for (int r = 0; r < renderers.Length; r++)
+                    {
+                        if (renderers[r] != null && renderers[r].sharedMaterials != null && renderers[r].sharedMaterials.Length != 0)
+                        {
+                            for (int m = 0; m < renderers[r].sharedMaterials.Length; m++)
+                            {
+                                Material mat = renderers[r].sharedMaterials[m];
+                                if (mat != null)
+                                {
+                                    if (gRenderersOverviewList.Count == 0)
+                                        gRenderersOverviewList.Add(new EditorUtilities.ShaderOverview(mat));
+                                    else
+                                    {
+                                        int addIndex = -1;
+                                        for (int s = 0; s < gRenderersOverviewList.Count; s++)
+                                        {
+                                            if (gRenderersOverviewList[s].shader == mat.shader && gRenderersOverviewList[s].ContainSameKeywords(mat.shaderKeywords))
+                                            {
+                                                addIndex = s;
+                                                break;
+                                            }
+                                        }
+
+
+                                        if (addIndex == -1)
+                                        {
+                                            gRenderersOverviewList.Add(new EditorUtilities.ShaderOverview(mat));
+                                        }
+                                        else
+                                        {
+                                            gRenderersOverviewList[addIndex].AddMaterial(mat);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+
+            //Sort
+            //gShaderOverview = gShaderOverview.OrderBy(s => (s.shader.name + s.keywordsString)).ToList();
+
+            //for (int i = 0; i < gShaderOverview.Count; i++)
+            //{
+            //    gShaderOverview[i].materialsInfo = gShaderOverview[i].materialsInfo.OrderBy(m => m.material.name).ToList();
+            //}
+        }
+
+        List<Renderer> GetShaderOverviewRenderersByMaterial(List<Material> materials)
+        {
+            List<Renderer> renderers = new List<Renderer>();
+
+
+            GameObject[] gameObjects = gRenderersOverviewMode == RENDERERS_OVERVIEW_MODE.Scene ? UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects() : Selection.gameObjects;
+
+
+            for (int i = 0; i < gameObjects.Length; i++)
+            {
+                GameObject go = gameObjects[i];
+                if (go == null)
+                    continue;
+
+
+                Renderer[] objectRenderers = go.GetComponentsInChildren<Renderer>(true);
+                if (objectRenderers != null && objectRenderers.Length > 0)
+                {
+                    for (int r = 0; r < objectRenderers.Length; r++)
+                    {
+                        if (objectRenderers[r] != null && objectRenderers[r].sharedMaterials != null && objectRenderers[r].sharedMaterials.Intersect(materials).Any())
+                        {
+                            renderers.Add(objectRenderers[r]);
+                        }
+                    }
+                }
+            }
+
+
+            renderers = renderers.Distinct().ToList();
+
+            return renderers;
+        }
+
+        List<Material> GetShaderOverviewMaterials()
+        {
+            List<Material> materials = new List<Material>();
+
+
+            for (int i = 0; i < gRenderersOverviewList.Count; i++)
+            {
+                if (gRenderersOverviewList[i] == null || gRenderersOverviewList[i].shader == null || gRenderersOverviewList[i].materialsInfo == null || gRenderersOverviewList[i].materialsInfo.Count == 0)
+                    continue;
+
+                if (string.IsNullOrEmpty(gRenderersOverviewFilter) == false)
+                {
+                    if (gRenderersOverviewSearchOption == SEARCH_OPTION.ShaderName)
+                    {
+                        if (gRenderersOverviewList[i].shader.name.Contains(gRenderersOverviewFilter, true) == gRenderersOverviewFilterExclude)
+                            continue;
+                    }
+                    else if (gRenderersOverviewSearchOption == SEARCH_OPTION.MaterialName)
+                    {
+                        if (gRenderersOverviewList[i].materialsInfo.Where(m => m != null && m.material != null && m.material.name.Contains(gRenderersOverviewFilter, true) != gRenderersOverviewFilterExclude).Count() == 0)
+                            continue;
+                    }
+                    else if (gRenderersOverviewSearchOption == SEARCH_OPTION.Keyword)
+                    {
+                        if (gRenderersOverviewList[i].keywordsTooltip.Contains(gRenderersOverviewFilter, true) == gRenderersOverviewFilterExclude)
+                            continue;
+                    }
+                }
+
+                for (int m = 0; m < gRenderersOverviewList[i].materialsInfo.Count; m++)
+                {
+                    if (gRenderersOverviewList[i].materialsInfo[m] == null)
                         continue;
 
-                    if (string.IsNullOrEmpty(gRenderersOverviewFilter) == false)
+                    if (string.IsNullOrEmpty(gRenderersOverviewFilter) ||
+                        gRenderersOverviewSearchOption != SEARCH_OPTION.MaterialName ||
+                        (gRenderersOverviewSearchOption == SEARCH_OPTION.MaterialName && gRenderersOverviewList[i].materialsInfo[m].material.name.Contains(gRenderersOverviewFilter, true) != gRenderersOverviewFilterExclude))
                     {
-                        if (gRenderersOverviewSearchOption == SEARCH_OPTION.ShaderName)
-                        {
-                            if (gRenderersOverviewList[i].shader.name.Contains(gRenderersOverviewFilter, true) == gRenderersOverviewFilterExclude)
-                                continue;
-                        }
-                        else if (gRenderersOverviewSearchOption == SEARCH_OPTION.MaterialName)
-                        {
-                            if (gRenderersOverviewList[i].materialsInfo.Where(m => m != null && m.material != null && m.material.name.Contains(gRenderersOverviewFilter, true) != gRenderersOverviewFilterExclude).Count() == 0)
-                                continue;
-                        }
-                        else if (gRenderersOverviewSearchOption == SEARCH_OPTION.Keyword)
-                        {
-                            if (gRenderersOverviewList[i].keywordsTooltip.Contains(gRenderersOverviewFilter, true) == gRenderersOverviewFilterExclude)
-                                continue;
-                        }
+                        materials.Add(gRenderersOverviewList[i].materialsInfo[m].material);
                     }
+                }
+            }
 
-                    for (int m = 0; m < gRenderersOverviewList[i].materialsInfo.Count; m++)
+            return materials;
+        }
+
+
+
+        void CallbackBendTypeMenu(object obj)
+        {
+            CurvedWorld.BEND_TYPE newBendType = (CurvedWorld.BEND_TYPE)obj;
+
+            gBendType = (CurvedWorld.BEND_TYPE)obj;
+        }
+
+        void CallBackRenderersOverviewShaderChanged(object obj)
+        {
+            if (obj == null)
+                return;
+
+            Shader shader = Shader.Find(obj.ToString());
+            if (shader == null)
+                return;
+
+
+
+            CurvedWorld.BEND_TYPE[] bendTypes;
+            int[] bendIDs;
+            bool hasNormalTransform;
+
+            string bendTypeKeyword = string.Empty;
+            if (EditorUtilities.GetShaderSupportedBendSettings(shader, out bendTypes, out bendIDs, out hasNormalTransform))
+            {
+                bendTypeKeyword = EditorUtilities.GetKeywordName(bendTypes[0]);
+            }
+
+
+            EditorUtilities.ShaderOverview shaderOverviewItem = gRenderersOverviewList[gRenderersOverviewChangedShaderIndex];
+
+            for (int i = 0; i < shaderOverviewItem.materialsInfo.Count; i++)
+            {
+                if (shaderOverviewItem.materialsInfo[i] != null && shaderOverviewItem.materialsInfo[i].material != null && shaderOverviewItem.materialsInfo[i].isBuiltInresource == false)
+                {
+                    Undo.RecordObject(shaderOverviewItem.materialsInfo[i].material, "Change Shader");
+                    shaderOverviewItem.materialsInfo[i].material.shader = shader;
+
+                    if (string.IsNullOrEmpty(bendTypeKeyword) == false)
                     {
-                        if (gRenderersOverviewList[i].materialsInfo[m] == null)
-                            continue;
-
-                        if (string.IsNullOrEmpty(gRenderersOverviewFilter) ||
-                            gRenderersOverviewSearchOption != SEARCH_OPTION.MaterialName ||
-                            (gRenderersOverviewSearchOption == SEARCH_OPTION.MaterialName && gRenderersOverviewList[i].materialsInfo[m].material.name.Contains(gRenderersOverviewFilter, true) != gRenderersOverviewFilterExclude))
+                        if (shaderOverviewItem.materialsInfo[i].material.shaderKeywords == null || shaderOverviewItem.materialsInfo[i].material.shaderKeywords.Contains(bendTypeKeyword) == false)
                         {
-                            materials.Add(gRenderersOverviewList[i].materialsInfo[m].material);
+                            hasNormalTransform = hasNormalTransform && shaderOverviewItem.materialsInfo[i].material.IsKeywordEnabled(EditorUtilities.shaderKeywordName_BendTransformNormal);
+
+                            EditorUtilities.SetMaterialBendSettings(shaderOverviewItem.materialsInfo[i].material, bendTypes[0], bendIDs[0], hasNormalTransform);
                         }
                     }
                 }
-
-                return materials;
             }
 
 
-            void CallbackBendTypeMenu(object obj)
+            if (gRenderersOverviewList != null)
+                gRenderersOverviewList.Clear();
+            gRenderersOverviewList = null;
+
+
+            AssetDatabase.SaveAssets();
+            Repaint();
+        }
+
+        void CallbackRenderersOverviewDuplicateMaterials(object obj)
+        {
+            CurvedWorldMaterialDuplicateEditorWindow.ShowWindow(this.position.center, CallbackRenderersOverviewDuplicateMaterials, obj);
+        }
+
+        void CallbackRenderersOverviewDuplicateMaterials(string subFolderName, string prefix, string suffix, object obj)
+        {
+            List<Material> originalMaterials = (Material)obj == null ? GetShaderOverviewMaterials() : new List<Material>() { (Material)obj };
+
+            List<string> duplicateMaterialPath = new List<string>();
+            List<Material> duplicateMaterials = new List<Material>();
+
+            //Create duplicates
+            for (int m = 0; m < originalMaterials.Count; m++)
             {
-                CurvedWorld.BEND_TYPE newBendType = (CurvedWorld.BEND_TYPE)obj;
+                UnityEditor.EditorUtility.DisplayProgressBar("Creating Material Duplicates", originalMaterials[m].name, (float)m / originalMaterials.Count);
 
-                gBendType = (CurvedWorld.BEND_TYPE)obj;
-            }
-
-            void CallBackRenderersOverviewShaderChanged(object obj)
-            {
-                if (obj == null)
-                    return;
-
-                //example:   "12_Amazing Assets/Curved World/Unlit"
-                //12 - index in array
-                //Everything after '_' is shader name
-
-
-                string data = obj.ToString();
-                if (string.IsNullOrEmpty(data))
-                    return;
-
-                int startIndex = data.IndexOf('_');
-                if (startIndex == 0)
-                    return;
-
-                int ID = -1;
-                if (int.TryParse(data.Substring(0, startIndex), out ID) == false)
-                    return;
-
-                Shader shader = Shader.Find(data.Substring(startIndex + 1));
-                if (shader == null)
-                    return;
-
-
-                CurvedWorld.BEND_TYPE[] bendTypes;
-                int[] bendIDs;
-                bool hasNormalTransform;
-
-                string bendTypeSkeyword = string.Empty;
-                if (EditorUtilities.GetShaderSupportedBendSettings(shader, out bendTypes, out bendIDs, out hasNormalTransform))
+                string savePath = string.Empty;
+                if (string.IsNullOrEmpty(subFolderName))    //Same folder as material
                 {
-                    bendTypeSkeyword = EditorUtilities.GetKeywordName(bendTypes[0]);
-                }
-
-                for (int i = 0; i < gRenderersOverviewList[ID].materialsInfo.Count; i++)
-                {
-                    if (gRenderersOverviewList[ID].materialsInfo[i] != null && gRenderersOverviewList[ID].materialsInfo[i].material != null && gRenderersOverviewList[ID].materialsInfo[i].isBuiltInresource == false)
-                    {
-                        Undo.RecordObject(gRenderersOverviewList[ID].materialsInfo[i].material, "Change Shader");
-                        gRenderersOverviewList[ID].materialsInfo[i].material.shader = shader;
-
-                        if (string.IsNullOrEmpty(bendTypeSkeyword) == false)
-                        {
-                            if (gRenderersOverviewList[ID].materialsInfo[i].material.shaderKeywords == null || gRenderersOverviewList[ID].materialsInfo[i].material.shaderKeywords.Contains(bendTypeSkeyword) == false)
-                            {
-                                hasNormalTransform = hasNormalTransform && gRenderersOverviewList[ID].materialsInfo[i].material.IsKeywordEnabled(EditorUtilities.shaderKeywordName_BendTransformNormal);
-
-                                EditorUtilities.SetMaterialBendSettings(gRenderersOverviewList[ID].materialsInfo[i].material, bendTypes[0], bendIDs[0], hasNormalTransform);
-                            }
-                        }
-                    }
-                }
-
-
-                if (gRenderersOverviewList != null)
-                    gRenderersOverviewList.Clear();
-                gRenderersOverviewList = null;
-
-
-                AssetDatabase.SaveAssets();
-                Repaint();
-            }
-
-            void CallbackRenderersOverviewDuplicateMaterials(object obj)
-            {
-                CurvedWorldMaterialDuplicateEditorWindow.ShowWindow(this.position.center, CallbackRenderersOverviewDuplicateMaterials, obj);
-            }
-
-            void CallbackRenderersOverviewDuplicateMaterials(string subFolderName, string prefix, string suffix, object obj)
-            {
-                List<Material> originalMaterials = (Material)obj == null ? GetShaderOverviewMaterials() : new List<Material>() { (Material)obj };
-
-                List<string> duplicateMaterialPath = new List<string>();
-                List<Material> duplicateMaterials = new List<Material>();
-
-                //Create duplicates
-                for (int m = 0; m < originalMaterials.Count; m++)
-                {
-                    UnityEditor.EditorUtility.DisplayProgressBar("Creating Material Duplicates", originalMaterials[m].name, (float)m / originalMaterials.Count);
-
-                    string savePath = string.Empty;
-                    if (string.IsNullOrEmpty(subFolderName))    //Same folder as material
-                    {
-                        savePath = AssetDatabase.GetAssetPath(originalMaterials[m].GetInstanceID());
-                        if (savePath == "Library/unity default resources" || savePath == "Resources/unity_builtin_extra")
-                            savePath = "Assets/unity default resources";
-                        else
-                        {
-                            if (File.Exists(savePath))
-                                savePath = Path.GetDirectoryName(savePath);
-                        }
-
-                        if (Directory.Exists(savePath) == false)
-                            Directory.CreateDirectory(savePath);
-                    }
-                    else    //SubFolder
-                    {
-                        savePath = AssetDatabase.GetAssetPath(originalMaterials[m].GetInstanceID());
-                        if (savePath == "Library/unity default resources" || savePath == "Resources/unity_builtin_extra")
-                            savePath = "Assets/unity default resources";
-                        else
-                        {
-                            if (File.Exists(savePath))
-                                savePath = Path.GetDirectoryName(savePath);
-                        }
-
-                        savePath = Path.Combine(savePath, subFolderName);
-                        if (Directory.Exists(savePath) == false)
-                            Directory.CreateDirectory(savePath);
-                    }
-
-
-                    savePath = Path.Combine(savePath, prefix + originalMaterials[m].name + suffix + ".mat");
-
-                    string originalMaterialPath = AssetDatabase.GetAssetPath(originalMaterials[m].GetInstanceID());
-                    if (EditorUtilities.IsMaterialBuiltInResource(originalMaterialPath))
-                    {
-                        File.Copy(originalMaterialPath, savePath);
-                    }
+                    savePath = AssetDatabase.GetAssetPath(originalMaterials[m].GetInstanceID());
+                    if (savePath == "Library/unity default resources" || savePath == "Resources/unity_builtin_extra")
+                        savePath = "Assets/unity default resources";
                     else
                     {
-                        Material newMaterial = new Material(originalMaterials[m].shader);
-                        newMaterial.CopyPropertiesFromMaterial(originalMaterials[m]);
-
-                        AssetDatabase.CreateAsset(newMaterial, savePath);
+                        if (File.Exists(savePath))
+                            savePath = Path.GetDirectoryName(savePath);
                     }
 
+                    if (Directory.Exists(savePath) == false)
+                        Directory.CreateDirectory(savePath);
+                }
+                else    //SubFolder
+                {
+                    savePath = AssetDatabase.GetAssetPath(originalMaterials[m].GetInstanceID());
+                    if (savePath == "Library/unity default resources" || savePath == "Resources/unity_builtin_extra")
+                        savePath = "Assets/unity default resources";
+                    else
+                    {
+                        if (File.Exists(savePath))
+                            savePath = Path.GetDirectoryName(savePath);
+                    }
 
-                    duplicateMaterialPath.Add(savePath);
-
+                    savePath = Path.Combine(savePath, subFolderName);
+                    if (Directory.Exists(savePath) == false)
+                        Directory.CreateDirectory(savePath);
                 }
 
-                UnityEditor.EditorUtility.ClearProgressBar();
+
+                savePath = Path.Combine(savePath, prefix + originalMaterials[m].name + suffix + ".mat");
+
+                string originalMaterialPath = AssetDatabase.GetAssetPath(originalMaterials[m].GetInstanceID());
+                if (EditorUtilities.IsMaterialBuiltInResource(originalMaterialPath))
+                {
+                    File.Copy(originalMaterialPath, savePath);
+                }
+                else
+                {
+                    Material newMaterial = new Material(originalMaterials[m].shader);
+                    newMaterial.CopyPropertiesFromMaterial(originalMaterials[m]);
+
+                    AssetDatabase.CreateAsset(newMaterial, savePath);
+                }
+
+
+                duplicateMaterialPath.Add(savePath);
+
+            }
+
+            UnityEditor.EditorUtility.ClearProgressBar();
+
+            AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
+
+
+            for (int i = 0; i < duplicateMaterialPath.Count; i++)
+            {
+                duplicateMaterials.Add((Material)AssetDatabase.LoadAssetAtPath(duplicateMaterialPath[i], typeof(Material)));
+            }
+
+
+
+            //Replace materials
+            List<Renderer> renderers = GetShaderOverviewRenderersByMaterial(originalMaterials);
+
+            Undo.RecordObjects(renderers.ToArray(), "Duplicate Materials (" + renderers.Count + " Elements)");
+
+            for (int r = 0; r < renderers.Count; r++)
+            {
+                UnityEditor.EditorUtility.DisplayProgressBar("Replacing", renderers[r].name, (float)r / renderers.Count);
+
+                Material[] shaderedMaterials = renderers[r].sharedMaterials;
+                for (int m = 0; m < shaderedMaterials.Length; m++)
+                {
+                    for (int d = 0; d < duplicateMaterials.Count; d++)
+                    {
+                        if (shaderedMaterials[m] == originalMaterials[d])
+                            shaderedMaterials[m] = duplicateMaterials[d];
+                    }
+                }
+
+                renderers[r].sharedMaterials = shaderedMaterials;
+            }
+
+            UnityEditor.EditorUtility.ClearProgressBar();
+
+
+
+            //Refresh
+            RebuildSceneShadersOverview();
+            Repaint();
+        }
+
+        void CallbackGenerateMissingCurvedWorldFiles()
+        {
+            Dictionary<Shader, EditorUtilities.ShaderCurvedWorldKeywordsInfo> shaderData = new Dictionary<Shader, EditorUtilities.ShaderCurvedWorldKeywordsInfo>();
+
+
+            string[] guids = AssetDatabase.FindAssets("t:Material");
+
+
+            //Collecting shader data
+            for (int i = 0; i < guids.Length; i++)
+            {
+                string assetPath = AssetDatabase.GUIDToAssetPath(guids[i]);
+                Material material = AssetDatabase.LoadAssetAtPath<Material>(assetPath);
+
+                if (material != null && material.shader != null && EditorUtilities.HasShaderCurvedWorldBendSettingsProperty(material.shader))
+                {
+
+                    UnityEditor.EditorUtility.DisplayProgressBar("Collecting shader data", material.name, (float)i / guids.Length);
+
+                    if (shaderData.ContainsKey(material.shader) == false)
+                        shaderData.Add(material.shader, new EditorUtilities.ShaderCurvedWorldKeywordsInfo(material.shader));
+
+
+                    if (material.HasProperty(EditorUtilities.shaderProprtyName_BendSettings))
+                    {
+                        CurvedWorld.BEND_TYPE bendType;
+                        int bendID;
+                        bool normalTransform;
+
+                        Vector4 materialProp = material.GetVector(EditorUtilities.shaderProprtyName_BendSettings);
+                        EditorUtilities.GetBendSettingsFromVector(materialProp, out bendType, out bendID, out normalTransform);
+
+
+                        if (shaderData[material.shader].supportedBendTypes.Contains(bendType) == false)
+                        {
+                            List<CurvedWorld.BEND_TYPE> newBendTypes = new List<CurvedWorld.BEND_TYPE>(shaderData[material.shader].supportedBendTypes);
+                            newBendTypes.Add(bendType);
+
+                            shaderData[material.shader].supportedBendTypes = newBendTypes.ToArray();
+                        }
+
+                        if (shaderData[material.shader].supportedBendIDs.Contains(bendID) == false)
+                        {
+                            List<int> newBendIDs = new List<int>(shaderData[material.shader].supportedBendIDs);
+                            newBendIDs.Add(bendID);
+
+                            shaderData[material.shader].supportedBendIDs = newBendIDs.ToArray();
+                        }
+                    }
+                }
+            }
+
+
+            //Adjust shaders
+            int foreachIndex = 0;
+            foreach (KeyValuePair<Shader, EditorUtilities.ShaderCurvedWorldKeywordsInfo> entry in shaderData)
+            {
+                for (int bType = 0; bType < entry.Value.supportedBendTypes.Length; bType++)
+                {
+                    for (int bID = 0; bID < entry.Value.supportedBendIDs.Length; bID++)
+                    {
+                        UnityEditor.EditorUtility.DisplayProgressBar("Creating CGINC files", (CurvedWorld.BEND_TYPE)bType + " ID[" + bID + "]", (float)foreachIndex++ / shaderData.Count);
+
+
+                        string cgincFile = EditorUtilities.GetBendFileLocation(entry.Value.supportedBendTypes[bType], entry.Value.supportedBendIDs[bID], EditorUtilities.EXTENSTION.cginc);
+                        if (File.Exists(cgincFile) == false)
+                        {
+                            EditorUtilities.CreateCGINCFile(entry.Value.supportedBendTypes[bType], entry.Value.supportedBendIDs[bID]);
+                        }
+                    }
+                }
+
+                EditorUtilities.SetShaderBendSettings(entry.Key, entry.Value.supportedBendTypes, entry.Value.supportedBendIDs, EditorUtilities.KEYWORDS_COMPILE.Default, false);
+            }
+
+
+            guids = AssetDatabase.FindAssets("t:Shader");
+            for (int i = 0; i < guids.Length; i++)
+            {
+                string assetPath = AssetDatabase.GUIDToAssetPath(guids[i]);
+                Shader shader = AssetDatabase.LoadAssetAtPath<Shader>(assetPath);
+
+
+                UnityEditor.EditorUtility.DisplayProgressBar("Reimporting shaders", assetPath, (float)i / guids.Length);
+
+
+                if (shader != null && EditorUtilities.HasShaderCurvedWorldBendSettingsProperty(shader))
+                {
+                    AssetDatabase.ImportAsset(assetPath);
+                }
+            }
+
+
+
+            UnityEditor.EditorUtility.ClearProgressBar();
+
+            AssetDatabase.Refresh();
+        }
+
+        void CallbackRenderersOverviewAdjustCurvedWorld(object obj)
+        {
+            CurvedWorldBendSettingsEditorWindow.ShowWindow(GUIUtility.GUIToScreenPoint(mousePosition), CallbackRenderersOverviewAdjustCurvedWorld, obj);
+        }
+
+        void CallbackRenderersOverviewAdjustCurvedWorld(CurvedWorld.BEND_TYPE bendType, int bendID, int normalTransformState, object obj)
+        {
+
+            if (File.Exists(EditorUtilities.GetBendFileLocation(bendType, bendID, EditorUtilities.EXTENSTION.cginc)) == false)
+            {
+                EditorUtilities.CreateCGINCFile(bendType, bendID);
 
                 AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
+            }
+
+            List<Material> originalMaterials = (Material)obj == null ? GetShaderOverviewMaterials() : new List<Material>() { (Material)obj };
 
 
-                for (int i = 0; i < duplicateMaterialPath.Count; i++)
+            Undo.RecordObjects(originalMaterials.ToArray(), "Change Bend Settings (" + originalMaterials.Count + " Elements)");
+
+
+            for (int i = 0; i < originalMaterials.Count; i++)
+            {
+                if (originalMaterials[i] != null && originalMaterials[i].shader != null && EditorUtilities.HasShaderCurvedWorldBendSettingsProperty(originalMaterials[i].shader))
                 {
-                    duplicateMaterials.Add((Material)AssetDatabase.LoadAssetAtPath(duplicateMaterialPath[i], typeof(Material)));
-                }
+                    //normalTransformState: 
+                    //0 - default
+                    //1 - enabled
+                    //2 - disabled
 
-
-
-                //Replace materials
-                List<Renderer> renderers = GetShaderOverviewRenderersByMaterial(originalMaterials);
-
-                Undo.RecordObjects(renderers.ToArray(), "Duplicate Materials (" + renderers.Count + " Elements)");
-
-                for (int r = 0; r < renderers.Count; r++)
-                {
-                    UnityEditor.EditorUtility.DisplayProgressBar("Replacing", renderers[r].name, (float)r / renderers.Count);
-
-                    Material[] shaderedMaterials = renderers[r].sharedMaterials;
-                    for (int m = 0; m < shaderedMaterials.Length; m++)
+                    bool normalTransformKeywordEnabled = EditorUtilities.HasShaderNormalTransform(originalMaterials[i].shader);
+                    if (normalTransformKeywordEnabled)
                     {
-                        for (int d = 0; d < duplicateMaterials.Count; d++)
+                        switch (normalTransformState)
                         {
-                            if (shaderedMaterials[m] == originalMaterials[d])
-                                shaderedMaterials[m] = duplicateMaterials[d];
+                            case 0: normalTransformKeywordEnabled = originalMaterials[i].IsKeywordEnabled(EditorUtilities.shaderKeywordName_BendTransformNormal); break;
+                            case 1: normalTransformKeywordEnabled = true; break;
+                            case 2: normalTransformKeywordEnabled = false; break;
                         }
                     }
 
-                    renderers[r].sharedMaterials = shaderedMaterials;
+
+                    EditorUtilities.SetMaterialBendSettings(originalMaterials[i], bendType, bendID, normalTransformKeywordEnabled);
                 }
-
-                UnityEditor.EditorUtility.ClearProgressBar();
-
-
-
-                //Refresh
-                RebuildSceneShadersOverview();
-                Repaint();
             }
 
-            void CallbackGenerateMissingCurvedWorldFiles()
+            AssetDatabase.Refresh();
+
+            OnFocus();
+            Repaint();
+        }
+
+        void CallbackCurvedWorldKeywordsUnckechAll()
+        {
+            gCurvedWorldKeywordsShaderInfo.selectedBendTypes = new bool[EditorUtilities.MAX_SUPPORTED_BEND_TYPES];
+            gCurvedWorldKeywordsShaderInfo.selectedBendIDs = new bool[EditorUtilities.MAX_SUPPORTED_BEND_IDS];
+        }
+
+        void CallbackCurvedWorldKeywordsMultiCompile(object obj)
+        {
+            if (obj == null)
+                return;
+
+            gCurvedWorldKeywordsShaderInfo.selecedMultiCompile = ((bool)obj) ? true : false;
+        }
+
+        void CallbackCurvedWorldKeywordsRewriteAllProjectShaders(object obj)
+        {
+            if (obj == null)
+                return;
+
+
+            CurvedWorld.BEND_TYPE[] bendTypes;
+            int[] bendIDs;
+            bool hasNormalTransform;
+
+            if (EditorUtilities.StringToBendSettings(obj.ToString(), out bendTypes, out bendIDs, out hasNormalTransform) == false)
+                return;
+
+
+            string[] guids = AssetDatabase.FindAssets("t:Shader");
+
+
+            int count = 0;
+
+            for (int i = 0; i < guids.Length; i++)
             {
-                Dictionary<Shader, EditorUtilities.ShaderCurvedWorldKeywordsInfo> shaderData = new Dictionary<Shader, EditorUtilities.ShaderCurvedWorldKeywordsInfo>();
+                string assetPath = AssetDatabase.GUIDToAssetPath(guids[i]);
+                Shader asset = AssetDatabase.LoadAssetAtPath<Shader>(assetPath);
+
+                if (asset != null && EditorUtilities.HasShaderCurvedWorldBendSettingsProperty(asset) && EditorUtilities.IsShaderCurvedWorldTerrain(asset) == false)
+                {
+                    EditorUtilities.SetShaderBendSettings(asset, bendTypes.ToArray(), bendIDs.ToArray(), EditorUtilities.KEYWORDS_COMPILE.Default, false);
+
+                    count += 1;
+                }
+            }
+
+            AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
+
+            gCurvedWorldKeywordsShaderInfo = null;
+            Repaint();
+        }
 
 
-                string[] guids = AssetDatabase.FindAssets("t:Material");
+
+        void LoadActivatorShaders()
+        {
+            gActivatorShaders = new List<Shader>();
 
 
-                //Collecting shader data
+            if (string.IsNullOrEmpty(gActivatorPath) == false && gActivatorPath.IndexOf("Assets") == 0 && Directory.Exists(gActivatorPath))
+            {
+                string[] guids = AssetDatabase.FindAssets("t:Shader", new string[] { gActivatorPath });
                 for (int i = 0; i < guids.Length; i++)
                 {
-                    string assetPath = AssetDatabase.GUIDToAssetPath(guids[i]);
-                    Material material = AssetDatabase.LoadAssetAtPath<Material>(assetPath);
-
-                    if (material != null && material.shader != null && EditorUtilities.HasShaderCurvedWorldBendSettingsProperty(material.shader))
+                    Shader shader = AssetDatabase.LoadAssetAtPath<Shader>(AssetDatabase.GUIDToAssetPath(guids[i]));
+                    if (shader != null)
                     {
-                        if (shaderData.ContainsKey(material.shader) == false)
-                            shaderData.Add(material.shader, new EditorUtilities.ShaderCurvedWorldKeywordsInfo(material.shader));
-
-
-                        if (material.HasProperty(EditorUtilities.shaderProprtyName_BendSettings))
-                        {
-                            CurvedWorld.BEND_TYPE bendType;
-                            int bendID;
-                            bool normalTransform;
-
-                            Vector4 materialProp = material.GetVector(EditorUtilities.shaderProprtyName_BendSettings);
-                            EditorUtilities.GetBendSettingsFromVector(materialProp, out bendType, out bendID, out normalTransform);
-
-
-                            if (shaderData[material.shader].supportedBendTypes.Contains(bendType) == false)
-                            {
-                                List<CurvedWorld.BEND_TYPE> newBendTypes = new List<CurvedWorld.BEND_TYPE>(shaderData[material.shader].supportedBendTypes);
-                                newBendTypes.Add(bendType);
-
-                                shaderData[material.shader].supportedBendTypes = newBendTypes.ToArray();
-                            }
-
-                            if (shaderData[material.shader].supportedBendIDs.Contains(bendID) == false)
-                            {
-                                List<int> newBendIDs = new List<int>(shaderData[material.shader].supportedBendIDs);
-                                newBendIDs.Add(bendID);
-
-                                shaderData[material.shader].supportedBendIDs = newBendIDs.ToArray();
-                            }
-                        }
-                    }
-                }
-
-                
-
-                //Adjust shaders
-                foreach (KeyValuePair<Shader, EditorUtilities.ShaderCurvedWorldKeywordsInfo> entry in shaderData)
-                {
-                    for (int bType = 0; bType < entry.Value.supportedBendTypes.Length; bType++)
-                    {
-                        for (int bID = 0; bID < entry.Value.supportedBendIDs.Length; bID++)
-                        {
-                            string cgincFile = EditorUtilities.GetBendFileLocation(entry.Value.supportedBendTypes[bType], entry.Value.supportedBendIDs[bID], EditorUtilities.EXTENSTION.cginc);
-                            if (File.Exists(cgincFile) == false)
-                            {
-                                EditorUtilities.CreateCGINCFile(entry.Value.supportedBendTypes[bType], entry.Value.supportedBendIDs[bID]);
-                            }
-                        }
-                    }
-
-                    EditorUtilities.SetShaderBendSettings(entry.Key, entry.Value.supportedBendTypes, entry.Value.supportedBendIDs, EditorUtilities.KEYWORDS_COMPILE.Default, false);
-                }
-
-
-                guids = AssetDatabase.FindAssets("t:Shader");
-                for (int i = 0; i < guids.Length; i++)
-                {
-                    string assetPath = AssetDatabase.GUIDToAssetPath(guids[i]);
-                    Shader shader = AssetDatabase.LoadAssetAtPath<Shader>(assetPath);
-
-                    if (shader != null && EditorUtilities.HasShaderCurvedWorldBendSettingsProperty(shader))
-                    {
-                        AssetDatabase.ImportAsset(assetPath);
-                    }
-                }
-
-
-
-                UnityEditor.EditorUtility.ClearProgressBar();
-
-                AssetDatabase.Refresh();
-            }
-
-            void CallbackRenderersOverviewAdjustCurvedWorld(object obj)
-            {
-                CurvedWorldBendSettingsEditorWindow.ShowWindow(GUIUtility.GUIToScreenPoint(mousePosition), CallbackRenderersOverviewAdjustCurvedWorld, obj);
-            }
-
-            void CallbackRenderersOverviewAdjustCurvedWorld(CurvedWorld.BEND_TYPE bendType, int bendID, int normalTransformState, object obj)
-            {
-
-                if (File.Exists(EditorUtilities.GetBendFileLocation(bendType, bendID, EditorUtilities.EXTENSTION.cginc)) == false)
-                {
-                    EditorUtilities.CreateCGINCFile(bendType, bendID);
-
-                    AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
-                }
-
-                List<Material> originalMaterials = (Material)obj == null ? GetShaderOverviewMaterials() : new List<Material>() { (Material)obj };
-
-
-                Undo.RecordObjects(originalMaterials.ToArray(), "Change Bend Settings (" + originalMaterials.Count + " Elements)");
-
-
-                for (int i = 0; i < originalMaterials.Count; i++)
-                {
-                    if (originalMaterials[i] != null && originalMaterials[i].shader != null && EditorUtilities.HasShaderCurvedWorldBendSettingsProperty(originalMaterials[i].shader))
-                    {
-                        //normalTransformState: 
-                        //0 - default
-                        //1 - enabled
-                        //2 - disabled
-
-                        bool normalTransformKeywordEnabled = EditorUtilities.HasShaderNormalTransform(originalMaterials[i].shader);
-                        if (normalTransformKeywordEnabled)
-                        {
-                            switch (normalTransformState)
-                            {
-                                case 0: normalTransformKeywordEnabled = originalMaterials[i].IsKeywordEnabled(EditorUtilities.shaderKeywordName_BendTransformNormal); break;
-                                case 1: normalTransformKeywordEnabled = true; break;
-                                case 2: normalTransformKeywordEnabled = false; break;
-                            }
-                        }
-
-
-                        EditorUtilities.SetMaterialBendSettings(originalMaterials[i], bendType, bendID, normalTransformKeywordEnabled);
-                    }
-                }
-
-                AssetDatabase.Refresh();
-
-                OnFocus();
-                Repaint();
-            }
-
-            void CallbackCurvedWorldKeywordsUnckechAll()
-            {
-                gCurvedWorldKeywordsShaderInfo.selectedBendTypes = new bool[EditorUtilities.MAX_SUPPORTED_BEND_TYPES];
-                gCurvedWorldKeywordsShaderInfo.selectedBendIDs = new bool[EditorUtilities.MAX_SUPPORTED_BEND_IDS];
-            }
-
-            void CallbackCurvedWorldKeywordsMultiCompile(object obj)
-            {
-                if (obj == null)
-                    return;
-
-                gCurvedWorldKeywordsShaderInfo.selecedMultiCompile = ((bool)obj) ? true : false;
-            }
-
-            void CallbackCurvedWorldKeywordsRewriteAllProjectShaders(object obj)
-            {
-                if (obj == null)
-                    return;
-
-
-                CurvedWorld.BEND_TYPE[] bendTypes;
-                int[] bendIDs;
-                bool hasNormalTransform;
-
-                if (EditorUtilities.StringToBendSettings(obj.ToString(), out bendTypes, out bendIDs, out hasNormalTransform) == false)
-                    return;
-
-
-                string[] guids = AssetDatabase.FindAssets("t:Shader");
-
-
-                int count = 0;
-
-                for (int i = 0; i < guids.Length; i++)
-                {
-                    string assetPath = AssetDatabase.GUIDToAssetPath(guids[i]);
-                    Shader asset = AssetDatabase.LoadAssetAtPath<Shader>(assetPath);
-
-                    if (asset != null && EditorUtilities.HasShaderCurvedWorldBendSettingsProperty(asset) && EditorUtilities.IsShaderCurvedWorldTerrain(asset) == false)
-                    {
-                        EditorUtilities.SetShaderBendSettings(asset, bendTypes.ToArray(), bendIDs.ToArray(), EditorUtilities.KEYWORDS_COMPILE.Default, false);
-
-                        count += 1;
-                    }
-                }
-
-                AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
-
-                gCurvedWorldKeywordsShaderInfo = null;
-                Repaint();
-            }
-
-
-            void LoadActivatorShaders()
-            {
-                gActivatorShaders = new List<Shader>();
-
-
-                if (string.IsNullOrEmpty(gActivatorPath) == false && gActivatorPath.IndexOf("Assets") == 0 && Directory.Exists(gActivatorPath))
-                {
-                    string[] guids = AssetDatabase.FindAssets("t:Shader", new string[] { gActivatorPath });
-                    for (int i = 0; i < guids.Length; i++)
-                    {
-                        Shader shader = AssetDatabase.LoadAssetAtPath<Shader>(AssetDatabase.GUIDToAssetPath(guids[i]));
-                        if (shader != null)
-                        {
-                            gActivatorShaders.Add(shader);
-                        }
+                        gActivatorShaders.Add(shader);
                     }
                 }
             }
+        }
 
 
-            void CallbackUndo()
+        void CallbackUndo()
+        {
+            OnFocus();
+            Repaint();
+        }
+
+        void PingObject(string assetPath)
+        {
+            // Load object
+            UnityEngine.Object obj = AssetDatabase.LoadAssetAtPath(assetPath, typeof(UnityEngine.Object));
+
+            PingObject(obj);
+        }
+
+        void PingObject(UnityEngine.Object obj)
+        {
+            if (obj != null)
             {
-                OnFocus();
-                Repaint();
+                // Select the object in the project folder
+                Selection.activeObject = obj;
+
+                // Also flash the folder yellow to highlight it
+                UnityEditor.EditorGUIUtility.PingObject(obj);
             }
+        }
 
-            void PingObject(string assetPath)
+
+
+        static Rect[] CalcButtonRects(Rect position, GUIContent[] contents, int xCount)
+        {
+            GUIStyle style = GUI.skin.button;
+            GUI.ToolbarButtonSize buttonSize = GUI.ToolbarButtonSize.Fixed;
+
+
+
+            int length = contents.Length;
+            int num1 = length / xCount;
+            if ((uint)(length % xCount) > 0U)
+                ++num1;
+            float num2 = (float)CalcTotalHorizSpacing(xCount, style, style, style, style);
+            float num3 = (float)(Mathf.Max(style.margin.top, style.margin.bottom) * (num1 - 1));
+            float elemWidth = (position.width - num2) / (float)xCount;
+            float elemHeight = (position.height - num3) / (float)num1;
+            if ((double)style.fixedWidth != 0.0)
+                elemWidth = style.fixedWidth;
+            if ((double)style.fixedHeight != 0.0)
+                elemHeight = style.fixedHeight;
+
+
+            int num = 0;
+            float x = position.xMin;
+            float yMin = position.yMin;
+            GUIStyle guiStyle1 = style;
+            Rect[] rectArray = new Rect[length];
+            if (length > 1)
+                guiStyle1 = style;
+            for (int index = 0; index < length; ++index)
             {
-                // Load object
-                UnityEngine.Object obj = AssetDatabase.LoadAssetAtPath(assetPath, typeof(UnityEngine.Object));
-
-                PingObject(obj);
-            }
-
-            void PingObject(UnityEngine.Object obj)
-            {
-                if (obj != null)
+                float width = 0.0f;
+                switch (buttonSize)
                 {
-                    // Select the object in the project folder
-                    Selection.activeObject = obj;
-
-                    // Also flash the folder yellow to highlight it
-                    UnityEditor.EditorGUIUtility.PingObject(obj);
+                    case GUI.ToolbarButtonSize.Fixed:
+                        width = elemWidth;
+                        break;
+                    case GUI.ToolbarButtonSize.FitToContents:
+                        width = guiStyle1.CalcSize(contents[index]).x;
+                        break;
                 }
-            }
-
-
-
-            static Rect[] CalcButtonRects(Rect position, GUIContent[] contents, int xCount)
-            {
-                GUIStyle style = GUI.skin.button;
-                GUI.ToolbarButtonSize buttonSize = GUI.ToolbarButtonSize.Fixed;
-
-
-
-                int length = contents.Length;
-                int num1 = length / xCount;
-                if ((uint)(length % xCount) > 0U)
-                    ++num1;
-                float num2 = (float)CalcTotalHorizSpacing(xCount, style, style, style, style);
-                float num3 = (float)(Mathf.Max(style.margin.top, style.margin.bottom) * (num1 - 1));
-                float elemWidth = (position.width - num2) / (float)xCount;
-                float elemHeight = (position.height - num3) / (float)num1;
-                if ((double)style.fixedWidth != 0.0)
-                    elemWidth = style.fixedWidth;
-                if ((double)style.fixedHeight != 0.0)
-                    elemHeight = style.fixedHeight;
-
-
-                int num = 0;
-                float x = position.xMin;
-                float yMin = position.yMin;
-                GUIStyle guiStyle1 = style;
-                Rect[] rectArray = new Rect[length];
-                if (length > 1)
-                    guiStyle1 = style;
-                for (int index = 0; index < length; ++index)
+                rectArray[index] = new Rect(x, yMin, width, elemHeight);
+                rectArray[index] = GUIUtility.AlignRectToDevice(rectArray[index]);
+                GUIStyle guiStyle2 = style;
+                if (index == length - 2 || index == xCount - 2)
+                    guiStyle2 = style;
+                x = rectArray[index].xMax + (float)Mathf.Max(guiStyle1.margin.right, guiStyle2.margin.left);
+                ++num;
+                if (num >= xCount)
                 {
-                    float width = 0.0f;
-                    switch (buttonSize)
-                    {
-                        case GUI.ToolbarButtonSize.Fixed:
-                            width = elemWidth;
-                            break;
-                        case GUI.ToolbarButtonSize.FitToContents:
-                            width = guiStyle1.CalcSize(contents[index]).x;
-                            break;
-                    }
-                    rectArray[index] = new Rect(x, yMin, width, elemHeight);
-                    rectArray[index] = GUIUtility.AlignRectToDevice(rectArray[index]);
-                    GUIStyle guiStyle2 = style;
-                    if (index == length - 2 || index == xCount - 2)
-                        guiStyle2 = style;
-                    x = rectArray[index].xMax + (float)Mathf.Max(guiStyle1.margin.right, guiStyle2.margin.left);
-                    ++num;
-                    if (num >= xCount)
-                    {
-                        num = 0;
-                        yMin += elemHeight + (float)Mathf.Max(style.margin.top, style.margin.bottom);
-                        x = position.xMin;
-                        guiStyle2 = style;
-                    }
-                    guiStyle1 = guiStyle2;
+                    num = 0;
+                    yMin += elemHeight + (float)Mathf.Max(style.margin.top, style.margin.bottom);
+                    x = position.xMin;
+                    guiStyle2 = style;
                 }
-                return rectArray;
+                guiStyle1 = guiStyle2;
             }
-            static int CalcTotalHorizSpacing(int xCount, GUIStyle style, GUIStyle firstStyle, GUIStyle midStyle, GUIStyle lastStyle)
-            {
-                if (xCount < 2)
-                    return 0;
-                if (xCount == 2)
-                    return Mathf.Max(firstStyle.margin.right, lastStyle.margin.left);
+            return rectArray;
+        }
+        static int CalcTotalHorizSpacing(int xCount, GUIStyle style, GUIStyle firstStyle, GUIStyle midStyle, GUIStyle lastStyle)
+        {
+            if (xCount < 2)
+                return 0;
+            if (xCount == 2)
+                return Mathf.Max(firstStyle.margin.right, lastStyle.margin.left);
 
-                int num = Mathf.Max(midStyle.margin.left, midStyle.margin.right);
-                return Mathf.Max(firstStyle.margin.right, midStyle.margin.left) + Mathf.Max(midStyle.margin.right, lastStyle.margin.left) + num * (xCount - 3);
-            }
+            int num = Mathf.Max(midStyle.margin.left, midStyle.margin.right);
+            return Mathf.Max(firstStyle.margin.right, midStyle.margin.left) + Mathf.Max(midStyle.margin.right, lastStyle.margin.left) + num * (xCount - 3);
         }
     }
 }
-

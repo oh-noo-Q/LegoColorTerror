@@ -1,9 +1,7 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 
-//This script is designed specially for "car racing" example scenes, to exclude object from Curved World space and paste it in the same position, but now in World space
+//This script is designed specially for "car racing" example scenes, to exclude object from Curved World space and paste it in the same position, but now in the World space
 //
 //Car wiil be excluded from Curved World space if it goes out of the road
 

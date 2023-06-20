@@ -1,6 +1,4 @@
-﻿using System.IO;
-using UnityEngine;
-using UnityEditor;
+﻿using UnityEditor;
 
 
 namespace AmazingAssets.CurvedWorldEditor

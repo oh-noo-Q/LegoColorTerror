@@ -1,4 +1,4 @@
-﻿Shader "Amazing Assets/Curved World/Terrain/ Initial"
+﻿Shader "Amazing Assets/Curved World/Terrain/Initial"
 {
     Properties
     {

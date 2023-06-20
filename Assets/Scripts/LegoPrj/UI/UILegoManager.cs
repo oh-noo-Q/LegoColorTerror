@@ -6,8 +6,9 @@ public class UILegoManager : MonoBehaviour
 {
     public static UILegoManager Instance;
 
-    [SerializeField] MainMenuUIManager mainMenu;
-    [SerializeField] InGameUIManager inGameUI;
+    public MainMenuUIManager mainMenu;
+    public InGameUIManager inGameUI;
+    public EndGameUIManager endGame;
 
     private void Awake()
     {
@@ -19,5 +20,10 @@ public class UILegoManager : MonoBehaviour
     public void ShowMainMenu()
     {
         mainMenu.gameObject.SetActive(true);
+    }
+
+    public void ShowEndGame()
+    {
+        endGame.gameObject.SetActive(true);
     }
 }

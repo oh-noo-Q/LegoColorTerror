@@ -18,7 +18,7 @@ public class Bullet : MonoBehaviour
 
     private void Awake()
     {
-        Destroy(gameObject, 3f);    
+        Destroy(gameObject, 1.5f);    
     }
 
     public Bullet(Transform _owner, LegoColor _color)
@@ -42,7 +42,6 @@ public class Bullet : MonoBehaviour
         {
             Vector3 realTarget = target.position;
             transform.position = Vector3.MoveTowards(transform.position, realTarget, speed * Time.deltaTime);
-            //RotateToTarget(target);
         }
         if(isCounter && transform.position == target.position)
         {

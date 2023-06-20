@@ -1,5 +1,8 @@
 ﻿using UnityEngine;
-using System.Collections;
+
+#if ENABLE_INPUT_SYSTEM
+using UnityEngine.InputSystem;
+#endif
 
 
 namespace AmazingAssets.CurvedWorld.Example
@@ -13,8 +16,14 @@ namespace AmazingAssets.CurvedWorld.Example
         Vector3 newPos;
         SIDE side;
 
-        public KeyCode moveLeftKey = KeyCode.A;
-        public KeyCode moveRightKey = KeyCode.D;
+
+#if ENABLE_INPUT_SYSTEM
+        Key moveLeftKey = Key.A;
+        Key moveRightKey = Key.D;
+#else
+        KeyCode moveLeftKey = KeyCode.A;
+        KeyCode moveRightKey = KeyCode.D;
+#endif
 
         Animation animationComp;
         public AnimationClip moveLeftAnimation;
@@ -35,7 +44,7 @@ namespace AmazingAssets.CurvedWorld.Example
         
         void Update()
         {
-            if (Input.GetKeyDown(moveLeftKey))
+            if (ExampleInput.GetKeyDown(moveLeftKey))
             {
                 if (side == SIDE.Right)
                 {
@@ -45,7 +54,7 @@ namespace AmazingAssets.CurvedWorld.Example
                     animationComp.Play(moveLeftAnimation.name);
                 }
             }
-            else if (Input.GetKeyDown(moveRightKey))
+            else if (ExampleInput.GetKeyDown(moveRightKey))
             {
                 if (side == SIDE.Left)
                 {

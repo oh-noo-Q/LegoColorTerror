@@ -1,6 +1,11 @@
 using System;
 using UnityEngine;
 
+#if ENABLE_INPUT_SYSTEM
+using UnityEngine.InputSystem;
+#endif
+
+
 namespace AmazingAssets.CurvedWorld.Example
 {
     [RequireComponent(typeof(Perspective2D_PlatformerCharacter))]
@@ -10,6 +15,18 @@ namespace AmazingAssets.CurvedWorld.Example
         private bool m_Jump;
         bool uiButtonJump;
         Vector2 touchPivot;
+
+
+#if ENABLE_INPUT_SYSTEM
+        Key keyJump = Key.Space;
+        Key keyLeft = Key.A;
+        Key keyRight = Key.D;
+#else
+        KeyCode keyJump = KeyCode.Space;
+        KeyCode keyLeft = KeyCode.A;
+        KeyCode keyRight = KeyCode.D;
+#endif
+
 
         private void Awake()
         {
@@ -22,7 +39,7 @@ namespace AmazingAssets.CurvedWorld.Example
             //Get Jump from keyboard
             if (!m_Jump)
             {
-                m_Jump = Input.GetButtonDown("Jump");
+                m_Jump = ExampleInput.GetKeyDown(keyJump);
             }
 
             //Get Jump from touch-screen
@@ -39,26 +56,10 @@ namespace AmazingAssets.CurvedWorld.Example
             // Read the inputs.
             float h = 0;
 
-            //From touch-screen
-            if (Input.touchSupported && Input.touchCount > 0)
-            {
-                Touch currentTouch = Input.touches[0];
-
-                if (currentTouch.phase == TouchPhase.Began)
-                    touchPivot = currentTouch.position;
-
-                if (Input.touches[0].phase == TouchPhase.Moved ||
-                    Input.touches[0].phase == TouchPhase.Stationary)
-                {
-                    Vector2 delta = (currentTouch.position - touchPivot).normalized;
-
-                    h = delta.x;
-                }
-            }
-            else   //From keyboard
-            {
-                h = Input.GetAxis("Horizontal");
-            }
+            if (ExampleInput.GetKey(keyLeft))
+                h = -1;
+            else if (ExampleInput.GetKey(keyRight))
+                h = 1;
 
             // Pass all parameters to the character control script.
             m_Character.Move(h, false, m_Jump);

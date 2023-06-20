@@ -1,6 +1,11 @@
 ﻿using UnityEngine;
 
-namespace Complete
+#if ENABLE_INPUT_SYSTEM
+    using UnityEngine.InputSystem;
+#endif
+
+
+namespace AmazingAssets.CurvedWorld.Example
 {
     public class TankMovement : MonoBehaviour
     {
@@ -60,10 +65,17 @@ namespace Complete
 
             float move = 0;
 
+#if ENABLE_INPUT_SYSTEM
             if (playerID == 1)
-                move = (Input.GetKey(KeyCode.W) ? 1 : 0) + (Input.GetKey(KeyCode.S) ? -1 : 0);
+                move = (GetKey(Key.W) ? 1 : 0) + (GetKey(Key.S) ? -1 : 0);
             else if (playerID == 2)
-                move = (Input.GetKey(KeyCode.UpArrow) ? 1 : 0) + (Input.GetKey(KeyCode.DownArrow) ? -1 : 0);
+                move = (GetKey(Key.UpArrow) ? 1 : 0) + (GetKey(Key.DownArrow) ? -1 : 0);
+#else
+            if (playerID == 1)
+                move = (GetKey(KeyCode.W) ? 1 : 0) + (GetKey(KeyCode.S) ? -1 : 0);
+            else if (playerID == 2)
+                move = (GetKey(KeyCode.UpArrow) ? 1 : 0) + (GetKey(KeyCode.DownArrow) ? -1 : 0);
+#endif
 
 
             Vector3 movement = transform.forward * move * m_Speed * Time.deltaTime;
@@ -78,10 +90,19 @@ namespace Complete
             // Determine the number of degrees to be turned based on the input, speed and time between frames.
             float rotation = 0;
 
+
+#if ENABLE_INPUT_SYSTEM
             if (playerID == 1)
-                rotation = (Input.GetKey(KeyCode.A) ? -1 : 0) + (Input.GetKey(KeyCode.D) ? 1 : 0);
+                rotation = (GetKey(Key.A) ? -1 : 0) + (GetKey(Key.D) ? 1 : 0);
             else if (playerID == 2)
-                rotation = (Input.GetKey(KeyCode.LeftArrow) ? -1 : 0) + (Input.GetKey(KeyCode.RightArrow) ? 1 : 0);
+                rotation = (GetKey(Key.LeftArrow) ? -1 : 0) + (GetKey(Key.RightArrow) ? 1 : 0);
+#else
+            if (playerID == 1)
+                rotation = (GetKey(KeyCode.A) ? -1 : 0) + (GetKey(KeyCode.D) ? 1 : 0);
+            else if (playerID == 2)
+                rotation = (GetKey(KeyCode.LeftArrow) ? -1 : 0) + (GetKey(KeyCode.RightArrow) ? 1 : 0);
+#endif
+
 
             float turn = rotation * m_TurnSpeed * Time.deltaTime;
 
@@ -91,5 +112,18 @@ namespace Complete
             // Apply this rotation to the rigidbody's rotation.
             m_Rigidbody.MoveRotation (m_Rigidbody.rotation * turnRotation);
         }
+
+
+#if ENABLE_INPUT_SYSTEM
+        bool GetKey(Key key)
+        {
+            return Keyboard.current[key].isPressed;
+        }
+#else
+        bool GetKey(KeyCode keyCode)
+        {
+            return Input.GetKey(keyCode);
+        }
+#endif
     }
 }

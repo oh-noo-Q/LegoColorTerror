@@ -7,6 +7,7 @@ public class InGameUIManager : MonoBehaviour
 {
     public Text health;
     public Text roundTxt;
+    public Text blockTxt;
 
     private void Awake()
     {
@@ -22,5 +23,10 @@ public class InGameUIManager : MonoBehaviour
     void UpdateRound(object obj)
     {
         roundTxt.text = $"Round {(int)obj}";
+    }
+
+    public void SetBlockText(int amount)
+    {
+        blockTxt.text = $"Block: {amount}";
     }
 }

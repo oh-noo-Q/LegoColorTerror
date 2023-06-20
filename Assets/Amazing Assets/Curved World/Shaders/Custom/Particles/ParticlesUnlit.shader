@@ -2,16 +2,13 @@ Shader "Amazing Assets/Curved World/Particles/Unlit"
 {
     Properties
     {
-        [CurvedWorldBendSettings] _CurvedWorldBendSettings("0|1", Vector) = (0, 0, 0, 0)
+        [CurvedWorldBendSettings] _CurvedWorldBendSettings("0,5|1", Vector) = (0, 0, 0, 0)
 
-        _BaseMap("Base Map", 2D) = "white" {}
-        _BaseColor("Base Color", Color) = (1,1,1,1)
-
+        [MainTexture] _BaseMap("Base Map", 2D) = "white" {}
+        [MainColor]   _BaseColor("Base Color", Color) = (1,1,1,1)
         _Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
-
         _BumpMap("Normal Map", 2D) = "bump" {}
-
-        _EmissionColor("Color", Color) = (0,0,0)
+        [HDR] _EmissionColor("Color", Color) = (0,0,0)
         _EmissionMap("Emission", 2D) = "white" {}
 
         // -------------------------------------
@@ -20,32 +17,33 @@ Shader "Amazing Assets/Curved World/Particles/Unlit"
         _SoftParticlesFarFadeDistance("Soft Particles Far Fade", Float) = 1.0
         _CameraNearFadeDistance("Camera Near Fade", Float) = 1.0
         _CameraFarFadeDistance("Camera Far Fade", Float) = 2.0
-        _DistortionBlend("Distortion Blend", Float) = 0.5
+        _DistortionBlend("Distortion Blend", Range(0.0, 1.0)) = 0.5
         _DistortionStrength("Distortion Strength", Float) = 1.0
 
         // -------------------------------------
         // Hidden properties - Generic
-        [HideInInspector] _Surface("__surface", Float) = 0.0
-        [HideInInspector] _Blend("__mode", Float) = 0.0
-        [HideInInspector] _AlphaClip("__clip", Float) = 0.0
+        _Surface("__surface", Float) = 0.0
+        _Blend("__mode", Float) = 0.0
+        _Cull("__cull", Float) = 2.0
+        [ToggleUI] _AlphaClip("__clip", Float) = 0.0
         [HideInInspector] _BlendOp("__blendop", Float) = 0.0
         [HideInInspector] _SrcBlend("__src", Float) = 1.0
         [HideInInspector] _DstBlend("__dst", Float) = 0.0
         [HideInInspector] _ZWrite("__zw", Float) = 1.0
-        [HideInInspector] _Cull("__cull", Float) = 2.0
+
         // Particle specific
-        [HideInInspector] _ColorMode("_ColorMode", Float) = 0.0
+        _ColorMode("_ColorMode", Float) = 0.0
         [HideInInspector] _BaseColorAddSubDiff("_ColorMode", Vector) = (0,0,0,0)
         [ToggleOff] _FlipbookBlending("__flipbookblending", Float) = 0.0
-        [HideInInspector] _SoftParticlesEnabled("__softparticlesenabled", Float) = 0.0
-        [HideInInspector] _CameraFadingEnabled("__camerafadingenabled", Float) = 0.0
+        [ToggleUI] _SoftParticlesEnabled("__softparticlesenabled", Float) = 0.0
+        [ToggleUI] _CameraFadingEnabled("__camerafadingenabled", Float) = 0.0
+        [ToggleUI] _DistortionEnabled("__distortionenabled", Float) = 0.0
         [HideInInspector] _SoftParticleFadeParams("__softparticlefadeparams", Vector) = (0,0,0,0)
         [HideInInspector] _CameraFadeParams("__camerafadeparams", Vector) = (0,0,0,0)
-        [HideInInspector] _DistortionEnabled("__distortionenabled", Float) = 0.0
         [HideInInspector] _DistortionStrengthScaled("Distortion Strength Scaled", Float) = 0.1
 
         // Editmode props
-        [HideInInspector] _QueueOffset("Queue offset", Float) = 0.0
+        _QueueOffset("Queue offset", Float) = 0.0
 
         // ObsoleteProperties
         [HideInInspector] _FlipbookMode("flipbook", Float) = 0
@@ -53,49 +51,54 @@ Shader "Amazing Assets/Curved World/Particles/Unlit"
         [HideInInspector] _Color("color", Color) = (1,1,1,1)
     }
 
+    HLSLINCLUDE
+
+    //Particle shaders rely on "write" to CB syntax which is not supported by DXC
+    #pragma never_use_dxc
+
+    ENDHLSL
+
     SubShader
     {
         Tags{"RenderType" = "Opaque" "IgnoreProjector" = "True" "PreviewType" = "Plane" "PerformanceChecks" = "False" "RenderPipeline" = "UniversalPipeline"}
 
         // ------------------------------------------------------------------
         //  Forward pass.
-        Pass
+        Pass 
         {
-            // Lightmode matches the ShaderPassName set in UniversalRenderPipeline.cs. SRPDefaultUnlit and passes with
-            // no LightMode tag are also rendered by Universal Render Pipeline
             Name "ForwardLit"
 
             BlendOp[_BlendOp]
             Blend[_SrcBlend][_DstBlend]
             ZWrite[_ZWrite]
             Cull[_Cull]
-            ColorMask RGB
 
             HLSLPROGRAM
-            // Required to compile gles 2.0 with standard SRP library
-            // All shaders must be compiled with HLSLcc and currently only gles is not using HLSLcc by default
-            #pragma prefer_hlslcc gles
-            #pragma exclude_renderers d3d11_9x
             #pragma target 2.0
 
             // -------------------------------------
             // Material Keywords
-            #pragma shader_feature _NORMALMAP
-            #pragma shader_feature _EMISSION
+            #pragma shader_feature_local _NORMALMAP
+            #pragma shader_feature_local_fragment _EMISSION
 
             // -------------------------------------
             // Particle Keywords
-            #pragma shader_feature _ _ALPHAPREMULTIPLY_ON _ALPHAMODULATE_ON
-            #pragma shader_feature _ALPHATEST_ON
-            #pragma shader_feature _ _COLOROVERLAY_ON _COLORCOLOR_ON _COLORADDSUBDIFF_ON
-            #pragma shader_feature _FLIPBOOKBLENDING_ON
-            #pragma shader_feature _SOFTPARTICLES_ON
-            #pragma shader_feature _FADING_ON
-            #pragma shader_feature _DISTORTION_ON
+            #pragma shader_feature_local _FLIPBOOKBLENDING_ON
+            #pragma shader_feature_local _SOFTPARTICLES_ON
+            #pragma shader_feature_local _FADING_ON
+            #pragma shader_feature_local _DISTORTION_ON
+            #pragma shader_feature_local_fragment _ALPHATEST_ON
+            #pragma shader_feature_local_fragment _SURFACE_TYPE_TRANSPARENT
+            #pragma shader_feature_local_fragment _ _ALPHAPREMULTIPLY_ON _ALPHAMODULATE_ON
+            #pragma shader_feature_local_fragment _ _COLOROVERLAY_ON _COLORCOLOR_ON _COLORADDSUBDIFF_ON
 
             // -------------------------------------
             // Unity defined keywords
             #pragma multi_compile_fog
+            #pragma multi_compile_instancing
+            #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
+            #pragma multi_compile_fragment _ DEBUG_DISPLAY
+            #pragma instancing_options procedural:ParticleInstancingSetup
 
             #pragma vertex vertParticleUnlit
             #pragma fragment fragParticleUnlit
@@ -106,53 +109,100 @@ Shader "Amazing Assets/Curved World/Particles/Unlit"
 #define CURVEDWORLD_BEND_TYPE_CLASSICRUNNER_X_POSITIVE
 #define CURVEDWORLD_BEND_ID_1
 #pragma shader_feature_local CURVEDWORLD_DISABLED_ON
-// #pragma shader_feature_local CURVEDWORLD_NORMAL_TRANSFORMATION_ON    //Unilit shader does not need Normal transformation
 #include "../../Core/CurvedWorldTransform.cginc"
+
 
             #include "ParticlesUnlitForwardPass.hlsl"
 
             ENDHLSL
         }
 
-
-        //PassName "ScenePickingPass"
-		Pass
+        // ------------------------------------------------------------------
+        //  Depth Only pass.
+        Pass
         {
-            Name "ScenePickingPass"
-            Tags { "LightMode" = "Picking" }
+            Name "DepthOnly"
+            Tags{"LightMode" = "DepthOnly"}
 
-            BlendOp Add
-            Blend One Zero
             ZWrite On
-            Cull Off
+            ColorMask 0
+            Cull[_Cull]
 
-            CGPROGRAM
-			#include "HLSLSupport.cginc"
-			#include "UnityShaderVariables.cginc"
-			#include "UnityShaderUtilities.cginc"
+            HLSLPROGRAM
+            #pragma target 2.0
 
+            // -------------------------------------
+            // Material Keywords
+            #pragma shader_feature_local _ _ALPHATEST_ON
+            #pragma shader_feature_local _ _FLIPBOOKBLENDING_ON
+            #pragma shader_feature_local_fragment _ _COLOROVERLAY_ON _COLORCOLOR_ON _COLORADDSUBDIFF_ON
 
-            #pragma target 3.0
-
-            #pragma shader_feature _ALPHATEST_ON
-            #pragma shader_feature _ALPHAPREMULTIPLY_ON
+            // -------------------------------------
+            // Unity defined keywords
             #pragma multi_compile_instancing
+            #pragma instancing_options procedural:ParticleInstancingSetup
 
-            #pragma vertex vertEditorPass
-            #pragma fragment fragScenePickingPass
+            #pragma vertex DepthOnlyVertex
+            #pragma fragment DepthOnlyFragment
+
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesUnlitInput.hlsl"
 
 
 #define CURVEDWORLD_BEND_TYPE_CLASSICRUNNER_X_POSITIVE
 #define CURVEDWORLD_BEND_ID_1
 #pragma shader_feature_local CURVEDWORLD_DISABLED_ON
+#include "../../Core/CurvedWorldTransform.cginc"
 
 
-            #include "../../Core/SceneSelection.cginc" 
-            ENDCG
-        }	//Pass "ScenePickingPass"		
+            #include "ParticlesDepthOnlyPass.hlsl"
+            ENDHLSL
+        }
+        // This pass is used when drawing to a _CameraNormalsTexture texture with the forward renderer or the depthNormal prepass with the deferred renderer.
+        Pass
+        {
+            Name "DepthNormalsOnly"
+            Tags{"LightMode" = "DepthNormalsOnly"}
 
-		//PassName "SceneSelectionPass"
-		Pass
+            ZWrite On
+            Cull[_Cull]
+
+            HLSLPROGRAM
+            #pragma exclude_renderers gles gles3 glcore
+            #pragma target 4.5
+
+            #pragma vertex DepthNormalsVertex
+            #pragma fragment DepthNormalsFragment
+
+            // -------------------------------------
+            // Material Keywords
+            #pragma shader_feature_local _ _NORMALMAP
+            #pragma shader_feature_local _ _ALPHATEST_ON
+            #pragma shader_feature_local_fragment _ _COLOROVERLAY_ON _COLORCOLOR_ON _COLORADDSUBDIFF_ON
+
+            // -------------------------------------
+            // Unity defined keywords
+            #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT // forward-only variant
+
+            //--------------------------------------
+            // GPU Instancing
+            #pragma multi_compile_instancing
+            #pragma multi_compile _ DOTS_INSTANCING_ON
+
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesUnlitInput.hlsl"
+
+
+#define CURVEDWORLD_BEND_TYPE_CLASSICRUNNER_X_POSITIVE
+#define CURVEDWORLD_BEND_ID_1
+#pragma shader_feature_local CURVEDWORLD_DISABLED_ON
+#include "../../Core/CurvedWorldTransform.cginc"
+
+
+            #include "ParticlesDepthNormalsPass.hlsl"
+            ENDHLSL
+        }
+// ------------------------------------------------------------------
+        //  Scene view outline pass.
+        Pass
         {
             Name "SceneSelectionPass"
             Tags { "LightMode" = "SceneSelectionPass" }
@@ -162,30 +212,79 @@ Shader "Amazing Assets/Curved World/Particles/Unlit"
             ZWrite On
             Cull Off
 
-            CGPROGRAM
-			#include "HLSLSupport.cginc"
-			#include "UnityShaderVariables.cginc"
-			#include "UnityShaderUtilities.cginc"
+            HLSLPROGRAM
+            #define PARTICLES_EDITOR_META_PASS
+            #pragma target 2.0
 
+            // -------------------------------------
+            // Particle Keywords
+            #pragma shader_feature_local_fragment _ALPHATEST_ON
+            #pragma shader_feature_local _FLIPBOOKBLENDING_ON
 
-            #pragma target 3.0
-
-            #pragma shader_feature _ALPHATEST_ON
-            #pragma shader_feature _ALPHAPREMULTIPLY_ON
+            // -------------------------------------
+            // Unity defined keywords
             #pragma multi_compile_instancing
+            #pragma instancing_options procedural:ParticleInstancingSetup
 
-            #pragma vertex vertEditorPass
-            #pragma fragment fragSceneHighlightPass
+            #pragma vertex vertParticleEditor
+            #pragma fragment fragParticleSceneHighlight
+
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesUnlitInput.hlsl"
 
 
 #define CURVEDWORLD_BEND_TYPE_CLASSICRUNNER_X_POSITIVE
 #define CURVEDWORLD_BEND_ID_1
 #pragma shader_feature_local CURVEDWORLD_DISABLED_ON
+#include "../../Core/CurvedWorldTransform.cginc"
 
 
-            #include "../../Core/SceneSelection.cginc" 
-            ENDCG
-        }	//Pass "SceneSelectionPass"		
+            #include "ParticlesEditorPass.hlsl"
+
+            ENDHLSL
+        }
+
+        // ------------------------------------------------------------------
+        //  Scene picking buffer pass.
+        Pass
+        {
+            Name "ScenePickingPass"
+            Tags{ "LightMode" = "Picking" }
+
+            BlendOp Add
+            Blend One Zero
+            ZWrite On
+            Cull Off
+
+            HLSLPROGRAM
+            #define PARTICLES_EDITOR_META_PASS
+            #pragma target 2.0
+
+            // -------------------------------------
+            // Particle Keywords
+            #pragma shader_feature_local_fragment _ALPHATEST_ON
+            #pragma shader_feature_local _FLIPBOOKBLENDING_ON
+
+            // -------------------------------------
+            // Unity defined keywords
+            #pragma multi_compile_instancing
+            #pragma instancing_options procedural:ParticleInstancingSetup
+
+            #pragma vertex vertParticleEditor
+            #pragma fragment fragParticleScenePicking
+
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesUnlitInput.hlsl"
+
+
+#define CURVEDWORLD_BEND_TYPE_CLASSICRUNNER_X_POSITIVE
+#define CURVEDWORLD_BEND_ID_1
+#pragma shader_feature_local CURVEDWORLD_DISABLED_ON
+#include "../../Core/CurvedWorldTransform.cginc"
+
+
+            #include "ParticlesEditorPass.hlsl"
+
+            ENDHLSL
+        }
     }
     CustomEditor "UnityEditor.Rendering.Universal.ShaderGUI.CurvedWorld_ParticlesUnlitShader"
 }

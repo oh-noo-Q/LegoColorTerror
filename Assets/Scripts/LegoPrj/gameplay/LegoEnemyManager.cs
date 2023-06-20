@@ -65,13 +65,13 @@ public class LegoEnemyManager : MonoBehaviour
     public void KillEnemy(LegoEnemy removedEnemy)
     {
         enemies.Remove(removedEnemy);
+        if (enemies.Count > 0) SetTargetEnemy(enemies[0]);
         removedEnemy.Die();
         if(enemies.Count == 0 && GameManager.Instance.enemySpawner.CheckEndLevel())
         {
             GameManager.Instance.NextRound();
             return;
         }
-        if (enemies.Count > 0) SetTargetEnemy(enemies[0]);
     }
 
     public void SetTargetEnemy(LegoEnemy enemy)
@@ -85,11 +85,19 @@ public class LegoEnemyManager : MonoBehaviour
         }
         else
         {
-            currentTargetObject.transform.DOKill();
             currentTargetObject.transform.SetParent(enemy.targetIconPosition);
+            currentTargetObject.transform.DOKill();
             currentTargetObject.GetComponent<Renderer>().material = GameManager.Instance.colorDic[enemy.mainColor];
             currentTargetObject.transform.localPosition = Vector3.zero;
             currentTargetObject.transform.DOLocalMoveY(-2, 0.5f).SetLoops(-1, LoopType.Yoyo);
         }
     }
+
+    public void ResetLevel() 
+    {
+        enemies.Clear();
+        gameObject.DestroyAllChildren();
+        currentTargetEnemy = null;
+    }
+    
 }

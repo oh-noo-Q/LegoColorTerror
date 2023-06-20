@@ -1,7 +1,12 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
-namespace Complete
+#if ENABLE_INPUT_SYSTEM
+    using UnityEngine.InputSystem;
+#endif
+
+
+namespace AmazingAssets.CurvedWorld.Example
 {
     public class TankShooting : MonoBehaviour
     {
@@ -43,9 +48,11 @@ namespace Complete
             // The slider should have a default value of the minimum launch force.
             m_AimSlider.value = m_MinLaunchForce;
 
-
+#if ENABLE_INPUT_SYSTEM
+            Key shootingKeyCode = tankMovement.playerID == 2 ? Key.RightCtrl : Key.Space;
+#else
             KeyCode shootingKeyCode = tankMovement.playerID == 2 ? KeyCode.RightControl : KeyCode.Space;
-
+#endif
 
             // If the max force has been exceeded and the shell hasn't yet been launched...
             if (m_CurrentLaunchForce >= m_MaxLaunchForce && !m_Fired)
@@ -55,14 +62,14 @@ namespace Complete
                 Fire ();
             }
             // Otherwise, if the fire button has just started being pressed...
-            else if (Input.GetKeyDown (shootingKeyCode))
+            else if (ExampleInput.GetKeyDown(shootingKeyCode))
             {
                 // ... reset the fired flag and reset the launch force.
                 m_Fired = false;
                 m_CurrentLaunchForce = m_MinLaunchForce;
             }
             // Otherwise, if the fire button is being held and the shell hasn't been launched yet...
-            else if (Input.GetKey (shootingKeyCode) && !m_Fired)
+            else if (ExampleInput.GetKey(shootingKeyCode) && !m_Fired)
             {
                 // Increment the launch force and update the slider.
                 m_CurrentLaunchForce += m_ChargeSpeed * Time.deltaTime;
@@ -70,7 +77,7 @@ namespace Complete
                 m_AimSlider.value = m_CurrentLaunchForce;
             }
             // Otherwise, if the fire button is released and the shell hasn't been launched yet...
-            else if (Input.GetKeyUp (shootingKeyCode) && !m_Fired)
+            else if (ExampleInput.GetKeyUp(shootingKeyCode) && !m_Fired)
             {
                 // ... launch the shell.
                 Fire ();

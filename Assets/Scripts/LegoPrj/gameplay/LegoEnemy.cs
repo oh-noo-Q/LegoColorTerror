@@ -20,6 +20,7 @@ public class LegoEnemy : MonoBehaviour
 
     public Vector3 moveDirection;
     public float speed;
+    public float buffSpeed = 1.0f;
     public Transform distanceDie;
 
     public int blockDamage;
@@ -30,8 +31,8 @@ public class LegoEnemy : MonoBehaviour
         transform.Translate(moveDirection * speed * Time.deltaTime);
         if(Mathf.Abs(transform.position.z - distanceDie.position.z) < 0.5f)
         {
-            EventDispatcher.Instance.PostEvent(EventID.OnChangeValueHealth, -1);
             GameManager.Instance.enemyManager.KillEnemy(this);
+            EventDispatcher.Instance.PostEvent(EventID.OnChangeValueHealth, -1);
         }
     }
 
@@ -50,6 +51,7 @@ public class LegoEnemy : MonoBehaviour
                 if(blockDamage > 0)
                 {
                     blockDamage--;
+                    UILegoManager.Instance.inGameUI.SetBlockText(blockDamage);
                     Destroy(bulletColision.gameObject);
                     return;
                 }
@@ -64,6 +66,9 @@ public class LegoEnemy : MonoBehaviour
             else
             {
                 blockDamage++;
+                UILegoManager.Instance.inGameUI.SetBlockText(blockDamage);
+
+                //Bullet target slime if fail
                 //bulletColision.CounterAttack();
             }
         }

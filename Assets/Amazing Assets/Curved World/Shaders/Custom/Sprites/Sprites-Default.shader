@@ -54,6 +54,67 @@ Shader "Amazing Assets/Curved World/Sprites/Default"
             #include "UnitySprites.cginc"
         ENDCG
         }
+
+
+         // ------------------------------------------------------------------
+        //  Scene view outline pass.
+		Pass
+        {
+            Name "SceneSelectionPass"
+            Tags { "LightMode" = "SceneSelectionPass" }
+
+            BlendOp Add
+            Blend One Zero
+            ZWrite On 
+            Cull Off
+
+            HLSLPROGRAM
+            #pragma target 2.0
+            #pragma multi_compile_instancing
+
+            #pragma vertex vertEditorPass
+            #pragma fragment fragSceneHighlightPass
+
+             
+#define CURVEDWORLD_BEND_TYPE_CLASSICRUNNER_X_POSITIVE
+#define CURVEDWORLD_BEND_ID_1
+#pragma shader_feature_local CURVEDWORLD_DISABLED_ON
+
+
+            #include "../../Core/SceneSelection.cginc"
+
+            ENDHLSL
+        }
+
+        // ------------------------------------------------------------------
+        //  Scene picking buffer pass.
+		Pass
+        {
+            Name "ScenePickingPass"
+            Tags { "LightMode" = "Picking" }
+
+            BlendOp Add
+            Blend One Zero
+            ZWrite On
+            Cull Off
+
+            HLSLPROGRAM
+            #pragma target 2.0
+            #pragma multi_compile_instancing
+
+            #pragma vertex vertEditorPass
+            #pragma fragment fragScenePickingPass
+
+
+#define CURVEDWORLD_BEND_TYPE_CLASSICRUNNER_X_POSITIVE
+#define CURVEDWORLD_BEND_ID_1
+#pragma shader_feature_local CURVEDWORLD_DISABLED_ON
+
+
+            #include "../../Core/SceneSelection.cginc"
+
+            ENDHLSL
+        }
     }
 
     CustomEditor "AmazingAssets.CurvedWorldEditor.SpritesShaderGUI"

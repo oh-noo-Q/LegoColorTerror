@@ -1,7 +1,6 @@
 using System;
+
 using UnityEngine;
-using UnityEngine.Rendering;
-using UnityEditor.Rendering.Universal;
 
 using AmazingAssets.CurvedWorldEditor;
 
@@ -10,63 +9,86 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
 {
     internal class CurvedWorld_LitShader : BaseShaderGUI
     {
-        // Properties
+        static readonly string[] workflowModeNames = Enum.GetNames(typeof(LitGUI.WorkflowMode));
+
         private LitGUI.LitProperties litProperties;
+        private CurvedWorld_LitDetailGUI.LitProperties litDetailProperties;
 
-        // collect properties from the material properties
-        public override void FindProperties(MaterialProperty[] properties)
+        //Curved World
+        MaterialHeaderScopeList curvedWorldMaterialScope;
+
+
+        public override void FillAdditionalFoldouts(MaterialHeaderScopeList materialScopesList)
         {
-            base.FindProperties(properties);
-            litProperties = new LitGUI.LitProperties(properties);
+            materialScopesList.RegisterHeaderScope(CurvedWorld_LitDetailGUI.Styles.detailInputs, Expandable.Details, _ => CurvedWorld_LitDetailGUI.DoDetailArea(litDetailProperties, materialEditor));
 
 
-            MaterialProperties.InitCurvedWorldMaterialProperties(properties);
+            //Curved World
+            Material material = (Material)materialEditor.target;
+            if (curvedWorldMaterialScope == null)
+                curvedWorldMaterialScope = new MaterialHeaderScopeList();
+            if (material.HasProperty("_CurvedWorldBendSettings"))
+                curvedWorldMaterialScope.RegisterHeaderScope(new GUIContent("Curved World"), AmazingAssets.CurvedWorldEditor.MaterialProperties.Expandable.CurvedWorld, _ => AmazingAssets.CurvedWorldEditor.MaterialProperties.DrawCurvedWorldMaterialProperties(materialEditor, MaterialProperties.STYLE.None, false, false));
         }
 
-        // material changed check
-        public override void MaterialChanged(Material material)
-        {
-            if (material == null)
-                throw new ArgumentNullException("material");
-
-            SetMaterialKeywords(material, LitGUI.SetMaterialKeywords);
-
-            MaterialProperties.SetKeyWords(material);
-        }
 
         public override void OnGUI(MaterialEditor materialEditorIn, MaterialProperty[] properties)
         {
             if (materialEditorIn == null)
                 throw new ArgumentNullException("materialEditorIn");
 
-            FindProperties(properties); // MaterialProperties can be animated so we do not cache them but fetch them every event to ensure animated values are updated correctly
             materialEditor = materialEditorIn;
             Material material = materialEditor.target as Material;
 
-            MaterialProperties.DrawCurvedWorldMaterialProperties(materialEditorIn, MaterialProperties.STYLE.Foldout, false, false);
+            FindProperties(properties);   // MaterialProperties can be animated so we do not cache them but fetch them every event to ensure animated values are updated correctly
 
-            base.OnGUI(materialEditorIn, properties);
+            // Make sure that needed setup (ie keywords/renderqueue) are set up if we're switching some existing
+            // material to a universal shader.
+            if (m_FirstTimeApply)
+            {
+                OnOpenGUI(material, materialEditorIn);
+                m_FirstTimeApply = false;
+            }
+
+
+            //Curved World
+            curvedWorldMaterialScope.DrawHeaders(materialEditor, material);
+
+
+            ShaderPropertiesGUI(material);
+        }
+
+        // collect properties from the material properties
+        public override void FindProperties(MaterialProperty[] properties)
+        {
+            base.FindProperties(properties);
+            litProperties = new LitGUI.LitProperties(properties);
+            litDetailProperties = new CurvedWorld_LitDetailGUI.LitProperties(properties);
+
+
+            //Curved World
+            MaterialProperties.InitCurvedWorldMaterialProperties(properties);
+        }
+
+        // material changed check
+        public override void ValidateMaterial(Material material)
+        {
+            SetMaterialKeywords(material, LitGUI.SetMaterialKeywords, CurvedWorld_LitDetailGUI.SetMaterialKeywords);
+
+
+            //Curved World
+            MaterialProperties.SetKeyWords(material);
         }
 
         // material main surface options
         public override void DrawSurfaceOptions(Material material)
         {
-            if (material == null)
-                throw new ArgumentNullException("material");
-
             // Use default labelWidth
             EditorGUIUtility.labelWidth = 0f;
-            // Detect any changes to the material
-            EditorGUI.BeginChangeCheck();
+
             if (litProperties.workflowMode != null)
-            {
-                DoPopup(LitGUI.Styles.workflowModeText, litProperties.workflowMode, Enum.GetNames(typeof(LitGUI.WorkflowMode)));
-            }
-            if (EditorGUI.EndChangeCheck())
-            {
-                foreach (var obj in blendModeProp.targets)
-                    MaterialChanged((Material)obj);
-            }
+                DoPopup(LitGUI.Styles.workflowModeText, litProperties.workflowMode, workflowModeNames);
+
             base.DrawSurfaceOptions(material);
         }
 
@@ -84,13 +106,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
         {
             if (litProperties.reflections != null && litProperties.highlights != null)
             {
-                EditorGUI.BeginChangeCheck();
                 materialEditor.ShaderProperty(litProperties.highlights, LitGUI.Styles.highlightsText);
                 materialEditor.ShaderProperty(litProperties.reflections, LitGUI.Styles.reflectionsText);
-                if(EditorGUI.EndChangeCheck())
-                {
-                    MaterialChanged(material);
-                }
             }
 
             base.DrawAdvancedOptions(material);
@@ -130,8 +147,17 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                 surfaceType = SurfaceType.Transparent;
                 blendMode = BlendMode.Alpha;
             }
-            material.SetFloat("_Surface", (float)surfaceType);
             material.SetFloat("_Blend", (float)blendMode);
+
+            material.SetFloat("_Surface", (float)surfaceType);
+            if (surfaceType == SurfaceType.Opaque)
+            {
+                material.DisableKeyword("_SURFACE_TYPE_TRANSPARENT");
+            }
+            else
+            {
+                material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+            }
 
             if (oldShader.name.Equals("Standard (Specular setup)"))
             {
@@ -147,8 +173,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                 if (texture != null)
                     material.SetTexture("_MetallicSpecGlossMap", texture);
             }
-
-            MaterialChanged(material);
         }
     }
 }

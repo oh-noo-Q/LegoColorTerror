@@ -1,6 +1,4 @@
 ﻿using UnityEngine;
-using System.Collections.Generic;
-using System.Linq;
 
 
 namespace AmazingAssets.CurvedWorld.Example
@@ -21,7 +19,7 @@ namespace AmazingAssets.CurvedWorld.Example
         public float movingSpeed = 1;
 
 
-        public float chunkSize = 60;
+        public float chunkSize = 60;        
         GameObject lastChunk;
 
 

@@ -30,6 +30,7 @@ public class EnemySpawner : MonoBehaviour
     float deltaTime = 0;
     float xLeftLimit, xRightLimit;
     private int[] values = { 0, 1, 2, 3, 4 };
+    private float waitTimeBeginRound = 1f;
 
     private void Awake()
     {
@@ -58,45 +59,13 @@ public class EnemySpawner : MonoBehaviour
     {
         if (!GameManager.Instance.startEndLessMode) return;
         deltaTime += Time.deltaTime;
-
+        
         if(deltaTime >= delaySpawn)
         {
             int index = Random.Range(0, enemyCrtLevel.Count);
             if (amountEnemy[index] > 0)
             {
-                deltaTime = 0;
-                LegoEnemy newEnemy = Instantiate(enemyCrtLevel[index], transform);
-                amountEnemy[index]--;
-                newEnemy.gameObject.SetActive(true);
-                switch (mapSpawner.axis)
-                {
-                    case AXIS.Zpositive:
-                        newEnemy.transform.position = new Vector3(Random.Range(xLeftLimit, xRightLimit), 0, -spaceSize);
-                        break;
-                    case AXIS.Znegative:
-                        newEnemy.transform.position = new Vector3(Random.Range(xLeftLimit, xRightLimit), 0, -spaceSize);
-                        break;
-                }
-                if (newEnemy.GetComponent<FlyLego>() != null)
-                {
-                    newEnemy.transform.position = new Vector3(newEnemy.transform.position.x, 8, newEnemy.transform.position.z);
-                }
-                LegoEnemy legoEnemy = newEnemy.GetComponent<LegoEnemy>();
-                int ran = Random.Range(0, 5);
-                int colorRan = values[ran];
-                for (int i = 0; i < legoEnemy.pieces.Count; i++)
-                {
-                    legoEnemy.pieces[i].GetComponent<Renderer>().material = GameManager.Instance.colorDic[(LegoColor)colorRan];
-                }
-                legoEnemy.mainColor = (LegoColor)colorRan;
-                legoEnemy.moveDirection = -mapSpawner.moveDirection;
-                legoEnemy.distanceDie = distanceDie;
-
-                if (enemyManager.enemies.Count == 0)
-                {
-                    enemyManager.SetTargetEnemy(legoEnemy);
-                }
-                enemyManager.enemies.Add(legoEnemy);
+                GenerateEnemyForLevel(index);
             }
             else
             {
@@ -110,6 +79,40 @@ public class EnemySpawner : MonoBehaviour
                 }
             }
         }
+    }
+    void GenerateEnemyForLevel(int index)
+    {
+        LegoEnemy newEnemy = Instantiate(enemyCrtLevel[index], transform);
+        amountEnemy[index]--;
+        newEnemy.gameObject.SetActive(true);
+        switch (mapSpawner.axis)
+        {
+            case AXIS.Zpositive:
+                newEnemy.transform.position = new Vector3(Random.Range(xLeftLimit, xRightLimit), 0, -spaceSize);
+                break;
+            case AXIS.Znegative:
+                newEnemy.transform.position = new Vector3(Random.Range(xLeftLimit, xRightLimit), 0, -spaceSize);
+                break;
+        }
+        if (newEnemy.GetComponent<FlyLego>() != null)
+        {
+            newEnemy.transform.position = new Vector3(newEnemy.transform.position.x, 8, newEnemy.transform.position.z);
+        }
+        int ran = Random.Range(0, 5);
+        int colorRan = values[ran];
+        for (int i = 0; i < newEnemy.pieces.Count; i++)
+        {
+            newEnemy.pieces[i].GetComponent<Renderer>().material = GameManager.Instance.colorDic[(LegoColor)colorRan];
+        }
+        newEnemy.mainColor = (LegoColor)colorRan;
+        newEnemy.moveDirection = -mapSpawner.moveDirection;
+        newEnemy.distanceDie = distanceDie;
+
+        if (enemyManager.enemies.Count == 0)
+        {
+            enemyManager.SetTargetEnemy(newEnemy);
+        }
+        enemyManager.enemies.Add(newEnemy);
     }
 
     public bool CheckEndLevel()
@@ -142,14 +145,14 @@ public class EnemySpawner : MonoBehaviour
         {
             for (int i = 0; i < flyEnemy.Length; i++)
             {
-                flyEnemyPrf[flyEnemy[i].id - 1].GetComponent<LegoEnemy>().speed = flySpeed;
-                enemyCrtLevel.Add(flyEnemyPrf[flyEnemy[i].id - 1].GetComponent<LegoEnemy>());
+                LegoEnemy editEnemy = flyEnemyPrf[flyEnemy[i].id - 1].GetComponent<LegoEnemy>();
+                editEnemy.speed = flySpeed;
+                editEnemy.buffSpeed = flySpeed / normalSpeed;
+                enemyCrtLevel.Add(editEnemy);
                 amountEnemy.Add(flyEnemy[i].quantity);
             }
         }
 
         delaySpawn = _delaySpawn;
     }
-
-    
 }

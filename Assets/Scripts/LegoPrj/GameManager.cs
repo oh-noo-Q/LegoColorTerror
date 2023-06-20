@@ -38,16 +38,20 @@ public class GameManager : MonoBehaviour
     public void RestartEndless()
     {
         playerManager.health = 5;
+        RevivePlayer();
+    }
+
+    public void RevivePlayer()
+    {
+        playerManager.health = 5;
         EventDispatcher.Instance.PostEvent(EventID.OnUpdateHealth, playerManager.health);
-        enemyManager.enemies.Clear();
-        enemyManager.gameObject.DestroyAllChildren();
-        enemyManager.currentTargetEnemy = null;
+        ResumeGame();
     }
 
     public void FinishGameEndless()
     {
         PauseGame();
-        UILegoManager.Instance.ShowMainMenu();
+        UILegoManager.Instance.ShowEndGame();
     }
 
     public void PauseGame()
@@ -63,7 +67,9 @@ public class GameManager : MonoBehaviour
     public void LoadGameEndless(int round)
     {
         LevelGameplay newRound = levelData.levelGameplayData[round];
-  
+        EventDispatcher.Instance.PostEvent(EventID.UpdateRoundEndLess, roundEndLess + 1);
+        UILegoManager.Instance.inGameUI.SetBlockText(0);
+
         enemySpawner.LoadLevel(newRound.detailEnemies, newRound.detailFlyEnemies,
             newRound.speedEnemy, newRound.speedEnemy * (1.5f + newRound.xSpeedFly), newRound.delaySpawn);
     }
@@ -71,13 +77,12 @@ public class GameManager : MonoBehaviour
     public void NextRound()
     {
         roundEndLess++;
-        EventDispatcher.Instance.PostEvent(EventID.UpdateRoundEndLess, roundEndLess);
         if(roundEndLess > levelData.levelGameplayData.Length - 1)
         {
             roundEndLess = levelData.levelGameplayData.Length - 1;
         }
-        startEndLessMode = true;
         LoadGameEndless(roundEndLess);
+        StartCoroutine(WaitTimeNextRound());
     }
 
     public void ReloadScene()
@@ -85,4 +90,20 @@ public class GameManager : MonoBehaviour
         SceneManager.LoadScene(0);
     }
 
+    IEnumerator WaitTimeNextRound()
+    {
+        yield return new WaitForSeconds(1.0f);
+        startEndLessMode = true;
+    }
+
+    IEnumerator WaitTimeBeginRevive()
+    {
+        float waitTime = 0;
+        WaitForSeconds seconds = new WaitForSeconds(0.05f);
+        while(waitTime < 2.0f)
+        {
+            waitTime += Time.deltaTime;
+            yield return seconds;
+        }
+    }
 }
