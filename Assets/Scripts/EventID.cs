@@ -14,4 +14,5 @@ public enum EventID
     OnChangeMaxEnemy,
 
     TabAttackLego,
+    UpdateRoundEndLess,
 }

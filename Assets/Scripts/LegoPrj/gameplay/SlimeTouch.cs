@@ -7,14 +7,21 @@ public class SlimeTouch : MonoBehaviour
     public LegoColor color;
     public Collider boxCollider;
     public Transform posOnCurve;
+    public Animator anim;
 
     Coroutine delayTimeTouch;
     bool onTouch;
+
+    private void Awake()
+    {
+        anim = GetComponent<Animator>();
+    }
     private void OnMouseDown()
     {
         if (!onTouch)
         {
             onTouch = true;
+            anim.SetTrigger("Attack");
             EventDispatcher.Instance.PostEvent(EventID.TabAttackLego, this);
 
             if (delayTimeTouch != null) StopCoroutine(delayTimeTouch);

@@ -22,6 +22,7 @@ public class LegoEnemy : MonoBehaviour
     public float speed;
     public Transform distanceDie;
 
+    public int blockDamage;
     public int injureHit = 0;
 
     virtual protected void Update()
@@ -46,6 +47,12 @@ public class LegoEnemy : MonoBehaviour
             Bullet bulletColision = other.GetComponent<Bullet>();
             if (bulletColision.color == mainColor)
             {
+                if(blockDamage > 0)
+                {
+                    blockDamage--;
+                    Destroy(bulletColision.gameObject);
+                    return;
+                }
                 pieces[bulletColision.targetPiece].SetActive(false);
                 GameManager.Instance.effectController
                         .GenExplosion(pieces[bulletColision.targetPiece].transform,
@@ -56,7 +63,8 @@ public class LegoEnemy : MonoBehaviour
             }
             else
             {
-                bulletColision.CounterAttack();
+                blockDamage++;
+                //bulletColision.CounterAttack();
             }
         }
     }

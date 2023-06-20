@@ -39,12 +39,14 @@ public class GameManager : MonoBehaviour
     {
         playerManager.health = 5;
         EventDispatcher.Instance.PostEvent(EventID.OnUpdateHealth, playerManager.health);
+        enemyManager.enemies.Clear();
         enemyManager.gameObject.DestroyAllChildren();
+        enemyManager.currentTargetEnemy = null;
     }
 
     public void FinishGameEndless()
     {
-        ReloadScene();
+        PauseGame();
         UILegoManager.Instance.ShowMainMenu();
     }
 
@@ -69,6 +71,7 @@ public class GameManager : MonoBehaviour
     public void NextRound()
     {
         roundEndLess++;
+        EventDispatcher.Instance.PostEvent(EventID.UpdateRoundEndLess, roundEndLess);
         if(roundEndLess > levelData.levelGameplayData.Length - 1)
         {
             roundEndLess = levelData.levelGameplayData.Length - 1;

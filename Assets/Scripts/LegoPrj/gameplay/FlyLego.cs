@@ -40,16 +40,25 @@ public class FlyLego : LegoEnemy
                 Bullet bulletColision = other.GetComponent<Bullet>();
                 if (bulletColision.color == mainColor)
                 {
-                    isFlying = false;
-                    rigid.AddForce(Vector3.down * fallingForce, ForceMode.Force);
-                    //transform.position = new Vector3(transform.position.x, 0, transform.position.z);
-                    //transform.DOLocalMoveY(0, 0.3f);
-                    modelTrans.DORotate(new Vector3(0, 0, 0), 0.3f);
-                    Destroy(bulletColision.gameObject);
+                    if (blockDamage > 0)
+                    {
+                        blockDamage--;
+                        Destroy(bulletColision.gameObject);
+                        return;
+                    }
+                    else
+                    { 
+                        isFlying = false;
+                        rigid.AddForce(Vector3.down * fallingForce, ForceMode.Force);
+                        
+                        modelTrans.DORotate(new Vector3(0, 0, 0), 0.3f);
+                        Destroy(bulletColision.gameObject);
+                    }
                 }
                 else
                 {
-                    bulletColision.CounterAttack();
+                    blockDamage++;
+                    //bulletColision.CounterAttack();
                 }
             }
         }
