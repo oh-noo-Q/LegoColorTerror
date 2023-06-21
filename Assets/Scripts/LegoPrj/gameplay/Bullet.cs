@@ -8,6 +8,7 @@ public class Bullet : MonoBehaviour
     public Transform owner;
     public LegoColor color;
     public Transform target;
+    public Vector3 targetPos;
     public int targetPiece;
     public List<GameObject> details;
 
@@ -41,13 +42,19 @@ public class Bullet : MonoBehaviour
         if (target != null)
         {
             Vector3 realTarget = target.position;
-            transform.position = Vector3.MoveTowards(transform.position, realTarget, speed * Time.deltaTime);
         }
-        if(isCounter && transform.position == target.position)
+        if(targetPos != Vector3.zero)
+            transform.position = Vector3.MoveTowards(transform.position, targetPos, speed * Time.deltaTime);
+        
+        if(transform.position == targetPos)
         {
-            EventDispatcher.Instance.PostEvent(EventID.OnChangeValueHealth, -1);
             Destroy(gameObject);
         }
+        //if(isCounter && transform.position == target.position)
+        //{
+        //    EventDispatcher.Instance.PostEvent(EventID.OnChangeValueHealth, -1);
+        //    Destroy(gameObject);
+        //}
     }
 
     public void CounterAttack()

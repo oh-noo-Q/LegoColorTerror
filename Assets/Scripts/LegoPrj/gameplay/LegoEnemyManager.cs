@@ -37,21 +37,26 @@ public class LegoEnemyManager : MonoBehaviour
             newBullet.owner = ownerSlime.posOnCurve;
             newBullet.SetColor(ownerSlime.color);
             newBullet.targetPiece = currentTargetEnemy.injureHit;
-            if(currentTargetEnemy.gameObject.GetComponent<FlyLego>() != null
+            if (currentTargetEnemy.gameObject.GetComponent<FlyLego>() != null
                 && currentTargetEnemy.gameObject.GetComponent<FlyLego>().isFlying)
             {
                 newBullet.target = currentTargetEnemy.transform;
+                newBullet.targetPos = currentTargetEnemy.transform.position;
                 //currentTargetEnemy.gameObject.GetComponent<FlyLego>().isFlying = false;
             }
             else
-                newBullet.target = currentTargetEnemy.pieces[currentTargetEnemy.injureHit].transform;
-            if (currentTargetEnemy.mainColor == ownerSlime.color)
             {
-                if (currentTargetEnemy.blockDamage > 0) return;
-                if (currentTargetEnemy.gameObject.GetComponent<FlyLego>() != null && currentTargetEnemy.injureHit == 0)
-                    return;
-                currentTargetEnemy.injureHit++;
+                newBullet.target = currentTargetEnemy.pieces[currentTargetEnemy.injureHit].transform;
+                newBullet.targetPos = currentTargetEnemy.pieces[currentTargetEnemy.injureHit].transform.position;
             }
+            currentTargetEnemy.AttackEnemy(newBullet.color, newBullet);
+            //if (currentTargetEnemy.mainColor == ownerSlime.color)
+            //{
+            //    if (currentTargetEnemy.blockDamage > 0) return;
+            //    if (currentTargetEnemy.gameObject.GetComponent<FlyLego>() != null && currentTargetEnemy.injureHit == 0)
+            //        return;
+            //    currentTargetEnemy.injureHit++;
+            //}
         }
     }
 
@@ -89,6 +94,7 @@ public class LegoEnemyManager : MonoBehaviour
             currentTargetObject.transform.DOKill();
             currentTargetObject.GetComponent<Renderer>().material = GameManager.Instance.colorDic[enemy.mainColor];
             currentTargetObject.transform.localPosition = Vector3.zero;
+            currentTargetObject.transform.eulerAngles = new Vector3(0, 90f, 0);
             currentTargetObject.transform.DOLocalMoveY(-2, 0.5f).SetLoops(-1, LoopType.Yoyo);
         }
     }

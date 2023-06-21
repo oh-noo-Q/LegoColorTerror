@@ -46,31 +46,56 @@ public class LegoEnemy : MonoBehaviour
         if(other.CompareTag("Bullet"))
         {
             Bullet bulletColision = other.GetComponent<Bullet>();
-            if (bulletColision.color == mainColor)
-            {
-                if(blockDamage > 0)
-                {
-                    blockDamage--;
-                    UILegoManager.Instance.inGameUI.SetBlockText(blockDamage);
-                    Destroy(bulletColision.gameObject);
-                    return;
-                }
-                pieces[bulletColision.targetPiece].SetActive(false);
-                GameManager.Instance.effectController
-                        .GenExplosion(pieces[bulletColision.targetPiece].transform,
-                        GameManager.Instance.colorDic[mainColor]);
-                if (bulletColision.targetPiece == pieces.Count - 1)
-                    GameManager.Instance.enemyManager.KillEnemy(this);
-                Destroy(bulletColision.gameObject);
-            }
-            else
-            {
-                blockDamage++;
-                UILegoManager.Instance.inGameUI.SetBlockText(blockDamage);
+            //if (bulletColision.color == mainColor)
+            //{
+            //    if(blockDamage > 0)
+            //    {
+            //        blockDamage--;
+            //        UILegoManager.Instance.inGameUI.SetBlockText(blockDamage);
+            //        Destroy(bulletColision.gameObject);
+            //        return;
+            //    }
+            //    pieces[bulletColision.targetPiece].SetActive(false);
+            //    GameManager.Instance.effectController
+            //            .GenExplosion(pieces[bulletColision.targetPiece].transform,
+            //            GameManager.Instance.colorDic[mainColor]);
+            //    if (bulletColision.targetPiece == pieces.Count - 1)
+            //        GameManager.Instance.enemyManager.KillEnemy(this);
+            //}
+            //else
+            //{
+            //    blockDamage++;
+            //    UILegoManager.Instance.inGameUI.SetBlockText(blockDamage);
 
-                //Bullet target slime if fail
-                //bulletColision.CounterAttack();
+            //    //Bullet target slime if fail
+            //    //bulletColision.CounterAttack();
+            //}
+                Destroy(bulletColision.gameObject);
+        }
+    }
+
+    public virtual void AttackEnemy(LegoColor attackColor, Bullet bullet)
+    {
+        if (attackColor == mainColor)
+        {
+            if (blockDamage > 0)
+            {
+                blockDamage--;
+                UILegoManager.Instance.inGameUI.SetBlockText(blockDamage);
+                return;
             }
+            injureHit++;
+            pieces[bullet.targetPiece].SetActive(false);
+            GameManager.Instance.effectController
+                    .GenExplosion(pieces[bullet.targetPiece].transform,
+                    GameManager.Instance.colorDic[mainColor]);
+            if (bullet.targetPiece == pieces.Count - 1)
+                GameManager.Instance.enemyManager.KillEnemy(this);
+        }
+        else
+        {
+            blockDamage++;
+            UILegoManager.Instance.inGameUI.SetBlockText(blockDamage);
         }
     }
 }

@@ -65,6 +65,7 @@ public class EnemySpawner : MonoBehaviour
             int index = Random.Range(0, enemyCrtLevel.Count);
             if (amountEnemy[index] > 0)
             {
+                deltaTime = 0;
                 GenerateEnemyForLevel(index);
             }
             else

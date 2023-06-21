@@ -10,7 +10,7 @@ public class FlyLego : LegoEnemy
     [HideInInspector]
     public bool isFlying;
 
-    float fallingForce = 1000000f;
+    float fallingForce = 10000f;
 
     private void Awake()
     {
@@ -33,41 +33,72 @@ public class FlyLego : LegoEnemy
 
     protected override void OnTriggerEnter(Collider other)
     {
+        //if(isFlying)
+        //{
+        //    if (other.CompareTag("Bullet"))
+        //    { 
+        //        Bullet bulletColision = other.GetComponent<Bullet>();
+        //        if (bulletColision.color == mainColor)
+        //        {
+        //            if (blockDamage > 0)
+        //            {
+        //                blockDamage--;
+        //                UILegoManager.Instance.inGameUI.SetBlockText(blockDamage);
+        //                Destroy(bulletColision.gameObject);
+        //                return;
+        //            }
+        //            else
+        //            { 
+        //                isFlying = false;
+        //                rigid.AddForce(Vector3.down * fallingForce, ForceMode.Force);
+        //                speed = speed / buffSpeed;
+                        
+        //                modelTrans.DORotate(new Vector3(0, 0, 0), 0.3f);
+        //                Destroy(bulletColision.gameObject);
+        //            }
+        //        }
+        //        else
+        //        {
+        //            blockDamage++;
+        //            UILegoManager.Instance.inGameUI.SetBlockText(blockDamage);
+        //            //bulletColision.CounterAttack();
+        //        }
+        //    }
+        //}
+        //else
+        //{
+        //}
+            base.OnTriggerEnter(other);
+    }
+
+    public override void AttackEnemy(LegoColor attackColor, Bullet bullet)
+    {
         if(isFlying)
         {
-            if (other.CompareTag("Bullet"))
-            { 
-                Bullet bulletColision = other.GetComponent<Bullet>();
-                if (bulletColision.color == mainColor)
+            if (attackColor == mainColor)
+            {
+                if (blockDamage > 0)
                 {
-                    if (blockDamage > 0)
-                    {
-                        blockDamage--;
-                        UILegoManager.Instance.inGameUI.SetBlockText(blockDamage);
-                        Destroy(bulletColision.gameObject);
-                        return;
-                    }
-                    else
-                    { 
-                        isFlying = false;
-                        rigid.AddForce(Vector3.down * fallingForce, ForceMode.Force);
-                        speed = speed / buffSpeed;
-                        
-                        modelTrans.DORotate(new Vector3(0, 0, 0), 0.3f);
-                        Destroy(bulletColision.gameObject);
-                    }
+                    blockDamage--;
+                    UILegoManager.Instance.inGameUI.SetBlockText(blockDamage);
+                    return;
                 }
                 else
                 {
-                    blockDamage++;
-                    UILegoManager.Instance.inGameUI.SetBlockText(blockDamage);
-                    //bulletColision.CounterAttack();
+                    isFlying = false;
+                    rigid.AddForce(Vector3.down * fallingForce, ForceMode.Force);
+                    speed = speed / buffSpeed;
+
+                    modelTrans.DORotate(new Vector3(0, 0, 0), 0.3f);
                 }
             }
+            else
+            {
+                blockDamage++;
+                UILegoManager.Instance.inGameUI.SetBlockText(blockDamage);
+            }
         }
-        else
-        {
-            base.OnTriggerEnter(other);
-        }
+        else 
+            base.AttackEnemy(attackColor, bullet);
     }
 }
