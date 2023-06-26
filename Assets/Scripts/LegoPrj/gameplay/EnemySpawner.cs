@@ -97,7 +97,7 @@ public class EnemySpawner : MonoBehaviour
         }
         if (newEnemy.GetComponent<FlyLego>() != null)
         {
-            newEnemy.transform.position = new Vector3(newEnemy.transform.position.x, 8, newEnemy.transform.position.z);
+            newEnemy.transform.position = new Vector3(newEnemy.transform.position.x, 10, newEnemy.transform.position.z);
         }
         int ran = Random.Range(0, 5);
         int colorRan = values[ran];

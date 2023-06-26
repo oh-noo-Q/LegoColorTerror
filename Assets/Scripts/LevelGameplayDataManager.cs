@@ -6,4 +6,9 @@ using UnityEngine;
 public class LevelGameplayDataManager : ScriptableObject
 {
     public LevelGameplay[] levelGameplayData;
+
+    public void Init(LevelGameplay[] data)
+    {
+        levelGameplayData = data;
+    }
 }

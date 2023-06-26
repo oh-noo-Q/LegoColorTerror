@@ -35,11 +35,12 @@ MonoBehaviour:
       elementIcon: {fileID: 0}
     reqReferences: {fileID: 0}
     isExpanded: 1
-    _keyValues: 0100000000000000
-    _keys: 0100000000000000
+    _keyValues: 010000000000000002000000
+    _keys: 010000000000000002000000
     _values:
     - Ballon Explosion
     - Background Music
+    - Click
   defaultSound:
     reorderableList:
       canAdd: 1
@@ -63,8 +64,9 @@ MonoBehaviour:
       elementIcon: {fileID: 0}
     reqReferences: {fileID: 0}
     isExpanded: 1
-    _keyValues: 0100000000000000
-    _keys: 0100000000000000
+    _keyValues: 010000000000000002000000
+    _keys: 010000000000000002000000
     _values:
     - {fileID: 8300000, guid: 26cf5687e8882f0428e71850f8d217f7, type: 3}
-    - {fileID: 8300000, guid: 6168854a977965e409410b9d2c531b4c, type: 3}
+    - {fileID: 8300000, guid: c72a567767880a3438e9d9f2fa213470, type: 3}
+    - {fileID: 8300000, guid: e7f0ec8ccf298994a9c36b1cb0fa952d, type: 3}

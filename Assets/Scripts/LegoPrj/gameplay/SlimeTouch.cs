@@ -22,6 +22,7 @@ public class SlimeTouch : MonoBehaviour
         {
             onTouch = true;
             anim.SetTrigger("Attack");
+            SoundManager.instance.PlaySingle(SoundType.Click);
             EventDispatcher.Instance.PostEvent(EventID.TabAttackLego, this);
 
             if (delayTimeTouch != null) StopCoroutine(delayTimeTouch);

@@ -8,6 +8,7 @@ TagManager:
   - Bullet
   - Slime
   - DieWall
+  - Map
   layers:
   - Default
   - TransparentFX

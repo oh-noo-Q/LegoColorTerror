@@ -5,9 +5,14 @@ using UnityEngine;
 public class LegoLevelGameplay : MonoBehaviour
 {
     public int level;
+    public float speedMapMoving;
     public float timeSpawn;
     public float speedNormal;
     public float flyBuffSpeed;
-    public List<DetailEnemyLevel> detailNormalEnemy;
-    public List<DetailEnemyLevel> detailFlyEnemy;
+    public DetailEnemyLevel[] detailNormalEnemy;
+    public DetailEnemyLevel[] detailFlyEnemy;
+
+
+    [Space(30)]
+    public LegoLevelSpecs levelSpecs;
 }

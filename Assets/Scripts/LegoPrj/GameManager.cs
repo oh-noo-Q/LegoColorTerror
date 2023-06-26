@@ -7,6 +7,7 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance;
 
+    public MapSpawner mapSpawner;
     public LevelGameplayDataManager levelData;
     public PlayerManager playerManager;
     public EnemySpawner enemySpawner;
@@ -17,12 +18,20 @@ public class GameManager : MonoBehaviour
     public bool startEndLessMode;
     int roundEndLess;
 
+    //Tool
+    [Space(20)]
+    [Header("Tool")]
+    public bool isTool;
+    public LegoLevelGameplay toolLevel;
+
+
     private void Awake()
     {
         if(Instance == null)
         {
             Instance = this;
         }
+        SoundManager.instance.PlayMusic(SoundType.backgroundMusic);
     }
 
     public void StartEndless()
@@ -66,6 +75,15 @@ public class GameManager : MonoBehaviour
 
     public void LoadGameEndless(int round)
     {
+        if(isTool)
+        {
+            enemySpawner.LoadLevel(toolLevel.detailNormalEnemy, toolLevel.detailFlyEnemy,
+                toolLevel.speedNormal, toolLevel.speedNormal * toolLevel.flyBuffSpeed, toolLevel.timeSpawn);
+            mapSpawner.speed = toolLevel.speedMapMoving;
+            EventDispatcher.Instance.PostEvent(EventID.UpdateRoundEndLess, toolLevel.level);
+            UILegoManager.Instance.inGameUI.SetBlockText(0);
+            return;
+        }
         LevelGameplay newRound = levelData.levelGameplayData[round];
         EventDispatcher.Instance.PostEvent(EventID.UpdateRoundEndLess, roundEndLess + 1);
         UILegoManager.Instance.inGameUI.SetBlockText(0);
@@ -76,6 +94,11 @@ public class GameManager : MonoBehaviour
 
     public void NextRound()
     {
+        if(isTool)
+        {
+            FinishGameEndless();
+            return;
+        }
         roundEndLess++;
         if(roundEndLess > levelData.levelGameplayData.Length - 1)
         {

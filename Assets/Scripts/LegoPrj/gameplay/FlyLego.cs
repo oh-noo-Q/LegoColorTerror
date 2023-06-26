@@ -6,18 +6,20 @@ using DG.Tweening;
 public class FlyLego : LegoEnemy
 {
     public Transform modelTrans;
-    public Rigidbody rigid;
+    [SerializeField] Collider legoCollider;
+    [SerializeField] Rigidbody rigid;
     [HideInInspector]
     public bool isFlying;
 
-    float fallingForce = 10000f;
+    float fallingForce = 2500000f;
 
     private void Awake()
     {
         isFlying = true;
         rigid = GetComponent<Rigidbody>();
+        legoCollider = GetComponent<Collider>();
         rigid.useGravity = false;
-
+        //legoCollider.isTrigger = true;
     }
     protected override void Update()
     {
@@ -69,6 +71,11 @@ public class FlyLego : LegoEnemy
         //{
         //}
             base.OnTriggerEnter(other);
+        if (other.CompareTag("Map"))
+        {
+            rigid.isKinematic = true;
+            legoCollider.isTrigger = true;
+        }
     }
 
     public override void AttackEnemy(LegoColor attackColor, Bullet bullet)
@@ -86,9 +93,10 @@ public class FlyLego : LegoEnemy
                 else
                 {
                     isFlying = false;
+                    legoCollider.isTrigger = false;
                     rigid.AddForce(Vector3.down * fallingForce, ForceMode.Force);
                     speed = speed / buffSpeed;
-
+                    
                     modelTrans.DORotate(new Vector3(0, 0, 0), 0.3f);
                 }
             }

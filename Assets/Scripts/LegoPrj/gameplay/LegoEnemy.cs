@@ -86,6 +86,7 @@ public class LegoEnemy : MonoBehaviour
             }
             injureHit++;
             pieces[bullet.targetPiece].SetActive(false);
+            SoundManager.instance.PlaySingle(SoundType.balloonExplosion);
             GameManager.Instance.effectController
                     .GenExplosion(pieces[bullet.targetPiece].transform,
                     GameManager.Instance.colorDic[mainColor]);

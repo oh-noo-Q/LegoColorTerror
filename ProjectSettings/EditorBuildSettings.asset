@@ -6,6 +6,6 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scenes/lego.unity
-    guid: a3c8eb072910bbb4dbf30b1d27467fb6
+    path: Assets/Scenes/Lego.unity
+    guid: 70603810cc5898e41b4c554e73839a9a
   m_configObjects: {}
