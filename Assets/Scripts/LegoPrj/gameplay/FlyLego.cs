@@ -5,9 +5,12 @@ using DG.Tweening;
 
 public class FlyLego : LegoEnemy
 {
+    [Space(20)]
+    [Header("Fly Lego")]
     public Transform modelTrans;
     [SerializeField] Collider legoCollider;
     [SerializeField] Rigidbody rigid;
+    [SerializeField] GameObject wingsObj;
     [HideInInspector]
     public bool isFlying;
 
@@ -94,6 +97,7 @@ public class FlyLego : LegoEnemy
                 {
                     isFlying = false;
                     legoCollider.isTrigger = false;
+                    wingsObj.SetActive(false);
                     rigid.AddForce(Vector3.down * fallingForce, ForceMode.Force);
                     speed = speed / buffSpeed;
                     
