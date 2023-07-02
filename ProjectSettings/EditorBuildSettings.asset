@@ -7,5 +7,5 @@ EditorBuildSettings:
   m_Scenes:
   - enabled: 1
     path: Assets/Scenes/Lego.unity
-    guid: 70603810cc5898e41b4c554e73839a9a
+    guid: abdbe1870abd2f74999f464a50eeb412
   m_configObjects: {}

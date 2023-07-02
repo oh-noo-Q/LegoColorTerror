@@ -81,12 +81,10 @@ public class GameManager : MonoBehaviour
                 toolLevel.speedNormal, toolLevel.speedNormal * toolLevel.flyBuffSpeed, toolLevel.timeSpawn);
             mapSpawner.speed = toolLevel.speedMapMoving;
             EventDispatcher.Instance.PostEvent(EventID.UpdateRoundEndLess, toolLevel.level);
-            UILegoManager.Instance.inGameUI.SetBlockText(0);
             return;
         }
         LevelGameplay newRound = levelData.levelGameplayData[round];
         EventDispatcher.Instance.PostEvent(EventID.UpdateRoundEndLess, roundEndLess + 1);
-        UILegoManager.Instance.inGameUI.SetBlockText(0);
 
         enemySpawner.LoadLevel(newRound.detailEnemies, newRound.detailFlyEnemies,
             newRound.speedEnemy, newRound.speedEnemy * (1.5f + newRound.xSpeedFly), newRound.delaySpawn);

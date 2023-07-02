@@ -15,15 +15,24 @@ public enum LegoColor
 public class LegoEnemy : MonoBehaviour
 {
     public List<GameObject> pieces;
+    public List<GameObject> decors;
+    public NumberController numberBlock;
+    [HideInInspector]
     public LegoColor mainColor;
     public Transform targetIconPosition;
 
+    [HideInInspector]
     public Vector3 moveDirection;
+    [HideInInspector]
     public float speed;
+    [HideInInspector]
     public float buffSpeed = 1.0f;
+    [HideInInspector]
     public Transform distanceDie;
 
+    [HideInInspector]
     public int blockDamage;
+    [HideInInspector]
     public int injureHit = 0;
 
     virtual protected void Update()
@@ -81,7 +90,7 @@ public class LegoEnemy : MonoBehaviour
             if (blockDamage > 0)
             {
                 blockDamage--;
-                UILegoManager.Instance.inGameUI.SetBlockText(blockDamage);
+                numberBlock.ActiveNumber(blockDamage, mainColor);
                 return;
             }
             injureHit++;
@@ -96,7 +105,7 @@ public class LegoEnemy : MonoBehaviour
         else
         {
             blockDamage++;
-            UILegoManager.Instance.inGameUI.SetBlockText(blockDamage);
+            numberBlock.ActiveNumber(blockDamage, mainColor);
         }
     }
 }

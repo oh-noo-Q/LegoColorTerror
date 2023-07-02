@@ -105,6 +105,10 @@ public class EnemySpawner : MonoBehaviour
         {
             newEnemy.pieces[i].GetComponent<Renderer>().material = GameManager.Instance.colorDic[(LegoColor)colorRan];
         }
+        for (int i = 0; i < newEnemy.decors.Count; i++)
+        {
+            newEnemy.decors[i].GetComponent<Renderer>().material = GameManager.Instance.colorDic[(LegoColor)colorRan];
+        }
         newEnemy.mainColor = (LegoColor)colorRan;
         newEnemy.moveDirection = -mapSpawner.moveDirection;
         newEnemy.distanceDie = distanceDie;

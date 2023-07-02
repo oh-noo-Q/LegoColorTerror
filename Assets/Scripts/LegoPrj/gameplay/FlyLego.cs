@@ -15,10 +15,13 @@ public class FlyLego : LegoEnemy
     public bool isFlying;
 
     float fallingForce = 2500000f;
+    private Animator anim;
 
     private void Awake()
     {
         isFlying = true;
+        anim = GetComponentInChildren<Animator>();
+        anim.SetBool("Fly", true);
         rigid = GetComponent<Rigidbody>();
         legoCollider = GetComponent<Collider>();
         rigid.useGravity = false;
@@ -90,12 +93,13 @@ public class FlyLego : LegoEnemy
                 if (blockDamage > 0)
                 {
                     blockDamage--;
-                    UILegoManager.Instance.inGameUI.SetBlockText(blockDamage);
+                    numberBlock.ActiveNumber(blockDamage, mainColor);
                     return;
                 }
                 else
                 {
                     isFlying = false;
+                    anim.SetBool("Fly", false);
                     legoCollider.isTrigger = false;
                     wingsObj.SetActive(false);
                     rigid.AddForce(Vector3.down * fallingForce, ForceMode.Force);
@@ -107,7 +111,7 @@ public class FlyLego : LegoEnemy
             else
             {
                 blockDamage++;
-                UILegoManager.Instance.inGameUI.SetBlockText(blockDamage);
+                numberBlock.ActiveNumber(blockDamage, mainColor);
             }
         }
         else 
