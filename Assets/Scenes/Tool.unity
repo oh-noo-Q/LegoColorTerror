@@ -2229,7 +2229,9 @@ MonoBehaviour:
   detailNormalEnemy:
   - id: 4
     quantity: 15
-  detailFlyEnemy: []
+  detailFlyEnemy:
+  - id: 1
+    quantity: 10
   levelSpecs: {fileID: 0}
 --- !u!4 &1389255935
 Transform:
