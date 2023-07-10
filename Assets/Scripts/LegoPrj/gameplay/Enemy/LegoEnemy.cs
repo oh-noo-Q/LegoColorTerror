@@ -12,7 +12,7 @@ public enum LegoColor
     PURPLE
 }
 
-public class LegoEnemy : MonoBehaviour
+public class LegoEnemy : Movement
 {
     public List<GameObject> pieces;
     public List<GameObject> decors;
@@ -21,10 +21,6 @@ public class LegoEnemy : MonoBehaviour
     public LegoColor mainColor;
     public Transform targetIconPosition;
 
-    [HideInInspector]
-    public Vector3 moveDirection;
-    [HideInInspector]
-    public float speed;
     [HideInInspector]
     public float buffSpeed = 1.0f;
     [HideInInspector]
@@ -35,9 +31,9 @@ public class LegoEnemy : MonoBehaviour
     [HideInInspector]
     public int injureHit = 0;
 
-    virtual protected void Update()
+    protected override void Update()
     {
-        transform.Translate(moveDirection * speed * Time.deltaTime);
+        base.Update();
         if(Mathf.Abs(transform.position.z - distanceDie.position.z) < 0.5f)
         {
             GameManager.Instance.enemyManager.KillEnemy(this);

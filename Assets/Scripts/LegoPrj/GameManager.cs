@@ -15,7 +15,7 @@ public class GameManager : MonoBehaviour
     public EffectController effectController;
     public ColorMatDictionary colorDic;
 
-    public bool startEndLessMode;
+    public bool waitTimeGame;
     int roundEndLess;
 
     //Tool
@@ -40,7 +40,7 @@ public class GameManager : MonoBehaviour
         ResumeGame();
         RestartEndless();
         LoadGameEndless(roundEndLess);
-        startEndLessMode = true;
+        waitTimeGame = true;
         
     }
 
@@ -114,7 +114,7 @@ public class GameManager : MonoBehaviour
     IEnumerator WaitTimeNextRound()
     {
         yield return new WaitForSeconds(1.0f);
-        startEndLessMode = true;
+        waitTimeGame = true;
     }
 
     IEnumerator WaitTimeBeginRevive()

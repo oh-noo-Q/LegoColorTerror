@@ -57,7 +57,7 @@ public class EnemySpawner : MonoBehaviour
 
     private void Update()
     {
-        if (!GameManager.Instance.startEndLessMode) return;
+        if (!GameManager.Instance.waitTimeGame) return;
         deltaTime += Time.deltaTime;
         
         if(deltaTime >= delaySpawn)
@@ -72,7 +72,7 @@ public class EnemySpawner : MonoBehaviour
             {
                 if(CheckEndLevel())
                 {
-                    GameManager.Instance.startEndLessMode = false;
+                    GameManager.Instance.waitTimeGame = false;
                 }
                 else
                 {

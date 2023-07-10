@@ -98,6 +98,10 @@ public class LegoEnemyManager : MonoBehaviour
             currentTargetObject.transform.DOLocalMoveY(-2, 0.5f).SetLoops(-1, LoopType.Yoyo);
         }
     }
+    public void SetTargetSlime(SlimeMove slime)
+    {
+
+    }
 
     public void ResetLevel() 
     {
