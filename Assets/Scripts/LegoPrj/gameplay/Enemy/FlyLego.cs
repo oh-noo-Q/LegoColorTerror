@@ -29,14 +29,7 @@ public class FlyLego : LegoEnemy
     }
     protected override void Update()
     {
-        if (GameManager.Instance.enemyManager.currentTargetEnemy == null) return;
-        if(Vector3.Distance(transform.position, distanceDie.position) < 
-            Vector3.Distance(GameManager.Instance.enemyManager.currentTargetEnemy.transform.position, distanceDie.position))
-        {
-            GameManager.Instance.enemyManager.SetTargetEnemy(this);
-        }
         base.Update();
-
     }
 
     protected override void OnTriggerEnter(Collider other)

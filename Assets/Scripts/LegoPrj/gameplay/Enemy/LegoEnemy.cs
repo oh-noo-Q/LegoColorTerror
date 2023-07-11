@@ -34,10 +34,16 @@ public class LegoEnemy : Movement
     protected override void Update()
     {
         base.Update();
-        if(Mathf.Abs(transform.position.z - distanceDie.position.z) < 0.5f)
+        if (Mathf.Abs(transform.position.z - distanceDie.position.z) < 0.5f)
         {
             GameManager.Instance.enemyManager.KillEnemy(this);
             EventDispatcher.Instance.PostEvent(EventID.OnChangeValueHealth, -1);
+        }
+        if (GameManager.Instance.enemyManager.currentTargetEnemy == null) return;
+        if (Vector3.Distance(transform.position, distanceDie.position) <
+            Vector3.Distance(GameManager.Instance.enemyManager.currentTargetEnemy.transform.position, distanceDie.position))
+        {
+            GameManager.Instance.enemyManager.SetTargetEnemy(this);
         }
     }
 

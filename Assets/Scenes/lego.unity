@@ -1501,9 +1501,10 @@ GameObject:
   m_Component:
   - component: {fileID: 804578063}
   - component: {fileID: 804578064}
+  - component: {fileID: 804578066}
   - component: {fileID: 804578065}
   m_Layer: 0
-  m_Name: EnemySpawner
+  m_Name: Spawner
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1553,7 +1554,7 @@ MonoBehaviour:
   spaceSize: 20
   leftLimit: {fileID: 1656512236}
   rightLimit: {fileID: 409356825}
-  distanceDie: {fileID: 2083136103}
+  destination: {fileID: 2083136103}
   enemyCrtLevel: []
   amountEnemy: 
 --- !u!114 &804578065
@@ -1573,6 +1574,23 @@ MonoBehaviour:
   bulletPrf: {fileID: 8524931970263770432}
   effectKill: {fileID: 191186, guid: 079954accd64b32419ec069129c81273, type: 3}
   targetPrf: {fileID: 913218023695513314, guid: 69b557fef98cc884abdbf34a17ea1163, type: 3}
+--- !u!114 &804578066
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 804578062}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4a86f28a7f962db418d1a65c071b8bc7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  slimePrf: {fileID: 2180130338315665703}
+  spaceSize: 20
+  leftLimit: {fileID: 1656512236}
+  rightLimit: {fileID: 409356825}
+  destination: {fileID: 2083136103}
 --- !u!1 &830662189
 GameObject:
   m_ObjectHideFlags: 0
@@ -18364,7 +18382,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &919132147673288072
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -18613,7 +18631,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!23 &1558643248064609275
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -18845,6 +18863,7 @@ MonoBehaviour:
   moveDirection: {x: 0, y: 0, z: 0}
   speed: 0
   destination: {fileID: 0}
+  anim: {fileID: 2180130338315665704}
 --- !u!95 &2180130338315665704
 Animator:
   serializedVersion: 4

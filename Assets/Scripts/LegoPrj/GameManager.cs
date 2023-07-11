@@ -12,10 +12,13 @@ public class GameManager : MonoBehaviour
     public PlayerManager playerManager;
     public EnemySpawner enemySpawner;
     public LegoEnemyManager enemyManager;
+    public SlimeSpawner slimeSpawner;
     public EffectController effectController;
+
     public ColorMatDictionary colorDic;
 
     public bool waitTimeGame;
+    public bool startGame;
     int roundEndLess;
 
     //Tool
@@ -32,6 +35,7 @@ public class GameManager : MonoBehaviour
             Instance = this;
         }
         SoundManager.instance.PlayMusic(SoundType.backgroundMusic);
+        startGame = false;
     }
 
     public void StartEndless()
@@ -41,7 +45,7 @@ public class GameManager : MonoBehaviour
         RestartEndless();
         LoadGameEndless(roundEndLess);
         waitTimeGame = true;
-        
+        startGame = true;
     }
 
     public void RestartEndless()
@@ -80,14 +84,18 @@ public class GameManager : MonoBehaviour
             enemySpawner.LoadLevel(toolLevel.detailNormalEnemy, toolLevel.detailFlyEnemy,
                 toolLevel.speedNormal, toolLevel.speedNormal * toolLevel.flyBuffSpeed, toolLevel.timeSpawn);
             mapSpawner.speed = toolLevel.speedMapMoving;
+            slimeSpawner.LoadLevel(toolLevel.speedNormal * 1.5f);
             EventDispatcher.Instance.PostEvent(EventID.UpdateRoundEndLess, toolLevel.level);
             return;
         }
+
+        //Normal game
         LevelGameplay newRound = levelData.levelGameplayData[round];
         EventDispatcher.Instance.PostEvent(EventID.UpdateRoundEndLess, roundEndLess + 1);
 
         enemySpawner.LoadLevel(newRound.detailEnemies, newRound.detailFlyEnemies,
             newRound.speedEnemy, newRound.speedEnemy * (1.5f + newRound.xSpeedFly), newRound.delaySpawn);
+        slimeSpawner.LoadLevel(newRound.speedEnemy * 1.5f);
     }
 
     public void NextRound()
@@ -103,7 +111,7 @@ public class GameManager : MonoBehaviour
             roundEndLess = levelData.levelGameplayData.Length - 1;
         }
         LoadGameEndless(roundEndLess);
-        StartCoroutine(WaitTimeNextRound());
+        StartCoroutine(WaitTimeNextRound(1.0f));
     }
 
     public void ReloadScene()
@@ -111,9 +119,10 @@ public class GameManager : MonoBehaviour
         SceneManager.LoadScene(0);
     }
 
-    IEnumerator WaitTimeNextRound()
+    IEnumerator WaitTimeNextRound(float waitTime)
     {
-        yield return new WaitForSeconds(1.0f);
+        waitTimeGame = false;
+        yield return new WaitForSeconds(waitTime);
         waitTimeGame = true;
     }
 

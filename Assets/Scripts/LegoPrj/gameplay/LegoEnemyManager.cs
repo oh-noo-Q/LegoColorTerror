@@ -100,7 +100,8 @@ public class LegoEnemyManager : MonoBehaviour
     }
     public void SetTargetSlime(SlimeMove slime)
     {
-
+        if (currentTargetObject != null)
+            currentTargetObject.SetActive(false);
     }
 
     public void ResetLevel() 

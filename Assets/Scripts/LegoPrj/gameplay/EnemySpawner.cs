@@ -18,19 +18,18 @@ public class EnemySpawner : MonoBehaviour
     [Space(10)]
     public int spaceSize;
     public Transform leftLimit, rightLimit;
-    public Transform distanceDie;
+    public Transform destination;
 
     [Space(10)]
     [Header("Level")]
     [SerializeField] private List<LegoEnemy> enemyCrtLevel;
     [SerializeField] private List<int> amountEnemy;
-    private float speed;
     private float delaySpawn = 0.6f;
+    private float speed;
 
     float deltaTime = 0;
     float xLeftLimit, xRightLimit;
     private int[] values = { 0, 1, 2, 3, 4 };
-    private float waitTimeBeginRound = 1f;
 
     private void Awake()
     {
@@ -86,6 +85,7 @@ public class EnemySpawner : MonoBehaviour
         LegoEnemy newEnemy = Instantiate(enemyCrtLevel[index], transform);
         amountEnemy[index]--;
         newEnemy.gameObject.SetActive(true);
+        newEnemy.speed = Random.Range(newEnemy.speed - 1f, newEnemy.speed + 1f);
         switch (mapSpawner.axis)
         {
             case AXIS.Zpositive:
@@ -111,7 +111,7 @@ public class EnemySpawner : MonoBehaviour
         }
         newEnemy.mainColor = (LegoColor)colorRan;
         newEnemy.moveDirection = -mapSpawner.moveDirection;
-        newEnemy.distanceDie = distanceDie;
+        newEnemy.distanceDie = destination;
 
         if (enemyManager.enemies.Count == 0)
         {
@@ -157,7 +157,7 @@ public class EnemySpawner : MonoBehaviour
                 amountEnemy.Add(flyEnemy[i].quantity);
             }
         }
-
+        speed = normalSpeed;
         delaySpawn = _delaySpawn;
     }
 }

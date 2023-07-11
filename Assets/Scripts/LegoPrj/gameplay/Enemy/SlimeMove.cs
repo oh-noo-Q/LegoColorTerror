@@ -5,6 +5,21 @@ using UnityEngine;
 public class SlimeMove : Movement
 {
     public Transform destination;
+    [SerializeField] Animator anim;
+
+    private void Awake()
+    {
+        AnimStart();
+    }
+
+    void AnimStart()
+    {
+        float ran = Random.Range(0.0f, 2.0f);
+        if(ran <= 1)
+        {
+            anim.SetBool("Jump", true);
+        }
+    }
     protected override void Update()
     {
         base.Update();
