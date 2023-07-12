@@ -13,6 +13,10 @@ public class UltimateSkill : MonoBehaviour
         {
             currentStack = 0;
         }
+        else
+        {
+            return;
+        }
     }
 
     protected virtual void UpdateStack(int value)

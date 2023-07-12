@@ -9,7 +9,8 @@ public enum LegoColor
     GREEN,
     RED,
     PINK,
-    PURPLE
+    PURPLE, 
+    White,
 }
 
 public class LegoEnemy : Movement
