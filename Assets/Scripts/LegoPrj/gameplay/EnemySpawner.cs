@@ -8,6 +8,11 @@ public class ColorMatDictionary : SerializableDictionaryBase<LegoColor, Material
 {
 
 }
+[System.Serializable]
+public class InviColorDictionary : SerializableDictionaryBase<LegoColor, Material>
+{
+
+}
 public class EnemySpawner : MonoBehaviour
 {
     public MapSpawner mapSpawner;
@@ -101,15 +106,7 @@ public class EnemySpawner : MonoBehaviour
         }
         int ran = Random.Range(0, 5);
         int colorRan = values[ran];
-        for (int i = 0; i < newEnemy.pieces.Count; i++)
-        {
-            newEnemy.pieces[i].GetComponent<Renderer>().material = GameManager.Instance.colorDic[(LegoColor)colorRan];
-        }
-        for (int i = 0; i < newEnemy.decors.Count; i++)
-        {
-            newEnemy.decors[i].GetComponent<Renderer>().material = GameManager.Instance.colorDic[(LegoColor)colorRan];
-        }
-        newEnemy.mainColor = (LegoColor)colorRan;
+        newEnemy.SetColor((LegoColor)colorRan);
         newEnemy.moveDirection = -mapSpawner.moveDirection;
         newEnemy.distanceDie = destination;
 

@@ -15,7 +15,9 @@ public class GameManager : MonoBehaviour
     public SlimeSpawner slimeSpawner;
     public EffectController effectController;
 
+    //dictionary
     public ColorMatDictionary colorDic;
+    public InviColorDictionary inviColorDic;
 
     public bool waitTimeGame;
     public bool startGame;

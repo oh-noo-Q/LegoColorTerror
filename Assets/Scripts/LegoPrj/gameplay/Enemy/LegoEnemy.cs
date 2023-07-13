@@ -18,7 +18,6 @@ public class LegoEnemy : Movement
     public List<GameObject> pieces;
     public List<GameObject> decors;
     public NumberController numberBlock;
-    [HideInInspector]
     public LegoColor mainColor;
     public Transform targetIconPosition;
 
@@ -110,6 +109,19 @@ public class LegoEnemy : Movement
             blockDamage++;
             numberBlock.ActiveNumber(blockDamage, mainColor);
         }
+    }
+
+    public virtual void SetColor(LegoColor _color)
+    {
+        for (int i = 0; i < pieces.Count; i++)
+        {
+            pieces[i].GetComponent<Renderer>().material = GameManager.Instance.colorDic[_color];
+        }
+        for (int i = 0; i < decors.Count; i++)
+        {
+            decors[i].GetComponent<Renderer>().material = GameManager.Instance.colorDic[_color];
+        }
+        mainColor = _color;
     }
 }
 
