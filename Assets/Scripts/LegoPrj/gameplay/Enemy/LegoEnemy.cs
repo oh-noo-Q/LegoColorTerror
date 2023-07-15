@@ -50,6 +50,7 @@ public class LegoEnemy : Movement
     public void Die()
     {
         Destroy(gameObject);
+        EventDispatcher.Instance.PostEvent(EventID.UpdateMeteorStack, 1);
     }
 
     protected virtual void OnTriggerEnter(Collider other)
@@ -122,6 +123,11 @@ public class LegoEnemy : Movement
             decors[i].GetComponent<Renderer>().material = GameManager.Instance.colorDic[_color];
         }
         mainColor = _color;
+    }
+
+    public override void SetTarget(GameObject targetGO)
+    {
+        base.SetTarget(targetGO);
     }
 }
 

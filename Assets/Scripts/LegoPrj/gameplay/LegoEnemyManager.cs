@@ -7,6 +7,7 @@ public class LegoEnemyManager : MonoBehaviour
 {
     public List<LegoEnemy> enemies;
     public LegoEnemy currentTargetEnemy;
+    public SlimeMove currentTargetSlime;
 
     public Bullet bulletPrf;
     public GameObject effectKill;
@@ -16,16 +17,19 @@ public class LegoEnemyManager : MonoBehaviour
     private void Awake()
     {
         EventDispatcher.Instance.RegisterListener(EventID.TabAttackLego, AttackEnemy);
+        EventDispatcher.Instance.RegisterListener(EventID.TabAttackLego, AttackSlime);
     }
 
     private void OnDestroy()
     {
         EventDispatcher.Instance.RemoveListener(EventID.TabAttackLego, AttackEnemy);
+        EventDispatcher.Instance.RemoveListener(EventID.TabAttackLego, AttackSlime);
     }
 
     void AttackEnemy(object obj)
     {
         if (currentTargetEnemy == null) return;
+        if (currentTargetSlime != null) return;
         SlimeTouch ownerSlime = (SlimeTouch)obj;
 
         int amountPiece = currentTargetEnemy.pieces.Count;
@@ -60,6 +64,12 @@ public class LegoEnemyManager : MonoBehaviour
         }
     }
 
+    void AttackSlime(object obj)
+    {
+        if (currentTargetSlime == null) return;
+        currentTargetSlime.GetAttack();
+    }
+
     public void EffectLegoExplosion()
     {
         GameManager.Instance.effectController
@@ -81,6 +91,7 @@ public class LegoEnemyManager : MonoBehaviour
 
     public void SetTargetEnemy(LegoEnemy enemy)
     {
+        currentTargetSlime = null;
         currentTargetEnemy = enemy;
         if (currentTargetObject == null)
         {
@@ -102,6 +113,7 @@ public class LegoEnemyManager : MonoBehaviour
     {
         if (currentTargetObject != null)
             currentTargetObject.SetActive(false);
+        currentTargetSlime = slime;
     }
 
     public void ResetLevel() 
@@ -109,6 +121,23 @@ public class LegoEnemyManager : MonoBehaviour
         enemies.Clear();
         gameObject.DestroyAllChildren();
         currentTargetEnemy = null;
+    }
+
+    public void KillAllEnemy()
+    {
+        GameManager.Instance.StartWaitTime(1.5f);
+        foreach(LegoEnemy enemy in enemies)
+        {
+            enemy.Die();
+            GameManager.Instance.effectController
+                    .GenExplosion(enemy.transform,
+                    GameManager.Instance.colorDic[enemy.mainColor]);
+        }
+        if(GameManager.Instance.enemySpawner.CheckEndLevel())
+        {
+            GameManager.Instance.NextRound();
+            return;
+        }
     }
     
 }

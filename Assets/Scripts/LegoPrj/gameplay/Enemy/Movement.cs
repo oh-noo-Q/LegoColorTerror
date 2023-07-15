@@ -12,4 +12,8 @@ public class Movement : MonoBehaviour
         transform.Translate(moveDirection * speed * Time.deltaTime);
     }
 
+    public virtual void SetTarget(GameObject targetGO)
+    {
+
+    }
 }

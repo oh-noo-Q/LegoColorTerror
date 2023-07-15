@@ -17,6 +17,11 @@ public class UILegoManager : MonoBehaviour
             Instance = this;
         }
     }
+
+    public void ShowInGameUI()
+    {
+        inGameUI.Show();
+    }
     public void ShowMainMenu()
     {
         mainMenu.gameObject.SetActive(true);

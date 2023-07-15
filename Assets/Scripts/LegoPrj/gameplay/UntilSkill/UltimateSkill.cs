@@ -4,12 +4,12 @@ using UnityEngine;
 
 public class UltimateSkill : MonoBehaviour
 {
-    [SerializeField] int maxStack;
-    [SerializeField] int currentStack;
+    [SerializeField] protected int maxStack;
+    [SerializeField] protected int currentStack;
 
-    protected virtual void Activate()
+    protected virtual void Activate(object obj)
     {
-        if(currentStack == maxStack)
+        if(currentStack >= maxStack)
         {
             currentStack = 0;
         }
@@ -19,9 +19,9 @@ public class UltimateSkill : MonoBehaviour
         }
     }
 
-    protected virtual void UpdateStack(int value)
+    protected virtual void UpdateStack(object value)
     {
-        currentStack += value;
+        currentStack += (int)value;
         currentStack = Mathf.Clamp(currentStack, 0, maxStack);
     }
 

@@ -23,6 +23,15 @@ public class SlimeMove : Movement
     protected override void Update()
     {
         base.Update();
+        if(GameManager.Instance.enemyManager.currentTargetEnemy == null)
+        {
+            return;
+        }
+        else
+        {
+            GameManager.Instance.enemyManager.SetTargetSlime(this);
+        }
+
         if (Vector3.Distance(transform.position, destination.position) <
             Vector3.Distance(GameManager.Instance.enemyManager.currentTargetEnemy.transform.position, destination.position))
         {
@@ -34,8 +43,21 @@ public class SlimeMove : Movement
         }
     }
 
+    public void GetAttack()
+    {
+        GameManager.Instance.effectController
+                    .GenExplosion(transform,
+                    GameManager.Instance.colorDic[LegoColor.White]);
+        Die();
+    }
+
     void Die()
     {
         Destroy(gameObject);
+    }
+
+    public override void SetTarget(GameObject targetGO)
+    {
+        base.SetTarget(targetGO);
     }
 }

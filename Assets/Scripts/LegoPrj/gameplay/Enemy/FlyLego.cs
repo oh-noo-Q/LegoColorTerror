@@ -110,4 +110,9 @@ public class FlyLego : LegoEnemy
         else 
             base.AttackEnemy(attackColor, bullet);
     }
+
+    public override void SetTarget(GameObject targetGO)
+    {
+        base.SetTarget(targetGO);
+    }
 }

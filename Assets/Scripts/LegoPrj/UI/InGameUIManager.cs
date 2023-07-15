@@ -8,11 +8,26 @@ public class InGameUIManager : MonoBehaviour
     public Text health;
     public Text roundTxt;
     public Text blockTxt;
+    public Image processMeteorImg;
+    public Button meteorActive;
 
     private void Awake()
     {
         EventDispatcher.Instance.RegisterListener(EventID.OnUpdateHealth, UpdateHealthTxt);
         EventDispatcher.Instance.RegisterListener(EventID.UpdateRoundEndLess, UpdateRound);
+        EventDispatcher.Instance.RegisterListener(EventID.UpdateMeteorProcess, UpdateProcessMeteor);
+        meteorActive.onClick.AddListener(ActiveMeteorOnclick);
+    }
+
+    public void Show()
+    {
+        gameObject.SetActive(true);
+        processMeteorImg.fillAmount = 0;
+    }
+
+    public void Hide()
+    {
+        gameObject.SetActive(false);
     }
 
     void UpdateHealthTxt(object obj)
@@ -28,5 +43,15 @@ public class InGameUIManager : MonoBehaviour
     public void SetBlockText(int amount)
     {
         blockTxt.text = $"Block: {amount}";
+    }
+
+    private void UpdateProcessMeteor(object obj)
+    {
+        processMeteorImg.fillAmount = (float)obj;
+    }
+
+    private void ActiveMeteorOnclick()
+    {
+        EventDispatcher.Instance.PostEvent(EventID.ActiveMeteor);
     }
 }

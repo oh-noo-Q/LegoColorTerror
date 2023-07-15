@@ -30,6 +30,12 @@ public class LevelGameplay
 }
 
 [System.Serializable]
+public class TypesEnemy
+{
+    public DetailEnemyLevel[] detailEnemies;
+}
+
+[System.Serializable]
 public class DetailEnemyLevel
 {
     public int id;

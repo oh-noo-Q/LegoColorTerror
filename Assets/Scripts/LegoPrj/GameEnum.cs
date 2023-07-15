@@ -6,3 +6,11 @@ public class GameEnum
 {
     
 }
+
+public enum TypeEnemy
+{
+    Default,
+    Fly,
+    Invi,
+    MixColor,
+}

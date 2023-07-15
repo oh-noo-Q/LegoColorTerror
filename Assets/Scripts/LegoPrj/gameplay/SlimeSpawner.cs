@@ -11,7 +11,6 @@ public class SlimeSpawner : MonoBehaviour
 
     float xLeftLimit, xRightLimit;
 
-
     private float speedSlime = 10.0f;
     private float delaySpawn = 10.0f;
     private float deltaTime = 0;
@@ -54,4 +53,5 @@ public class SlimeSpawner : MonoBehaviour
     {
         speedSlime = _speed;
     }
+
 }

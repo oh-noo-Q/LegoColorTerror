@@ -12,6 +12,7 @@ public class GameManager : MonoBehaviour
     public PlayerManager playerManager;
     public EnemySpawner enemySpawner;
     public LegoEnemyManager enemyManager;
+    public TargetObjectManager targetManager;
     public SlimeSpawner slimeSpawner;
     public EffectController effectController;
 
@@ -29,6 +30,7 @@ public class GameManager : MonoBehaviour
     public bool isTool;
     public LegoLevelGameplay toolLevel;
 
+    private Coroutine waitTimeCor;
 
     private void Awake()
     {
@@ -46,6 +48,7 @@ public class GameManager : MonoBehaviour
         ResumeGame();
         RestartEndless();
         LoadGameEndless(roundEndLess);
+        UILegoManager.Instance.inGameUI.Show();
         waitTimeGame = true;
         startGame = true;
     }
@@ -113,7 +116,7 @@ public class GameManager : MonoBehaviour
             roundEndLess = levelData.levelGameplayData.Length - 1;
         }
         LoadGameEndless(roundEndLess);
-        StartCoroutine(WaitTimeNextRound(1.0f));
+        StartWaitTime(1.0f);
     }
 
     public void ReloadScene()
@@ -121,7 +124,12 @@ public class GameManager : MonoBehaviour
         SceneManager.LoadScene(0);
     }
 
-    IEnumerator WaitTimeNextRound(float waitTime)
+    public void StartWaitTime(float time)
+    {
+        if (waitTimeCor != null) StopCoroutine(waitTimeCor);
+        waitTimeCor = StartCoroutine(WaitTimeCoroutine(time));
+    }
+    IEnumerator WaitTimeCoroutine(float waitTime)
     {
         waitTimeGame = false;
         yield return new WaitForSeconds(waitTime);

@@ -15,5 +15,8 @@ public enum EventID
 
     TabAttackLego,
     UpdateRoundEndLess,
-    ShakingCamera
+    ShakingCamera,
+    UpdateMeteorProcess,
+    UpdateMeteorStack,
+    ActiveMeteor,
 }
