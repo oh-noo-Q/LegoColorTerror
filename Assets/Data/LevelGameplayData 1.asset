@@ -24,6 +24,7 @@ MonoBehaviour:
     - id: 1
       quantity: 7
     detailFlyEnemies: []
+    detailInviEnemies: []
     endLevelAmountEnemy: 0
     typeEnemy: 
     changeEnemy: 0
@@ -42,6 +43,9 @@ MonoBehaviour:
     - id: 2
       quantity: 10
     detailFlyEnemies: []
+    detailInviEnemies:
+    - id: 1
+      quantity: 5
     endLevelAmountEnemy: 0
     typeEnemy: 
     changeEnemy: 0
@@ -62,6 +66,9 @@ MonoBehaviour:
     - id: 3
       quantity: 10
     detailFlyEnemies: []
+    detailInviEnemies:
+    - id: 1
+      quantity: 10
     endLevelAmountEnemy: 0
     typeEnemy: 
     changeEnemy: 0
@@ -84,6 +91,9 @@ MonoBehaviour:
     - id: 4
       quantity: 7
     detailFlyEnemies: []
+    detailInviEnemies:
+    - id: 2
+      quantity: 5
     endLevelAmountEnemy: 0
     typeEnemy: 
     changeEnemy: 0
@@ -108,6 +118,9 @@ MonoBehaviour:
     detailFlyEnemies:
     - id: 1
       quantity: 5
+    detailInviEnemies:
+    - id: 2
+      quantity: 10
     endLevelAmountEnemy: 0
     typeEnemy: 
     changeEnemy: 0
@@ -132,6 +145,7 @@ MonoBehaviour:
     detailFlyEnemies:
     - id: 2
       quantity: 8
+    detailInviEnemies: []
     endLevelAmountEnemy: 0
     typeEnemy: 
     changeEnemy: 0
@@ -152,6 +166,7 @@ MonoBehaviour:
       quantity: 14
     - id: 2
       quantity: 8
+    detailInviEnemies: []
     endLevelAmountEnemy: 0
     typeEnemy: 
     changeEnemy: 0
@@ -172,6 +187,7 @@ MonoBehaviour:
     - id: 4
       quantity: 10
     detailFlyEnemies: []
+    detailInviEnemies: []
     endLevelAmountEnemy: 0
     typeEnemy: 
     changeEnemy: 0
@@ -196,6 +212,7 @@ MonoBehaviour:
       quantity: 10
     - id: 2
       quantity: 5
+    detailInviEnemies: []
     endLevelAmountEnemy: 0
     typeEnemy: 
     changeEnemy: 0
@@ -220,6 +237,7 @@ MonoBehaviour:
       quantity: 10
     - id: 2
       quantity: 5
+    detailInviEnemies: []
     endLevelAmountEnemy: 0
     typeEnemy: 
     changeEnemy: 0
@@ -242,6 +260,7 @@ MonoBehaviour:
     - id: 5
       quantity: 10
     detailFlyEnemies: []
+    detailInviEnemies: []
     endLevelAmountEnemy: 0
     typeEnemy: 
     changeEnemy: 0
@@ -266,6 +285,7 @@ MonoBehaviour:
     - id: 1
       quantity: 10
     detailFlyEnemies: []
+    detailInviEnemies: []
     endLevelAmountEnemy: 0
     typeEnemy: 
     changeEnemy: 0
@@ -286,6 +306,7 @@ MonoBehaviour:
       quantity: 10
     - id: 4
       quantity: 10
+    detailInviEnemies: []
     endLevelAmountEnemy: 0
     typeEnemy: 
     changeEnemy: 0
@@ -312,6 +333,7 @@ MonoBehaviour:
       quantity: 5
     - id: 3
       quantity: 5
+    detailInviEnemies: []
     endLevelAmountEnemy: 0
     typeEnemy: 
     changeEnemy: 0
@@ -336,6 +358,7 @@ MonoBehaviour:
       quantity: 5
     - id: 5
       quantity: 5
+    detailInviEnemies: []
     endLevelAmountEnemy: 0
     typeEnemy: 
     changeEnemy: 0
@@ -362,6 +385,7 @@ MonoBehaviour:
       quantity: 5
     - id: 5
       quantity: 5
+    detailInviEnemies: []
     endLevelAmountEnemy: 0
     typeEnemy: 
     changeEnemy: 0
@@ -386,6 +410,7 @@ MonoBehaviour:
       quantity: 5
     - id: 5
       quantity: 5
+    detailInviEnemies: []
     endLevelAmountEnemy: 0
     typeEnemy: 
     changeEnemy: 0
@@ -404,6 +429,7 @@ MonoBehaviour:
     - id: 4
       quantity: 10
     detailFlyEnemies: []
+    detailInviEnemies: []
     endLevelAmountEnemy: 0
     typeEnemy: 
     changeEnemy: 0
@@ -432,6 +458,7 @@ MonoBehaviour:
       quantity: 10
     - id: 2
       quantity: 1
+    detailInviEnemies: []
     endLevelAmountEnemy: 0
     typeEnemy: 
     changeEnemy: 0

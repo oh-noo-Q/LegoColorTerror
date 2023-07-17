@@ -14,7 +14,10 @@ public class LevelGameplay
     public float xSpeedFly = 1;
     public float delaySpawn;
     public DetailEnemyLevel[] detailEnemies;
+    [Space(20)]
     public DetailEnemyLevel[] detailFlyEnemies;
+    [Space(20)]
+    public DetailEnemyLevel[] detailInviEnemies;
 
     [Space(20)]
     [HideInInspector] 

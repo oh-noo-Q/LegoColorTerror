@@ -89,6 +89,33 @@ public class LegoEnemyManager : MonoBehaviour
         }
     }
 
+    public void SetNewTargetEnemy()
+    {
+        float distanceMin = 0;
+        LegoEnemy newTargetLego = null;
+        foreach(LegoEnemy enemy in enemies)
+        {
+            if (enemy.gameObject.GetComponent<InviLego>() != null)
+            {
+
+            }
+            else 
+            {
+                float distanceCheck = Vector3.Distance(enemy.transform.position, enemy.distanceDie.position);
+                if (distanceMin == 0 || distanceMin > distanceCheck)
+                {
+                    distanceMin = distanceCheck;
+                    newTargetLego = enemy;
+                }
+            }
+        }
+        if (newTargetLego != null)
+        {
+            currentTargetEnemy = newTargetLego;
+            SetTargetEnemy(currentTargetEnemy);
+        }    
+    }
+
     public void SetTargetEnemy(LegoEnemy enemy)
     {
         currentTargetSlime = null;
@@ -96,18 +123,23 @@ public class LegoEnemyManager : MonoBehaviour
         if (currentTargetObject == null)
         {
             currentTargetObject = Instantiate(targetPrf, enemy.targetIconPosition);
-            currentTargetObject.GetComponent<Renderer>().material = GameManager.Instance.colorDic[enemy.mainColor];
-            currentTargetObject.transform.DOLocalMoveY(-2, 0.5f).SetLoops(-1, LoopType.Yoyo);
+            
         }
         else
         {
+            currentTargetObject.SetActive(true);
             currentTargetObject.transform.SetParent(enemy.targetIconPosition);
             currentTargetObject.transform.DOKill();
-            currentTargetObject.GetComponent<Renderer>().material = GameManager.Instance.colorDic[enemy.mainColor];
             currentTargetObject.transform.localPosition = Vector3.zero;
             currentTargetObject.transform.eulerAngles = new Vector3(0, 90f, 0);
-            currentTargetObject.transform.DOLocalMoveY(-2, 0.5f).SetLoops(-1, LoopType.Yoyo);
         }
+        if(enemy.GetComponent<InviLego>() != null)
+        {
+            currentTargetObject.GetComponent<Renderer>().material = GameManager.Instance.colorDic[LegoColor.White];
+        }
+        else
+            currentTargetObject.GetComponent<Renderer>().material = GameManager.Instance.colorDic[enemy.mainColor];
+        currentTargetObject.transform.DOLocalMoveY(-2, 0.5f).SetLoops(-1, LoopType.Yoyo);
     }
     public void SetTargetSlime(SlimeMove slime)
     {

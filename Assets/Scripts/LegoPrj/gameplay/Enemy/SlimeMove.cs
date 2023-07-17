@@ -27,10 +27,6 @@ public class SlimeMove : Movement
         {
             return;
         }
-        else
-        {
-            GameManager.Instance.enemyManager.SetTargetSlime(this);
-        }
 
         if (Vector3.Distance(transform.position, destination.position) <
             Vector3.Distance(GameManager.Instance.enemyManager.currentTargetEnemy.transform.position, destination.position))
@@ -54,6 +50,14 @@ public class SlimeMove : Movement
     void Die()
     {
         Destroy(gameObject);
+        if(GameManager.Instance.enemyManager.currentTargetEnemy == null)
+        {
+            GameManager.Instance.enemyManager.SetNewTargetEnemy();
+        }
+        else
+        {
+            GameManager.Instance.enemyManager.SetTargetEnemy(GameManager.Instance.enemyManager.currentTargetEnemy);
+        }
     }
 
     public override void SetTarget(GameObject targetGO)

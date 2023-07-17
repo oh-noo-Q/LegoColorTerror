@@ -22,7 +22,6 @@ public class InGameUIManager : MonoBehaviour
     public void Show()
     {
         gameObject.SetActive(true);
-        processMeteorImg.fillAmount = 0;
     }
 
     public void Hide()

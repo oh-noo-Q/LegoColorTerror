@@ -86,7 +86,7 @@ public class GameManager : MonoBehaviour
     {
         if(isTool)
         {
-            enemySpawner.LoadLevel(toolLevel.detailNormalEnemy, toolLevel.detailFlyEnemy,
+            enemySpawner.LoadLevel(toolLevel.detailNormalEnemy, toolLevel.detailFlyEnemy, toolLevel.detailInviEnemy,
                 toolLevel.speedNormal, toolLevel.speedNormal * toolLevel.flyBuffSpeed, toolLevel.timeSpawn);
             mapSpawner.speed = toolLevel.speedMapMoving;
             slimeSpawner.LoadLevel(toolLevel.speedNormal * 1.5f);
@@ -98,7 +98,7 @@ public class GameManager : MonoBehaviour
         LevelGameplay newRound = levelData.levelGameplayData[round];
         EventDispatcher.Instance.PostEvent(EventID.UpdateRoundEndLess, roundEndLess + 1);
 
-        enemySpawner.LoadLevel(newRound.detailEnemies, newRound.detailFlyEnemies,
+        enemySpawner.LoadLevel(newRound.detailEnemies, newRound.detailFlyEnemies, newRound.detailInviEnemies,
             newRound.speedEnemy, newRound.speedEnemy * (1.5f + newRound.xSpeedFly), newRound.delaySpawn);
         slimeSpawner.LoadLevel(newRound.speedEnemy * 1.5f);
     }

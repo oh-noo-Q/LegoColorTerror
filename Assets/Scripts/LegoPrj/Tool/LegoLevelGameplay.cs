@@ -11,6 +11,7 @@ public class LegoLevelGameplay : MonoBehaviour
     public float flyBuffSpeed;
     public DetailEnemyLevel[] detailNormalEnemy;
     public DetailEnemyLevel[] detailFlyEnemy;
+    public DetailEnemyLevel[] detailInviEnemy;
 
 
     [Space(30)]

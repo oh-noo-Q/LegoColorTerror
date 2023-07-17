@@ -19,6 +19,7 @@ public class EnemySpawner : MonoBehaviour
     public LegoEnemyManager enemyManager;
     public GameObject[] enemyPrf;
     public GameObject[] flyEnemyPrf;
+    public GameObject[] inviEnemyPrf;
 
     [Space(10)]
     public int spaceSize;
@@ -110,7 +111,7 @@ public class EnemySpawner : MonoBehaviour
         newEnemy.moveDirection = -mapSpawner.moveDirection;
         newEnemy.distanceDie = destination;
 
-        if (enemyManager.enemies.Count == 0)
+        if (enemyManager.currentTargetEnemy == null && newEnemy.GetComponent<InviLego>() == null)
         {
             enemyManager.SetTargetEnemy(newEnemy);
         }
@@ -128,7 +129,7 @@ public class EnemySpawner : MonoBehaviour
         else return true;
     }
 
-    public void LoadLevel(DetailEnemyLevel[] normalEnemy, DetailEnemyLevel[] flyEnemy, 
+    public void LoadLevel(DetailEnemyLevel[] normalEnemy, DetailEnemyLevel[] flyEnemy, DetailEnemyLevel[] inviEnemy,
         float normalSpeed, float flySpeed, float _delaySpawn)
     {
         ShuffleArray(values);
@@ -143,6 +144,18 @@ public class EnemySpawner : MonoBehaviour
                 amountEnemy.Add(normalEnemy[i].quantity);
             }
         }
+
+        if(inviEnemy != null)
+        {
+            for (int i = 0; i < inviEnemy.Length; i++)
+            {
+                LegoEnemy editEnemy = inviEnemyPrf[inviEnemy[i].id - 1].GetComponent<LegoEnemy>();
+                editEnemy.speed = normalSpeed;
+                enemyCrtLevel.Add(editEnemy);
+                amountEnemy.Add(inviEnemy[i].quantity);
+            }
+        }
+
         if (flyEnemy != null)
         {
             for (int i = 0; i < flyEnemy.Length; i++)

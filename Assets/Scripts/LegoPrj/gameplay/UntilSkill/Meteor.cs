@@ -11,6 +11,7 @@ public class Meteor : UltimateSkill
     {
         EventDispatcher.Instance.RegisterListener(EventID.ActiveMeteor, Activate);
         EventDispatcher.Instance.RegisterListener(EventID.UpdateMeteorStack, UpdateStack);
+        UpdateStack(0);
     }
 
     protected override void Activate(object obj)
@@ -18,10 +19,11 @@ public class Meteor : UltimateSkill
         base.Activate(obj);
         GameObject meteor = Instantiate(meteorPrf);
         meteor.transform.position = new Vector3(0, 20, 0);
-        meteor.transform.DOLocalMoveY(0, 0.75f).OnComplete(() =>
+        meteor.transform.DOLocalMoveY(0, 0.5f).OnComplete(() =>
         {
             EventDispatcher.Instance.PostEvent(EventID.ShakingCamera);
             GameManager.Instance.enemyManager.KillAllEnemy();
+            Destroy(meteor.gameObject);
         });
     }
 

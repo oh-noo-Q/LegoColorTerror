@@ -39,8 +39,11 @@ public class LegoEnemy : Movement
             GameManager.Instance.enemyManager.KillEnemy(this);
             EventDispatcher.Instance.PostEvent(EventID.OnChangeValueHealth, -1);
         }
-        if (GameManager.Instance.enemyManager.currentTargetEnemy == null) return;
-        if (Vector3.Distance(transform.position, distanceDie.position) <
+        if (GameManager.Instance.enemyManager.currentTargetEnemy == null)
+        {
+
+        }
+        else if (Vector3.Distance(transform.position, distanceDie.position) <
             Vector3.Distance(GameManager.Instance.enemyManager.currentTargetEnemy.transform.position, distanceDie.position))
         {
             GameManager.Instance.enemyManager.SetTargetEnemy(this);

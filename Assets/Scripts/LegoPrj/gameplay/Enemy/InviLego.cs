@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class InviLego : LegoEnemy
 {
-    public List<Renderer> legoMat;
+    [SerializeField] List<Renderer> pieceMat;
 
     [SerializeField] Material inviMat;
     private float timeInvi = 2f;
@@ -18,15 +18,18 @@ public class InviLego : LegoEnemy
 
     private void Awake()
     {
-        isInvi = true;
-        foreach(Renderer render in legoMat)
+        pieceMat = new List<Renderer>();
+        foreach(GameObject piece in pieces)
         {
-            render.material.color = new Color(1, 1, 1, 0);
+            pieceMat.Add(piece.GetComponent<Renderer>());
         }
+        isInvi = true;
+        isShow = false;
     }
 
     protected override void Update()
     {
+        base.Update();
         if(isInvi)
         {
             timeCountInvi += Time.deltaTime;
@@ -42,34 +45,45 @@ public class InviLego : LegoEnemy
                 //        legoMat[i].material = GameManager.Instance.colorDic[mainColor];
                 //    }); 
                 //}
-                foreach (Renderer render in legoMat)
+                foreach (Renderer render in pieceMat)
                 {
                     render.material.DOFade(1f, 0.5f).OnComplete(() =>
                     {
                         isShow = true;
                         render.material = GameManager.Instance.colorDic[mainColor];
+
                     });
                 }
             }
         }
         if(isShow)
         {
+            if (GameManager.Instance.enemyManager.currentTargetEnemy == null)
+            {
+
+            }
+            else if (Vector3.Distance(transform.position, distanceDie.position) <
+                Vector3.Distance(GameManager.Instance.enemyManager.currentTargetEnemy.transform.position, distanceDie.position))
+            {
+                GameManager.Instance.enemyManager.SetTargetEnemy(this);
+            }
+
             timeCountShow += Time.deltaTime;
             if(timeCountShow > timeShow)
             {
                 isShow = false;
                 timeCountShow = 0;
-                foreach (Renderer render in legoMat)
+                foreach (Renderer render in pieceMat)
                 {
                     render.material = inviMat;
                     render.material.DOFade(0f, 0.5f).OnComplete(() =>
                     {
                         isInvi = true;
+                        GameManager.Instance.enemyManager.SetNewTargetEnemy();
                     });
                 }
             }
         }
-        base.Update();
 
     }
 
@@ -77,9 +91,12 @@ public class InviLego : LegoEnemy
     {
         base.SetColor(_color);
         inviMat = GameManager.Instance.inviColorDic[_color];
-        foreach(Renderer render in legoMat)
+        foreach(Renderer render in pieceMat)
         {
             render.material = inviMat;
+            Color orgColor = render.material.color;
+            orgColor.a = 0;
+            render.material.color = orgColor;
         }
     }
 }
