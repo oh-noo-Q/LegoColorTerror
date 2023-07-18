@@ -133,7 +133,7 @@ public class LegoEnemyManager : MonoBehaviour
             currentTargetObject.transform.localPosition = Vector3.zero;
             currentTargetObject.transform.eulerAngles = new Vector3(0, 90f, 0);
         }
-        if(enemy.GetComponent<InviLego>() != null)
+        if(enemy is InviLego)
         {
             currentTargetObject.GetComponent<Renderer>().material = GameManager.Instance.colorDic[LegoColor.White];
         }
