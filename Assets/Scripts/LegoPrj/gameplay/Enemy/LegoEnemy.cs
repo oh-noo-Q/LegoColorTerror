@@ -36,8 +36,7 @@ public class LegoEnemy : Movement
         base.Update();
         if (Mathf.Abs(transform.position.z - distanceDie.position.z) < 0.5f)
         {
-            GameManager.Instance.enemyManager.KillEnemy(this);
-            EventDispatcher.Instance.PostEvent(EventID.OnChangeValueHealth, -1);
+            AttackPlayer();
         }
         if (GameManager.Instance.enemyManager.currentTargetEnemy == null)
         {
@@ -54,6 +53,14 @@ public class LegoEnemy : Movement
     {
         Destroy(gameObject);
         EventDispatcher.Instance.PostEvent(EventID.UpdateMeteorStack, 1);
+    }
+
+    protected virtual void AttackPlayer()
+    {
+        GameManager.Instance.enemyManager.KillEnemy(this);
+        EventDispatcher.Instance.PostEvent(EventID.OnChangeValueHealth, -1);
+        GameManager.Instance.effectController
+                    .GenExplosion(transform, GameManager.Instance.colorDic[mainColor]);
     }
 
     protected virtual void OnTriggerEnter(Collider other)
@@ -85,7 +92,7 @@ public class LegoEnemy : Movement
             //    //Bullet target slime if fail
             //    //bulletColision.CounterAttack();
             //}
-                Destroy(bulletColision.gameObject);
+            Destroy(bulletColision.gameObject);
         }
     }
 
@@ -111,6 +118,7 @@ public class LegoEnemy : Movement
         else
         {
             blockDamage++;
+            if (blockDamage > 2) AttackPlayer();
             numberBlock.ActiveNumber(blockDamage, mainColor);
         }
     }
