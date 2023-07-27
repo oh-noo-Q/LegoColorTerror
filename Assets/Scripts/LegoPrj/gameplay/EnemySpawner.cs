@@ -20,6 +20,7 @@ public class EnemySpawner : MonoBehaviour
     public GameObject[] enemyPrf;
     public GameObject[] flyEnemyPrf;
     public GameObject[] inviEnemyPrf;
+    public GameObject[] mixColorEnemyPrf;
 
     [Space(10)]
     public int spaceSize;
@@ -129,7 +130,8 @@ public class EnemySpawner : MonoBehaviour
         else return true;
     }
 
-    public void LoadLevel(DetailEnemyLevel[] normalEnemy, DetailEnemyLevel[] flyEnemy, DetailEnemyLevel[] inviEnemy,
+    public void LoadLevel(DetailEnemyLevel[] normalEnemy, DetailEnemyLevel[] flyEnemy, 
+        DetailEnemyLevel[] inviEnemy, DetailEnemyLevel[] mixEnemy,
         float normalSpeed, float flySpeed, float _delaySpawn)
     {
         ShuffleArray(values);
@@ -153,6 +155,17 @@ public class EnemySpawner : MonoBehaviour
                 editEnemy.speed = normalSpeed;
                 enemyCrtLevel.Add(editEnemy);
                 amountEnemy.Add(inviEnemy[i].quantity);
+            }
+        }
+
+        if (mixEnemy != null)
+        {
+            for (int i = 0; i < mixEnemy.Length; i++)
+            {
+                LegoEnemy editEnemy = mixColorEnemyPrf[mixEnemy[i].id - 1].GetComponent<LegoEnemy>();
+                editEnemy.speed = normalSpeed;
+                enemyCrtLevel.Add(editEnemy);
+                amountEnemy.Add(mixEnemy[i].quantity);
             }
         }
 

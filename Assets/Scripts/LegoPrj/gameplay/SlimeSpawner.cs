@@ -14,6 +14,8 @@ public class SlimeSpawner : MonoBehaviour
     private float speedSlime = 10.0f;
     private float delaySpawn = 10.0f;
     private float deltaTime = 0;
+    private int amountSlime = 10;
+    private int countSlime = 0;
     private void Awake()
     {
         xLeftLimit = leftLimit.position.x;
@@ -22,11 +24,12 @@ public class SlimeSpawner : MonoBehaviour
 
     private void Update()
     {
-        if (!GameManager.Instance.waitTimeGame || !GameManager.Instance.startGame) return;
+        if (!GameManager.Instance.waitTimeGame || !GameManager.Instance.startGame || countSlime > amountSlime) return;
         deltaTime += Time.deltaTime;
         if(deltaTime > delaySpawn)
         {
             deltaTime = 0;
+            countSlime++;
             GenerateSlime();
         }
     }
@@ -49,9 +52,12 @@ public class SlimeSpawner : MonoBehaviour
         slime.speed = speedSlime;
     }
 
-    public void LoadLevel(float _speed)
+    public void LoadLevel(float _speed, int amount, float spawnTime)
     {
         speedSlime = _speed;
+        delaySpawn = spawnTime;
+        amountSlime = amount;
+        Debug.Log($"speed: {speedSlime}, spawn: {delaySpawn}, amount: {amountSlime}");
     }
 
 }

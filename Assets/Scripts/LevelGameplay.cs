@@ -13,11 +13,14 @@ public class LevelGameplay
     public float speedEnemy;
     public float xSpeedFly = 1;
     public float delaySpawn;
+    public DetailSlime detailSlime;
     public DetailEnemyLevel[] detailEnemies;
     [Space(20)]
     public DetailEnemyLevel[] detailFlyEnemies;
     [Space(20)]
     public DetailEnemyLevel[] detailInviEnemies;
+    [Space(20)]
+    public DetailEnemyLevel[] detailMixEnemies;
 
     [Space(20)]
     [HideInInspector] 
@@ -43,4 +46,11 @@ public class DetailEnemyLevel
 {
     public int id;
     public int quantity;
+}
+
+[System.Serializable]
+public class DetailSlime
+{
+    public int quantity;
+    public float buffSpeedSlime;
 }

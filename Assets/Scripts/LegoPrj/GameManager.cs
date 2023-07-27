@@ -86,10 +86,13 @@ public class GameManager : MonoBehaviour
     {
         if(isTool)
         {
-            enemySpawner.LoadLevel(toolLevel.detailNormalEnemy, toolLevel.detailFlyEnemy, toolLevel.detailInviEnemy,
+            enemySpawner.LoadLevel(toolLevel.detailNormalEnemy, toolLevel.detailFlyEnemy, 
+                toolLevel.detailInviEnemy, toolLevel.detailMixColorEnemy,
                 toolLevel.speedNormal, toolLevel.speedNormal * toolLevel.flyBuffSpeed, toolLevel.timeSpawn);
             mapSpawner.speed = toolLevel.speedMapMoving;
-            slimeSpawner.LoadLevel(toolLevel.speedNormal * 1.5f);
+
+            slimeSpawner.LoadLevel(toolLevel.speedNormal * toolLevel.detailSlime.buffSpeedSlime, toolLevel.detailSlime.quantity,
+                CountTimeSpawnSlime(toolLevel, null));
             EventDispatcher.Instance.PostEvent(EventID.UpdateRoundEndLess, toolLevel.level);
             return;
         }
@@ -98,9 +101,59 @@ public class GameManager : MonoBehaviour
         LevelGameplay newRound = levelData.levelGameplayData[round];
         EventDispatcher.Instance.PostEvent(EventID.UpdateRoundEndLess, roundEndLess + 1);
 
-        enemySpawner.LoadLevel(newRound.detailEnemies, newRound.detailFlyEnemies, newRound.detailInviEnemies,
+        enemySpawner.LoadLevel(newRound.detailEnemies, newRound.detailFlyEnemies, 
+            newRound.detailInviEnemies, newRound.detailMixEnemies,
             newRound.speedEnemy, newRound.speedEnemy * (1.5f + newRound.xSpeedFly), newRound.delaySpawn);
-        slimeSpawner.LoadLevel(newRound.speedEnemy * 1.5f);
+        slimeSpawner.LoadLevel(newRound.speedEnemy * newRound.detailSlime.buffSpeedSlime, newRound.detailSlime.quantity,
+                CountTimeSpawnSlime(null, newRound));
+    }
+
+    int CountTimeSpawnSlime(LegoLevelGameplay levelGameplay, LevelGameplay level)
+    {
+        float count = 0;
+        int amountSlime = 0;
+        if(level != null)
+        {
+            foreach(DetailEnemyLevel detailEnemy in level.detailEnemies)
+            {
+                count += detailEnemy.quantity * level.delaySpawn;
+            }
+            foreach (DetailEnemyLevel detailEnemy in level.detailFlyEnemies)
+            {
+                count += detailEnemy.quantity * level.delaySpawn;
+            }
+            foreach (DetailEnemyLevel detailEnemy in level.detailInviEnemies)
+            {
+                count += detailEnemy.quantity * level.delaySpawn;
+            }
+            foreach (DetailEnemyLevel detailEnemy in level.detailMixEnemies)
+            {
+                count += detailEnemy.quantity * level.delaySpawn;
+            }
+            amountSlime = level.detailSlime.quantity;
+        }
+        if(levelGameplay != null)
+        {
+            foreach (DetailEnemyLevel detailEnemy in levelGameplay.detailNormalEnemy)
+            {
+                count += detailEnemy.quantity * levelGameplay.timeSpawn;
+            }
+            foreach (DetailEnemyLevel detailEnemy in levelGameplay.detailFlyEnemy)
+            {
+                count += detailEnemy.quantity * levelGameplay.timeSpawn;
+            }
+            foreach (DetailEnemyLevel detailEnemy in levelGameplay.detailInviEnemy)
+            {
+                count += detailEnemy.quantity * levelGameplay.timeSpawn;
+            }
+            foreach (DetailEnemyLevel detailEnemy in levelGameplay.detailMixColorEnemy)
+            {
+                count += detailEnemy.quantity * levelGameplay.timeSpawn;
+            }
+            amountSlime = levelGameplay.detailSlime.quantity;
+        }
+
+        return (int)(count / amountSlime);
     }
 
     public void NextRound()

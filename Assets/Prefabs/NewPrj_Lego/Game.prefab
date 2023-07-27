@@ -1278,6 +1278,12 @@ MonoBehaviour:
   - {fileID: 5895577165064899540, guid: db21cc9e8ef87fe4f8daff595949d6a3, type: 3}
   - {fileID: 5536109629027237364, guid: 06604a6f355485940b1fa0bacfa4a65c, type: 3}
   - {fileID: 6459102566342637060, guid: b1fe7824283b10a4bb79de9e5c785624, type: 3}
+  mixColorEnemyPrf:
+  - {fileID: 6289011111310065273, guid: 08d0e62e70dfab24daa9dab465891a2e, type: 3}
+  - {fileID: 5659827832382644592, guid: 6cb377822a235ee499a82dd6b34b7a0f, type: 3}
+  - {fileID: 8629529470088854271, guid: 44bd52a3e3d643a428a7c7be12c72ade, type: 3}
+  - {fileID: 9056533321483664204, guid: 090973b9b24a2644cbd949d2ab23cddf, type: 3}
+  - {fileID: 8190169401251156920, guid: a14988a519b63b6409d25652f6372a43, type: 3}
   spaceSize: 20
   leftLimit: {fileID: 3243324946299107843}
   rightLimit: {fileID: 3243324945598000886}
@@ -1296,7 +1302,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4a86f28a7f962db418d1a65c071b8bc7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  slimePrf: {fileID: 0}
+  slimePrf: {fileID: 8659280638123476251, guid: 14dd4153393e04c468fc1e0f859ff1c6, type: 3}
   spaceSize: 20
   leftLimit: {fileID: 3243324946299107843}
   rightLimit: {fileID: 3243324945598000886}

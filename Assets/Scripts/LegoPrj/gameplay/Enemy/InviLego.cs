@@ -23,8 +23,8 @@ public class InviLego : LegoEnemy
         {
             pieceMat.Add(piece.GetComponent<Renderer>());
         }
-        isInvi = true;
-        isShow = false;
+        isInvi = false;
+        isShow = true;
     }
 
     protected override void Update()
@@ -93,10 +93,8 @@ public class InviLego : LegoEnemy
         inviMat = GameManager.Instance.inviColorDic[_color];
         foreach(Renderer render in pieceMat)
         {
-            render.material = inviMat;
-            Color orgColor = render.material.color;
-            orgColor.a = 0;
-            render.material.color = orgColor;
+            render.material = GameManager.Instance.colorDic[mainColor];
+
         }
     }
 }
