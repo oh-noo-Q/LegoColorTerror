@@ -1473,7 +1473,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxStack: 50
-  currentStack: 50
+  currentStack: 0
   meteorPrf: {fileID: 3939435465240621457, guid: 62f3ef43eb6673746871d59bc60e99f7, type: 3}
 --- !u!1 &3243324945472240289
 GameObject:

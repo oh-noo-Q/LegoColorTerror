@@ -93,21 +93,15 @@ public class LegoEnemyManager : MonoBehaviour
     {
         float distanceMin = 0;
         LegoEnemy newTargetLego = null;
-        foreach(LegoEnemy enemy in enemies)
+        foreach (LegoEnemy enemy in enemies)
         {
-            if (enemy.gameObject.GetComponent<InviLego>() != null)
+            float distanceCheck = Vector3.Distance(enemy.transform.position, enemy.distanceDie.position);
+            if (distanceMin == 0 || distanceMin > distanceCheck)
             {
+                distanceMin = distanceCheck;
+                newTargetLego = enemy;
+            }
 
-            }
-            else 
-            {
-                float distanceCheck = Vector3.Distance(enemy.transform.position, enemy.distanceDie.position);
-                if (distanceMin == 0 || distanceMin > distanceCheck)
-                {
-                    distanceMin = distanceCheck;
-                    newTargetLego = enemy;
-                }
-            }
         }
         if (newTargetLego != null)
         {
@@ -157,10 +151,9 @@ public class LegoEnemyManager : MonoBehaviour
 
     public void KillAllEnemy()
     {
-        GameManager.Instance.StartWaitTime(1.5f);
         foreach(LegoEnemy enemy in enemies)
         {
-            enemy.Die();
+            enemy.DieByUlti();
             GameManager.Instance.effectController
                     .GenExplosion(enemy.transform,
                     GameManager.Instance.colorDic[enemy.mainColor]);
@@ -170,6 +163,7 @@ public class LegoEnemyManager : MonoBehaviour
             GameManager.Instance.NextRound();
             return;
         }
+        GameManager.Instance.StartWaitTime(1.5f);
     }
     
 }

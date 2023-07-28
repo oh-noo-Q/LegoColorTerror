@@ -58,15 +58,6 @@ public class InviLego : LegoEnemy
         }
         if(isShow)
         {
-            if (GameManager.Instance.enemyManager.currentTargetEnemy == null)
-            {
-
-            }
-            else if (Vector3.Distance(transform.position, distanceDie.position) <
-                Vector3.Distance(GameManager.Instance.enemyManager.currentTargetEnemy.transform.position, distanceDie.position))
-            {
-                GameManager.Instance.enemyManager.SetTargetEnemy(this);
-            }
 
             timeCountShow += Time.deltaTime;
             if(timeCountShow > timeShow)
@@ -79,7 +70,6 @@ public class InviLego : LegoEnemy
                     render.material.DOFade(0f, 0.5f).OnComplete(() =>
                     {
                         isInvi = true;
-                        GameManager.Instance.enemyManager.SetNewTargetEnemy();
                     });
                 }
             }

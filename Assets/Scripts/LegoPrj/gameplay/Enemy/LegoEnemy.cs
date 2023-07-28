@@ -55,6 +55,11 @@ public class LegoEnemy : Movement
         EventDispatcher.Instance.PostEvent(EventID.UpdateMeteorStack, 1);
     }
 
+    public void DieByUlti()
+    {
+        Destroy(gameObject);
+    }
+
     protected virtual void AttackPlayer()
     {
         GameManager.Instance.enemyManager.KillEnemy(this);

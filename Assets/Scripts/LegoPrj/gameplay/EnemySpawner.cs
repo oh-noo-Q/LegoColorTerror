@@ -32,8 +32,10 @@ public class EnemySpawner : MonoBehaviour
     [SerializeField] private List<LegoEnemy> enemyCrtLevel;
     [SerializeField] private List<int> amountEnemy;
     private float delaySpawn = 0.6f;
+    private float randomSpawnTime = 1.0f;
     private float speed;
 
+    float deviationSpawnTime = 0.5f;
     float deltaTime = 0;
     float xLeftLimit, xRightLimit;
     private int[] values = { 0, 1, 2, 3, 4 };
@@ -66,12 +68,13 @@ public class EnemySpawner : MonoBehaviour
         if (!GameManager.Instance.waitTimeGame) return;
         deltaTime += Time.deltaTime;
         
-        if(deltaTime >= delaySpawn)
+        if(deltaTime >= randomSpawnTime)
         {
             int index = Random.Range(0, enemyCrtLevel.Count);
             if (amountEnemy[index] > 0)
             {
                 deltaTime = 0;
+                randomSpawnTime = Random.Range(delaySpawn - deviationSpawnTime, delaySpawn + deviationSpawnTime);
                 GenerateEnemyForLevel(index);
             }
             else
@@ -112,7 +115,7 @@ public class EnemySpawner : MonoBehaviour
         newEnemy.moveDirection = -mapSpawner.moveDirection;
         newEnemy.distanceDie = destination;
 
-        if (enemyManager.currentTargetEnemy == null && newEnemy.GetComponent<InviLego>() == null)
+        if (enemyManager.currentTargetEnemy == null || enemyManager.enemies.Count == 0)
         {
             enemyManager.SetTargetEnemy(newEnemy);
         }
@@ -182,5 +185,6 @@ public class EnemySpawner : MonoBehaviour
         }
         speed = normalSpeed;
         delaySpawn = _delaySpawn;
+        randomSpawnTime = Random.Range(delaySpawn - deviationSpawnTime, delaySpawn + deviationSpawnTime);
     }
 }
