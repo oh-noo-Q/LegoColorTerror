@@ -40,7 +40,7 @@ public class LegoEnemy : Movement
         }
         if (GameManager.Instance.enemyManager.currentTargetEnemy == null)
         {
-
+            return;
         }
         else if (Vector3.Distance(transform.position, distanceDie.position) <
             Vector3.Distance(GameManager.Instance.enemyManager.currentTargetEnemy.transform.position, distanceDie.position))
@@ -73,31 +73,33 @@ public class LegoEnemy : Movement
         if(other.CompareTag("Bullet"))
         {
             Bullet bulletColision = other.GetComponent<Bullet>();
-            //if (bulletColision.color == mainColor)
-            //{
-            //    if(blockDamage > 0)
-            //    {
-            //        blockDamage--;
-            //        UILegoManager.Instance.inGameUI.SetBlockText(blockDamage);
-            //        Destroy(bulletColision.gameObject);
-            //        return;
-            //    }
-            //    pieces[bulletColision.targetPiece].SetActive(false);
-            //    GameManager.Instance.effectController
-            //            .GenExplosion(pieces[bulletColision.targetPiece].transform,
-            //            GameManager.Instance.colorDic[mainColor]);
-            //    if (bulletColision.targetPiece == pieces.Count - 1)
-            //        GameManager.Instance.enemyManager.KillEnemy(this);
-            //}
-            //else
-            //{
-            //    blockDamage++;
-            //    UILegoManager.Instance.inGameUI.SetBlockText(blockDamage);
-
-            //    //Bullet target slime if fail
-            //    //bulletColision.CounterAttack();
-            //}
             Destroy(bulletColision.gameObject);
+            /*
+            if (bulletColision.color == mainColor)
+            {
+                if(blockDamage > 0)
+                {
+                    blockDamage--;
+                    UILegoManager.Instance.inGameUI.SetBlockText(blockDamage);
+                    Destroy(bulletColision.gameObject);
+                    return;
+                }
+                pieces[bulletColision.targetPiece].SetActive(false);
+                GameManager.Instance.effectController
+                        .GenExplosion(pieces[bulletColision.targetPiece].transform,
+                        GameManager.Instance.colorDic[mainColor]);
+                if (bulletColision.targetPiece == pieces.Count - 1)
+                    GameManager.Instance.enemyManager.KillEnemy(this);
+            }
+            else
+            {
+                blockDamage++;
+                UILegoManager.Instance.inGameUI.SetBlockText(blockDamage);
+
+                //Bullet target slime if fail
+                //bulletColision.CounterAttack();
+            }
+            */
         }
     }
 

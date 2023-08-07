@@ -14,9 +14,9 @@ public class Meteor : UltimateSkill
         UpdateStack(0);
     }
 
-    protected override void Activate(object obj)
+    protected override void Action()
     {
-        base.Activate(obj);
+        base.Action();
         GameObject meteor = Instantiate(meteorPrf);
         meteor.transform.position = new Vector3(0, 20, 0);
         meteor.transform.DOLocalMoveY(0, 0.5f).OnComplete(() =>

@@ -29,7 +29,6 @@ public class InviLego : LegoEnemy
 
     protected override void Update()
     {
-        base.Update();
         if(isInvi)
         {
             timeCountInvi += Time.deltaTime;
@@ -74,6 +73,7 @@ public class InviLego : LegoEnemy
                 }
             }
         }
+        base.Update();
 
     }
 

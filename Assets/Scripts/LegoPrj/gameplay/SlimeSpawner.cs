@@ -24,6 +24,7 @@ public class SlimeSpawner : MonoBehaviour
 
     private void Update()
     {
+        if (amountSlime <= 0) return;
         if (!GameManager.Instance.waitTimeGame || !GameManager.Instance.startGame || countSlime > amountSlime) return;
         deltaTime += Time.deltaTime;
         if(deltaTime > delaySpawn)

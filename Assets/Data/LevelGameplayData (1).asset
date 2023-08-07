@@ -1,0 +1,427 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 206956560c31630468ead2dd5b77c220, type: 3}
+  m_Name: LevelGameplayData (1)
+  m_EditorClassIdentifier: 
+  levelGameplayData:
+  - name: 
+    level: 1
+    speedEnemy: 10
+    xSpeedFly: 0
+    delaySpawn: 1
+    detailSlime:
+      quantity: 0
+      buffSpeedSlime: 0
+    detailEnemies:
+    - id: 1
+      quantity: 10
+    detailFlyEnemies: []
+    detailInviEnemies: []
+    detailMixEnemies: []
+    endLevelAmountEnemy: 0
+    typeEnemy: 
+    changeEnemy: 0
+    changeColor: 0
+    amountColor: 0
+  - name: 
+    level: 2
+    speedEnemy: 10
+    xSpeedFly: 0
+    delaySpawn: 1
+    detailSlime:
+      quantity: 0
+      buffSpeedSlime: 0
+    detailEnemies:
+    - id: 2
+      quantity: 10
+    detailFlyEnemies: []
+    detailInviEnemies: []
+    detailMixEnemies: []
+    endLevelAmountEnemy: 0
+    typeEnemy: 
+    changeEnemy: 0
+    changeColor: 0
+    amountColor: 0
+  - name: 
+    level: 3
+    speedEnemy: 10
+    xSpeedFly: 0
+    delaySpawn: 1
+    detailSlime:
+      quantity: 0
+      buffSpeedSlime: 0
+    detailEnemies:
+    - id: 2
+      quantity: 10
+    - id: 1
+      quantity: 10
+    detailFlyEnemies: []
+    detailInviEnemies: []
+    detailMixEnemies: []
+    endLevelAmountEnemy: 0
+    typeEnemy: 
+    changeEnemy: 0
+    changeColor: 0
+    amountColor: 0
+  - name: 
+    level: 4
+    speedEnemy: 10
+    xSpeedFly: 0
+    delaySpawn: 1
+    detailSlime:
+      quantity: 0
+      buffSpeedSlime: 0
+    detailEnemies:
+    - id: 3
+      quantity: 10
+    - id: 1
+      quantity: 10
+    detailFlyEnemies: []
+    detailInviEnemies: []
+    detailMixEnemies: []
+    endLevelAmountEnemy: 0
+    typeEnemy: 
+    changeEnemy: 0
+    changeColor: 0
+    amountColor: 0
+  - name: 
+    level: 5
+    speedEnemy: 15
+    xSpeedFly: 0
+    delaySpawn: 0.7
+    detailSlime:
+      quantity: 0
+      buffSpeedSlime: 0
+    detailEnemies:
+    - id: 1
+      quantity: 50
+    detailFlyEnemies: []
+    detailInviEnemies: []
+    detailMixEnemies: []
+    endLevelAmountEnemy: 0
+    typeEnemy: 
+    changeEnemy: 0
+    changeColor: 0
+    amountColor: 0
+  - name: 
+    level: 6
+    speedEnemy: 8
+    xSpeedFly: 1
+    delaySpawn: 1
+    detailSlime:
+      quantity: 0
+      buffSpeedSlime: 0
+    detailEnemies: []
+    detailFlyEnemies:
+    - id: 1
+      quantity: 10
+    detailInviEnemies: []
+    detailMixEnemies: []
+    endLevelAmountEnemy: 0
+    typeEnemy: 
+    changeEnemy: 0
+    changeColor: 0
+    amountColor: 0
+  - name: 
+    level: 7
+    speedEnemy: 8
+    xSpeedFly: 1
+    delaySpawn: 1
+    detailSlime:
+      quantity: 0
+      buffSpeedSlime: 0
+    detailEnemies: []
+    detailFlyEnemies:
+    - id: 2
+      quantity: 10
+    detailInviEnemies: []
+    detailMixEnemies: []
+    endLevelAmountEnemy: 0
+    typeEnemy: 
+    changeEnemy: 0
+    changeColor: 0
+    amountColor: 0
+  - name: 
+    level: 8
+    speedEnemy: 9
+    xSpeedFly: 0.7
+    delaySpawn: 1
+    detailSlime:
+      quantity: 0
+      buffSpeedSlime: 0
+    detailEnemies: []
+    detailFlyEnemies:
+    - id: 2
+      quantity: 10
+    - id: 1
+      quantity: 10
+    detailInviEnemies: []
+    detailMixEnemies: []
+    endLevelAmountEnemy: 0
+    typeEnemy: 
+    changeEnemy: 0
+    changeColor: 0
+    amountColor: 0
+  - name: 
+    level: 9
+    speedEnemy: 7
+    xSpeedFly: 0.7
+    delaySpawn: 1
+    detailSlime:
+      quantity: 0
+      buffSpeedSlime: 0
+    detailEnemies:
+    - id: 1
+      quantity: 10
+    detailFlyEnemies:
+    - id: 2
+      quantity: 10
+    - id: 1
+      quantity: 5
+    detailInviEnemies: []
+    detailMixEnemies: []
+    endLevelAmountEnemy: 0
+    typeEnemy: 
+    changeEnemy: 0
+    changeColor: 0
+    amountColor: 0
+  - name: 
+    level: 10
+    speedEnemy: 5
+    xSpeedFly: 0.6
+    delaySpawn: 0.8
+    detailSlime:
+      quantity: 0
+      buffSpeedSlime: 0
+    detailEnemies: []
+    detailFlyEnemies:
+    - id: 1
+      quantity: 50
+    detailInviEnemies: []
+    detailMixEnemies: []
+    endLevelAmountEnemy: 0
+    typeEnemy: 
+    changeEnemy: 0
+    changeColor: 0
+    amountColor: 0
+  - name: 
+    level: 11
+    speedEnemy: 10
+    xSpeedFly: 1
+    delaySpawn: 1
+    detailSlime:
+      quantity: 0
+      buffSpeedSlime: 0
+    detailEnemies:
+    - id: 2
+      quantity: 10
+    - id: 4
+      quantity: 5
+    detailFlyEnemies: []
+    detailInviEnemies: []
+    detailMixEnemies: []
+    endLevelAmountEnemy: 0
+    typeEnemy: 
+    changeEnemy: 0
+    changeColor: 0
+    amountColor: 0
+  - name: 
+    level: 12
+    speedEnemy: 4
+    xSpeedFly: 1
+    delaySpawn: 0.7
+    detailSlime:
+      quantity: 0
+      buffSpeedSlime: 0
+    detailEnemies:
+    - id: 5
+      quantity: 20
+    - id: 2
+      quantity: 5
+    detailFlyEnemies: []
+    detailInviEnemies: []
+    detailMixEnemies: []
+    endLevelAmountEnemy: 0
+    typeEnemy: 
+    changeEnemy: 0
+    changeColor: 0
+    amountColor: 0
+  - name: 
+    level: 13
+    speedEnemy: 5
+    xSpeedFly: 1
+    delaySpawn: 1
+    detailSlime:
+      quantity: 0
+      buffSpeedSlime: 0
+    detailEnemies:
+    - id: 4
+      quantity: 16
+    detailFlyEnemies:
+    - id: 1
+      quantity: 7
+    detailInviEnemies: []
+    detailMixEnemies: []
+    endLevelAmountEnemy: 0
+    typeEnemy: 
+    changeEnemy: 0
+    changeColor: 0
+    amountColor: 0
+  - name: 
+    level: 14
+    speedEnemy: 6
+    xSpeedFly: 0.79999995
+    delaySpawn: 0.9
+    detailSlime:
+      quantity: 0
+      buffSpeedSlime: 0
+    detailEnemies:
+    - id: 2
+      quantity: 10
+    detailFlyEnemies:
+    - id: 1
+      quantity: 10
+    detailInviEnemies: []
+    detailMixEnemies: []
+    endLevelAmountEnemy: 0
+    typeEnemy: 
+    changeEnemy: 0
+    changeColor: 0
+    amountColor: 0
+  - name: 
+    level: 15
+    speedEnemy: 6
+    xSpeedFly: 0.79999995
+    delaySpawn: 1
+    detailSlime:
+      quantity: 0
+      buffSpeedSlime: 0
+    detailEnemies:
+    - id: 5
+      quantity: 10
+    detailFlyEnemies:
+    - id: 5
+      quantity: 10
+    detailInviEnemies: []
+    detailMixEnemies: []
+    endLevelAmountEnemy: 0
+    typeEnemy: 
+    changeEnemy: 0
+    changeColor: 0
+    amountColor: 0
+  - name: 
+    level: 16
+    speedEnemy: 10
+    xSpeedFly: 0.79999995
+    delaySpawn: 1
+    detailSlime:
+      quantity: 0
+      buffSpeedSlime: 0
+    detailEnemies:
+    - id: 1
+      quantity: 10
+    detailFlyEnemies: []
+    detailInviEnemies:
+    - id: 1
+      quantity: 5
+    detailMixEnemies: []
+    endLevelAmountEnemy: 0
+    typeEnemy: 
+    changeEnemy: 0
+    changeColor: 0
+    amountColor: 0
+  - name: 
+    level: 17
+    speedEnemy: 10
+    xSpeedFly: 0.79999995
+    delaySpawn: 1
+    detailSlime:
+      quantity: 0
+      buffSpeedSlime: 0
+    detailEnemies:
+    - id: 2
+      quantity: 10
+    - id: 4
+      quantity: 2
+    detailFlyEnemies: []
+    detailInviEnemies:
+    - id: 1
+      quantity: 5
+    detailMixEnemies: []
+    endLevelAmountEnemy: 0
+    typeEnemy: 
+    changeEnemy: 0
+    changeColor: 0
+    amountColor: 0
+  - name: 
+    level: 18
+    speedEnemy: 10
+    xSpeedFly: 1
+    delaySpawn: 1
+    detailSlime:
+      quantity: 0
+      buffSpeedSlime: 0
+    detailEnemies:
+    - id: 1
+      quantity: 15
+    detailFlyEnemies:
+    - id: 1
+      quantity: 5
+    detailInviEnemies:
+    - id: 1
+      quantity: 5
+    detailMixEnemies: []
+    endLevelAmountEnemy: 0
+    typeEnemy: 
+    changeEnemy: 0
+    changeColor: 0
+    amountColor: 0
+  - name: 
+    level: 19
+    speedEnemy: 5
+    xSpeedFly: 1
+    delaySpawn: 1
+    detailSlime:
+      quantity: 0
+      buffSpeedSlime: 0
+    detailEnemies: []
+    detailFlyEnemies:
+    - id: 1
+      quantity: 20
+    detailInviEnemies:
+    - id: 2
+      quantity: 5
+    detailMixEnemies: []
+    endLevelAmountEnemy: 0
+    typeEnemy: 
+    changeEnemy: 0
+    changeColor: 0
+    amountColor: 0
+  - name: 
+    level: 20
+    speedEnemy: 10
+    xSpeedFly: 1
+    delaySpawn: 1
+    detailSlime:
+      quantity: 0
+      buffSpeedSlime: 0
+    detailEnemies: []
+    detailFlyEnemies: []
+    detailInviEnemies:
+    - id: 1
+      quantity: 50
+    detailMixEnemies: []
+    endLevelAmountEnemy: 0
+    typeEnemy: 
+    changeEnemy: 0
+    changeColor: 0
+    amountColor: 0

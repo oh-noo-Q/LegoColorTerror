@@ -46,7 +46,6 @@ public class LegoEnemyManager : MonoBehaviour
             {
                 newBullet.target = currentTargetEnemy.transform;
                 newBullet.targetPos = currentTargetEnemy.transform.position;
-                //currentTargetEnemy.gameObject.GetComponent<FlyLego>().isFlying = false;
             }
             else
             {
@@ -54,13 +53,6 @@ public class LegoEnemyManager : MonoBehaviour
                 newBullet.targetPos = currentTargetEnemy.pieces[currentTargetEnemy.injureHit].transform.position;
             }
             currentTargetEnemy.AttackEnemy(newBullet.color, newBullet);
-            //if (currentTargetEnemy.mainColor == ownerSlime.color)
-            //{
-            //    if (currentTargetEnemy.blockDamage > 0) return;
-            //    if (currentTargetEnemy.gameObject.GetComponent<FlyLego>() != null && currentTargetEnemy.injureHit == 0)
-            //        return;
-            //    currentTargetEnemy.injureHit++;
-            //}
         }
     }
 
@@ -82,7 +74,7 @@ public class LegoEnemyManager : MonoBehaviour
         enemies.Remove(removedEnemy);
         if (enemies.Count > 0) SetTargetEnemy(enemies[0]);
         removedEnemy.Die();
-        if(enemies.Count == 0 && GameManager.Instance.enemySpawner.CheckEndLevel())
+        if (enemies.Count == 0 && GameManager.Instance.enemySpawner.CheckEndLevel())
         {
             GameManager.Instance.NextRound();
             return;
@@ -117,13 +109,11 @@ public class LegoEnemyManager : MonoBehaviour
         if (currentTargetObject == null)
         {
             currentTargetObject = Instantiate(targetPrf, enemy.targetIconPosition);
-            
         }
         else
         {
-            currentTargetObject.SetActive(true);
-            currentTargetObject.transform.SetParent(enemy.targetIconPosition);
             currentTargetObject.transform.DOKill();
+            currentTargetObject.transform.SetParent(enemy.targetIconPosition);
             currentTargetObject.transform.localPosition = Vector3.zero;
             currentTargetObject.transform.eulerAngles = new Vector3(0, 90f, 0);
         }
@@ -151,7 +141,9 @@ public class LegoEnemyManager : MonoBehaviour
 
     public void KillAllEnemy()
     {
-        foreach(LegoEnemy enemy in enemies)
+        GameManager.Instance.StartWaitTime(1.5f);
+
+        foreach (LegoEnemy enemy in enemies)
         {
             enemy.DieByUlti();
             GameManager.Instance.effectController
@@ -163,7 +155,6 @@ public class LegoEnemyManager : MonoBehaviour
             GameManager.Instance.NextRound();
             return;
         }
-        GameManager.Instance.StartWaitTime(1.5f);
     }
     
 }

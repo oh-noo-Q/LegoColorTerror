@@ -69,7 +69,7 @@ public class FlyLego : LegoEnemy
         //else
         //{
         //}
-            base.OnTriggerEnter(other);
+        base.OnTriggerEnter(other);
         if (other.CompareTag("Map"))
         {
             rigid.isKinematic = true;

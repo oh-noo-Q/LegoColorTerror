@@ -12,11 +12,17 @@ public class UltimateSkill : MonoBehaviour
         if(currentStack >= maxStack)
         {
             currentStack = 0;
+            Action();
         }
         else
         {
             return;
         }
+    }
+
+    protected virtual void Action()
+    {
+
     }
 
     protected virtual void UpdateStack(object value)

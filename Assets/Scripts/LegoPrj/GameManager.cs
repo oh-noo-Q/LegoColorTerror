@@ -45,6 +45,11 @@ public class GameManager : MonoBehaviour
     public void StartEndless()
     {
         roundEndLess = 0;
+        if(enemyManager.enemies.Count > 0)
+        {
+            enemyManager.enemies.Clear();
+            enemyManager.gameObject.DestroyAllChildren();
+        }
         ResumeGame();
         RestartEndless();
         LoadGameEndless(roundEndLess);
