@@ -8,7 +8,7 @@ public class InviLego : LegoEnemy
     [SerializeField] List<Renderer> pieceMat;
 
     [SerializeField] Material inviMat;
-    private float timeInvi = 2f;
+    private float timeInvi = 1.6f;
     private float timeShow = 1f;
 
     bool isInvi;

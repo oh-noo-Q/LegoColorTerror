@@ -62,13 +62,6 @@ public class LegoEnemyManager : MonoBehaviour
         currentTargetSlime.GetAttack();
     }
 
-    public void EffectLegoExplosion()
-    {
-        GameManager.Instance.effectController
-                    .GenExplosion(currentTargetEnemy.pieces[currentTargetEnemy.injureHit].transform,
-                    GameManager.Instance.colorDic[currentTargetEnemy.mainColor]);
-    }
-
     public void KillEnemy(LegoEnemy removedEnemy)
     {
         enemies.Remove(removedEnemy);
@@ -146,10 +139,10 @@ public class LegoEnemyManager : MonoBehaviour
         foreach (LegoEnemy enemy in enemies)
         {
             enemy.DieByUlti();
-            GameManager.Instance.effectController
-                    .GenExplosion(enemy.transform,
-                    GameManager.Instance.colorDic[enemy.mainColor]);
+            GameManager.Instance.EffectLegoExplosion(enemy.transform, enemy.mainColor);
+            
         }
+        enemies.Clear();
         if(GameManager.Instance.enemySpawner.CheckEndLevel())
         {
             GameManager.Instance.NextRound();

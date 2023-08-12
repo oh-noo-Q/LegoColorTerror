@@ -104,7 +104,9 @@ public class FlyLego : LegoEnemy
             else
             {
                 blockDamage++;
+                EventDispatcher.Instance.PostEvent(EventID.UpdateMeteorStack, -1);
                 numberBlock.ActiveNumber(blockDamage, mainColor);
+                if (blockDamage > 2) AttackPlayer();
             }
         }
         else 

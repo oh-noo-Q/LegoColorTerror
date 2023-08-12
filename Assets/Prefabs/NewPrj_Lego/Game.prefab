@@ -1290,6 +1290,7 @@ MonoBehaviour:
   destination: {fileID: 3243324946205918856}
   enemyCrtLevel: []
   amountEnemy: 
+  deviationSpawnTime: 0.5
 --- !u!114 &3243324945406265341
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1472,7 +1473,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9246d48dc913ddb41af5c452b89cc38d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxStack: 50
+  maxStack: 100
   currentStack: 0
   meteorPrf: {fileID: 3939435465240621457, guid: 62f3ef43eb6673746871d59bc60e99f7, type: 3}
 --- !u!1 &3243324945472240289
@@ -17780,7 +17781,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 482658e0d05893b43b8f30fdf4cb3fe9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  health: 5
+  maxHealth: 5
+  health: 0
 --- !u!1 &3243324946763781285
 GameObject:
   m_ObjectHideFlags: 0

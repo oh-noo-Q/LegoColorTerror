@@ -4,11 +4,18 @@ using UnityEngine;
 
 public class PlayerManager : MonoBehaviour
 {
-    public int health = 5;
+    public int maxHealth = 5;
+    public int health;
 
     private void Awake()
     {
         EventDispatcher.Instance.RegisterListener(EventID.OnChangeValueHealth, UpdateHealth);
+    }
+
+    public void SetupStart()
+    {
+        health = maxHealth;
+
     }
 
     void UpdateHealth(object obj)

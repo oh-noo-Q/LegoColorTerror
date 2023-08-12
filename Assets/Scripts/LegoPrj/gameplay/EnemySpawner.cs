@@ -35,7 +35,7 @@ public class EnemySpawner : MonoBehaviour
     private float randomSpawnTime = 1.0f;
     private float speed;
 
-    float deviationSpawnTime = 0.5f;
+    [SerializeField] float deviationSpawnTime = 0.3f;
     float deltaTime = 0;
     float xLeftLimit, xRightLimit;
     private int[] values = { 0, 1, 2, 3, 4 };
@@ -95,7 +95,6 @@ public class EnemySpawner : MonoBehaviour
         LegoEnemy newEnemy = Instantiate(enemyCrtLevel[index], transform);
         amountEnemy[index]--;
         newEnemy.gameObject.SetActive(true);
-        newEnemy.speed = Random.Range(newEnemy.speed - 1f, newEnemy.speed + 1f);
         switch (mapSpawner.axis)
         {
             case AXIS.Zpositive:

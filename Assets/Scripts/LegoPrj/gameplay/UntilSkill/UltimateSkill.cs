@@ -27,8 +27,15 @@ public class UltimateSkill : MonoBehaviour
 
     protected virtual void UpdateStack(object value)
     {
-        currentStack += (int)value;
-        currentStack = Mathf.Clamp(currentStack, 0, maxStack);
+        if ((int)value >= 0)
+        {
+            currentStack += (int)value;
+            currentStack = Mathf.Clamp(currentStack, 0, maxStack);
+        }
+        else
+        {
+            currentStack = 0;
+        }
     }
 
     protected virtual void Update()

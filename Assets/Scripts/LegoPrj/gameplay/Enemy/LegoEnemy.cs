@@ -34,10 +34,6 @@ public class LegoEnemy : Movement
     protected override void Update()
     {
         base.Update();
-        if (Mathf.Abs(transform.position.z - distanceDie.position.z) < 0.5f)
-        {
-            AttackPlayer();
-        }
         if (GameManager.Instance.enemyManager.currentTargetEnemy == null)
         {
             return;
@@ -47,12 +43,16 @@ public class LegoEnemy : Movement
         {
             GameManager.Instance.enemyManager.SetTargetEnemy(this);
         }
+        if (Mathf.Abs(transform.position.z - distanceDie.position.z) < 0.5f)
+        {
+            AttackPlayer();
+        }
     }
 
     public void Die()
     {
         Destroy(gameObject);
-        EventDispatcher.Instance.PostEvent(EventID.UpdateMeteorStack, 1);
+        
     }
 
     public void DieByUlti()
@@ -64,8 +64,7 @@ public class LegoEnemy : Movement
     {
         GameManager.Instance.enemyManager.KillEnemy(this);
         EventDispatcher.Instance.PostEvent(EventID.OnChangeValueHealth, -1);
-        GameManager.Instance.effectController
-                    .GenExplosion(transform, GameManager.Instance.colorDic[mainColor]);
+        GameManager.Instance.EffectLegoExplosion(transform, mainColor);
     }
 
     protected virtual void OnTriggerEnter(Collider other)
@@ -115,18 +114,19 @@ public class LegoEnemy : Movement
             }
             injureHit++;
             pieces[bullet.targetPiece].SetActive(false);
+            EventDispatcher.Instance.PostEvent(EventID.UpdateMeteorStack, 1);
             SoundManager.instance.PlaySingle(SoundType.balloonExplosion);
-            GameManager.Instance.effectController
-                    .GenExplosion(pieces[bullet.targetPiece].transform,
-                    GameManager.Instance.colorDic[mainColor]);
+            GameManager.Instance.EffectLegoExplosion(pieces[bullet.targetPiece].transform, mainColor);
+            
             if (bullet.targetPiece == pieces.Count - 1)
                 GameManager.Instance.enemyManager.KillEnemy(this);
         }
         else
         {
             blockDamage++;
-            if (blockDamage > 2) AttackPlayer();
+            EventDispatcher.Instance.PostEvent(EventID.UpdateMeteorStack, -1);
             numberBlock.ActiveNumber(blockDamage, mainColor);
+            if (blockDamage > 2) AttackPlayer();
         }
     }
 

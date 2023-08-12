@@ -25,6 +25,7 @@ public class Meteor : UltimateSkill
             GameManager.Instance.enemyManager.KillAllEnemy();
             Destroy(meteor.gameObject);
         });
+        EventDispatcher.Instance.PostEvent(EventID.UpdateMeteorProcess, 0);
     }
 
     protected override void UpdateStack(object value)

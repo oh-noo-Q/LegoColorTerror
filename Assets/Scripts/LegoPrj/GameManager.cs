@@ -45,11 +45,7 @@ public class GameManager : MonoBehaviour
     public void StartEndless()
     {
         roundEndLess = 0;
-        if(enemyManager.enemies.Count > 0)
-        {
-            enemyManager.enemies.Clear();
-            enemyManager.gameObject.DestroyAllChildren();
-        }
+        enemyManager.ResetLevel();
         ResumeGame();
         RestartEndless();
         LoadGameEndless(roundEndLess);
@@ -60,13 +56,13 @@ public class GameManager : MonoBehaviour
 
     public void RestartEndless()
     {
-        playerManager.health = 5;
+        playerManager.SetupStart();
         RevivePlayer();
     }
 
     public void RevivePlayer()
     {
-        playerManager.health = 5;
+        playerManager.SetupStart();
         EventDispatcher.Instance.PostEvent(EventID.OnUpdateHealth, playerManager.health);
         ResumeGame();
     }
@@ -203,5 +199,10 @@ public class GameManager : MonoBehaviour
             waitTime += Time.deltaTime;
             yield return seconds;
         }
+    }
+
+    public void EffectLegoExplosion(Transform posEffect, LegoColor colorFx)
+    {
+        effectController.GenExplosion(posEffect, colorDic[colorFx]);
     }
 }

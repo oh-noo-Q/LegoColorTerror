@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
+/*
 [CustomEditor(typeof(LegoLevelGameplay))]
 public class ToolLevelEditor : Editor
 {
@@ -80,3 +81,4 @@ public class ToolLevelEditor : Editor
         }
     }
 }
+*/

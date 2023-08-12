@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.23878333, g: 0.4625514, b: 0.5951311, a: 1}
+  m_IndirectSpecularColor: {r: 0.2387807, g: 0.46239167, b: 0.59543276, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -677,10 +677,6 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 3243324945469289031, guid: c1ffe2fe22d9b8c498b210629f4990b5, type: 3}
-      propertyPath: maxStack
-      value: 5
-      objectReference: {fileID: 0}
     - target: {fileID: 3243324946094469590, guid: c1ffe2fe22d9b8c498b210629f4990b5, type: 3}
       propertyPath: m_RootOrder
       value: 7
@@ -728,10 +724,6 @@ PrefabInstance:
     - target: {fileID: 3243324946094469591, guid: c1ffe2fe22d9b8c498b210629f4990b5, type: 3}
       propertyPath: m_Name
       value: Game
-      objectReference: {fileID: 0}
-    - target: {fileID: 3243324946761531310, guid: c1ffe2fe22d9b8c498b210629f4990b5, type: 3}
-      propertyPath: health
-      value: 100
       objectReference: {fileID: 0}
     - target: {fileID: 3979040816107964242, guid: c1ffe2fe22d9b8c498b210629f4990b5, type: 3}
       propertyPath: m_AnchorMax.x

@@ -41,9 +41,8 @@ public class SlimeMove : Movement
 
     public void GetAttack()
     {
-        GameManager.Instance.effectController
-                    .GenExplosion(transform,
-                    GameManager.Instance.colorDic[LegoColor.White]);
+        GameManager.Instance.EffectLegoExplosion(transform, LegoColor.White);
+
         Die();
     }
 
