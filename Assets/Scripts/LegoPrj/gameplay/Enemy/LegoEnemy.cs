@@ -20,6 +20,7 @@ public class LegoEnemy : Movement
     public NumberController numberBlock;
     public LegoColor mainColor;
     public Transform targetIconPosition;
+    protected Animator anim;
 
     [HideInInspector]
     public float buffSpeed = 1.0f;
@@ -30,6 +31,12 @@ public class LegoEnemy : Movement
     public int blockDamage;
     [HideInInspector]
     public int injureHit = 0;
+
+    protected virtual void Awake()
+    {
+        anim = GetComponent<Animator>();
+        
+    }
 
     protected override void Update()
     {
@@ -47,6 +54,11 @@ public class LegoEnemy : Movement
         {
             AttackPlayer();
         }
+    }
+
+    public virtual void Setup()
+    {
+        anim.SetBool("Run", true);
     }
 
     public void Die()

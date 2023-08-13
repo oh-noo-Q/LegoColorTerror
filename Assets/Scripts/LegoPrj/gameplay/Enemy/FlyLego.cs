@@ -15,21 +15,24 @@ public class FlyLego : LegoEnemy
     public bool isFlying;
 
     float fallingForce = 2500000f;
-    private Animator anim;
 
-    private void Awake()
+    protected override void Awake()
     {
-        isFlying = true;
         anim = GetComponentInChildren<Animator>();
-        anim.SetBool("Fly", true);
         rigid = GetComponent<Rigidbody>();
         legoCollider = GetComponent<Collider>();
         rigid.useGravity = false;
+        isFlying = true;
         //legoCollider.isTrigger = true;
     }
     protected override void Update()
     {
         base.Update();
+    }
+
+    override public void Setup()
+    {
+        anim.SetBool("Fly", true);
     }
 
     protected override void OnTriggerEnter(Collider other)

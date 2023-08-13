@@ -9,15 +9,16 @@ public class InviLego : LegoEnemy
 
     [SerializeField] Material inviMat;
     private float timeInvi = 1.6f;
-    private float timeShow = 1f;
+    private float timeShow = 0.8f;
 
     bool isInvi;
     bool isShow;
     float timeCountInvi;
     float timeCountShow;
 
-    private void Awake()
+    protected override void Awake()
     {
+        base.Awake();
         pieceMat = new List<Renderer>();
         foreach(GameObject piece in pieces)
         {
@@ -46,7 +47,7 @@ public class InviLego : LegoEnemy
                 //}
                 foreach (Renderer render in pieceMat)
                 {
-                    render.material.DOFade(1f, 0.5f).OnComplete(() =>
+                    render.material.DOFade(1f, 0.4f).OnComplete(() =>
                     {
                         isShow = true;
                         render.material = GameManager.Instance.colorDic[mainColor];
@@ -66,7 +67,7 @@ public class InviLego : LegoEnemy
                 foreach (Renderer render in pieceMat)
                 {
                     render.material = inviMat;
-                    render.material.DOFade(0f, 0.5f).OnComplete(() =>
+                    render.material.DOFade(0f, 0.4f).OnComplete(() =>
                     {
                         isInvi = true;
                     });

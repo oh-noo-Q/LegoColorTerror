@@ -93,6 +93,7 @@ public class EnemySpawner : MonoBehaviour
     void GenerateEnemyForLevel(int index)
     {
         LegoEnemy newEnemy = Instantiate(enemyCrtLevel[index], transform);
+        newEnemy.Setup();
         amountEnemy[index]--;
         newEnemy.gameObject.SetActive(true);
         switch (mapSpawner.axis)
