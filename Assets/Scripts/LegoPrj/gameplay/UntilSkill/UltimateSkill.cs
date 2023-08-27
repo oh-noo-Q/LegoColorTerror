@@ -34,7 +34,7 @@ public class UltimateSkill : MonoBehaviour
         }
         else
         {
-            currentStack = 0;
+            if(currentStack < maxStack) currentStack = 0;
         }
     }
 

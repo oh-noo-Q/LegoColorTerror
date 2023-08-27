@@ -130,6 +130,10 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 3243324945469289031, guid: c1ffe2fe22d9b8c498b210629f4990b5, type: 3}
+      propertyPath: maxStack
+      value: 10
+      objectReference: {fileID: 0}
     - target: {fileID: 3243324946094469590, guid: c1ffe2fe22d9b8c498b210629f4990b5, type: 3}
       propertyPath: m_RootOrder
       value: 8
@@ -554,11 +558,11 @@ MonoBehaviour:
   detailSlime:
     quantity: 3
     buffSpeedSlime: 1.5
-  detailNormalEnemy: []
-  detailFlyEnemy: []
-  detailInviEnemy:
+  detailNormalEnemy:
   - id: 2
-    quantity: 15
+    quantity: 20
+  detailFlyEnemy: []
+  detailInviEnemy: []
   detailMixColorEnemy: []
   levelSpecs: {fileID: 0}
 --- !u!4 &1389255935

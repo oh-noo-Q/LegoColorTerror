@@ -1,8 +1,25 @@
 
 public enum SoundType
 {
-    backgroundMusic,
-    balloonExplosion,
-    Click,
-
+    Click = 0,
+    BGIngameMusic = 1,
+    BGMenuMusic = 2,
+    BowBullet = 3,
+    ElectricBullet = 4,
+    FireBullet = 5,
+    IceBullet = 6,
+    SlashBullet = 7,
+    BulletLayer = 8,
+    BulletWrongLayer = 9,
+    None = 10,
+    EnemyDie1 = 11,
+    EnemyDie2 = 12,
+    EnemyDie3 = 13,
+    EnemyDie4 = 14,
+    EnemyDie5 = 15,
+    EnemyDie6 = 16,
+    EnemyDie7 = 17,
+    EnemyDie8 = 18,
+    EnemyDie9 = 19,
+    EnemyDie10 = 20,
 }

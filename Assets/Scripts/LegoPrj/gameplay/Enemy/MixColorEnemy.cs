@@ -34,7 +34,6 @@ public class MixColorEnemy : LegoEnemy
             }
             injureHit++;
             pieces[bullet.targetPiece].SetActive(false);
-            SoundManager.instance.PlaySingle(SoundType.balloonExplosion);
             GameManager.Instance.EffectLegoExplosion(pieces[bullet.targetPiece].transform, mainColor);
             if (bullet.targetPiece == pieces.Count - 1)
                 GameManager.Instance.enemyManager.KillEnemy(this);

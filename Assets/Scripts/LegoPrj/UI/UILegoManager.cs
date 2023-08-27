@@ -16,19 +16,24 @@ public class UILegoManager : MonoBehaviour
         {
             Instance = this;
         }
+        Invoke("ShowMainMenu", 0.2f);
     }
 
     public void ShowInGameUI()
     {
         inGameUI.Show();
+        mainMenu.Hide();
+        SoundManager.instance.PlayMusic(SoundType.BGIngameMusic);
     }
     public void ShowMainMenu()
     {
-        mainMenu.gameObject.SetActive(true);
+        mainMenu.Show();
+        inGameUI.Hide();
+        SoundManager.instance.PlayMusic(SoundType.BGMenuMusic);
     }
 
     public void ShowEndGame()
     {
-        endGame.gameObject.SetActive(true);
+        endGame.Show();
     }
 }

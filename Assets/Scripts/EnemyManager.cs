@@ -218,7 +218,6 @@ public class EnemyManager : MonoBehaviour
         //    enemyExplosionPrefab.transform.rotation);
         //explosion.transform.SetParent(enemyParent);
         //Destroy(explosion, 1.0f);
-        SoundManager.instance.PlaySingle(SoundType.balloonExplosion);
         enemy.arrow.SetActive(false);
         enemy.enemyAnim.Play("Flying_Back_Death_mixamo_com");
         enemy.Die();

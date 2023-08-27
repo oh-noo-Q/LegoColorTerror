@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class InGameUIManager : MonoBehaviour
+public class InGameUIManager : UIContainer
 {
     public Text health;
     public Text roundTxt;
@@ -17,16 +17,6 @@ public class InGameUIManager : MonoBehaviour
         EventDispatcher.Instance.RegisterListener(EventID.UpdateRoundEndLess, UpdateRound);
         EventDispatcher.Instance.RegisterListener(EventID.UpdateMeteorProcess, UpdateProcessMeteor);
         meteorActive.onClick.AddListener(ActiveMeteorOnclick);
-    }
-
-    public void Show()
-    {
-        gameObject.SetActive(true);
-    }
-
-    public void Hide()
-    {
-        gameObject.SetActive(false);
     }
 
     void UpdateHealthTxt(object obj)

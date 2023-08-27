@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class MainMenuUIManager : MonoBehaviour
+public class MainMenuUIManager : UIContainer
 {
     public Button startBtn;
 
@@ -15,6 +15,6 @@ public class MainMenuUIManager : MonoBehaviour
     void StartOnClick()
     {
         GameManager.Instance.StartEndless();
-        gameObject.SetActive(false);
+        Hide();
     }
 }

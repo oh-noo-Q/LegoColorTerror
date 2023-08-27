@@ -57,6 +57,7 @@ public class SoundManager : MonoBehaviour
     public void PlayMusic(SoundType type, bool looping = true)
     {
         AudioClip clip = SoundSourceManager.Instance.GetSoundWithType(type);
+        musicSource.volume = 0.8f;
         PlayMusic(clip, looping);
     }
 

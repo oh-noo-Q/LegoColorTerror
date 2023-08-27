@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class EndGameUIManager : MonoBehaviour
+public class EndGameUIManager : UIContainer
 {
     [SerializeField] Button restart, mainMenu, reviveBtn;
 
@@ -16,19 +16,19 @@ public class EndGameUIManager : MonoBehaviour
 
     public void RestartOnclick()
     {
-        gameObject.SetActive(false);
+        Hide();
         GameManager.Instance.StartEndless();
     }
 
     public void MainMenuOnclick()
     {
-        gameObject.SetActive(false);
+        Hide();
         UILegoManager.Instance.ShowMainMenu();
     }
 
     public void ReviveOnclick()
     {
-        gameObject.SetActive(false);
+        Hide();
         GameManager.Instance.RevivePlayer();
     }
 }

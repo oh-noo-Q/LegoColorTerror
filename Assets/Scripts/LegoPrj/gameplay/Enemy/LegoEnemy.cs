@@ -64,7 +64,8 @@ public class LegoEnemy : Movement
     public void Die()
     {
         Destroy(gameObject);
-        
+        int ranDieSound = Random.Range(10, 20);
+        SoundManager.instance.PlaySingle((SoundType)ranDieSound);
     }
 
     public void DieByUlti()
@@ -75,6 +76,7 @@ public class LegoEnemy : Movement
     protected virtual void AttackPlayer()
     {
         GameManager.Instance.enemyManager.KillEnemy(this);
+        EventDispatcher.Instance.PostEvent(EventID.UpdateMeteorStack, -1);
         EventDispatcher.Instance.PostEvent(EventID.OnChangeValueHealth, -1);
         GameManager.Instance.EffectLegoExplosion(transform, mainColor);
     }
@@ -121,13 +123,13 @@ public class LegoEnemy : Movement
             if (blockDamage > 0)
             {
                 blockDamage--;
+                SoundManager.instance.PlaySingle(SoundType.BulletWrongLayer);
                 numberBlock.ActiveNumber(blockDamage, mainColor);
                 return;
             }
             injureHit++;
             pieces[bullet.targetPiece].SetActive(false);
             EventDispatcher.Instance.PostEvent(EventID.UpdateMeteorStack, 1);
-            SoundManager.instance.PlaySingle(SoundType.balloonExplosion);
             GameManager.Instance.EffectLegoExplosion(pieces[bullet.targetPiece].transform, mainColor);
             
             if (bullet.targetPiece == pieces.Count - 1)

@@ -38,7 +38,6 @@ public class GameManager : MonoBehaviour
         {
             Instance = this;
         }
-        SoundManager.instance.PlayMusic(SoundType.backgroundMusic);
         startGame = false;
     }
 
@@ -49,7 +48,7 @@ public class GameManager : MonoBehaviour
         ResumeGame();
         RestartEndless();
         LoadGameEndless(roundEndLess);
-        UILegoManager.Instance.inGameUI.Show();
+        UILegoManager.Instance.ShowInGameUI();
         waitTimeGame = true;
         startGame = true;
     }
