@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections;
 using UnityEngine.Events;
+using System;
 
 public class SoundManager : MonoBehaviour
 {
@@ -90,7 +91,7 @@ public class SoundManager : MonoBehaviour
     public void PlaySingle(AudioClip clip, float volume = 1f, bool pauseMusic = false)
     {
         //if (!PlayerPrefsManager.Sound) return;
-        soundSource.pitch = Random.Range(0.98f, 1.02f);
+        soundSource.pitch = UnityEngine.Random.Range(0.98f, 1.02f);
         soundSource.PlayOneShot(clip, volume);
         if (pauseMusic) StartCoroutine(PauseMusic(clip.length));
     }
@@ -156,6 +157,15 @@ public class SoundManager : MonoBehaviour
     public void PlayDefaultSound(int type)
     {
         PlaySingle((SoundType)type);
+    }
+
+    public void PlayComboSound(int number)
+    {
+        if (number > 15) number = 15;
+        if(Enum.TryParse($"Instrumental_Combo{number}", out SoundType comboType)) 
+        {
+            PlaySingle(comboType);
+        }
     }
 
     public void PlayerSingleLazeDelay(SoundType type, float volume = 1f, float delayTime = 0, GameObject enemy = null, bool pauseMusic = false)

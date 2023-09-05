@@ -1285,7 +1285,7 @@ MonoBehaviour:
   - {fileID: 8629529470088854271, guid: 44bd52a3e3d643a428a7c7be12c72ade, type: 3}
   - {fileID: 9056533321483664204, guid: 090973b9b24a2644cbd949d2ab23cddf, type: 3}
   - {fileID: 8190169401251156920, guid: a14988a519b63b6409d25652f6372a43, type: 3}
-  spaceSize: 20
+  spaceSize: 30
   leftLimit: {fileID: 3243324946299107843}
   rightLimit: {fileID: 3243324945598000886}
   destination: {fileID: 3243324946205918856}
@@ -1463,6 +1463,7 @@ MonoBehaviour:
   detailsMaterialOb:
   - {fileID: 3243324946600368571}
   - {fileID: 3243324946600367895}
+  portalEffect: {fileID: 128752, guid: 8ade55bc7f33dcc46947f3bc7d22bc3b, type: 3}
 --- !u!114 &3243324945469289031
 MonoBehaviour:
   m_ObjectHideFlags: 0

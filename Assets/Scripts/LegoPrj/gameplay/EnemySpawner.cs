@@ -107,6 +107,7 @@ public class EnemySpawner : MonoBehaviour
         }
         if (newEnemy.GetComponent<FlyLego>() != null)
         {
+            GameManager.Instance.effectController.GenPortalFlyEnemy(newEnemy.transform.position.x);
             newEnemy.transform.position = new Vector3(newEnemy.transform.position.x, 10, newEnemy.transform.position.z);
         }
         int ran = Random.Range(0, 5);

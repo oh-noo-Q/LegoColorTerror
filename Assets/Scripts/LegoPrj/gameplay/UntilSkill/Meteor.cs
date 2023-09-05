@@ -31,6 +31,7 @@ public class Meteor : UltimateSkill
     protected override void UpdateStack(object value)
     {
         base.UpdateStack(value);
+        if ((int)value % 5 == 0) SoundManager.instance.PlayComboSound((int)value / 5); 
         EventDispatcher.Instance.PostEvent(EventID.UpdateMeteorProcess, (float)currentStack / maxStack);
     }
 }

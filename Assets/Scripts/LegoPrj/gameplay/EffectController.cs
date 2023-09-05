@@ -6,6 +6,7 @@ public class EffectController : MonoBehaviour
 {
     [SerializeField] GameObject explosionColor;
     [SerializeField] List<GameObject> detailsMaterialOb;
+    [SerializeField] GameObject portalEffect;
 
     public void GenExplosion(Transform parent, Material colorMat)
     {
@@ -19,5 +20,14 @@ public class EffectController : MonoBehaviour
         fx.transform.position = parent.position;
 
         Destroy(fx.gameObject, 1f);
+    }
+
+    public void GenPortalFlyEnemy(float xPosition)
+    {
+        GameObject fx = Instantiate(portalEffect);
+        fx.SetActive(true);
+        fx.transform.position = new Vector3(xPosition, 8, -23);
+
+        Destroy(fx.gameObject, 1.5f);
     }
 }
