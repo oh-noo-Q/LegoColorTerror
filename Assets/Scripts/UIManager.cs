@@ -29,7 +29,7 @@ public class UIManager : MonoBehaviour
     private void Start()
     {
         ShowStartGame();
-        SoundManager.instance.PlayMusic(SoundType.BGMenuMusic);
+        SoundManager.instance.PlayMusic(SoundName.BGMenuMusic);
     }
 
     public void ShowStartGame()

@@ -5,9 +5,9 @@ using System;
 
 public class SoundManager : MonoBehaviour
 {
+    public SoundSourceDictionary soundSourceDict;
     public AudioSource musicSource;
     public AudioSource soundSource;
-    public AudioSource noise;
     //public AudioSourcePoolSO OneShotPool = null;
     //public AudioSourcePoolSO UIOneShotPool = null;
 
@@ -26,8 +26,8 @@ public class SoundManager : MonoBehaviour
         //musicSource.enabled = PlayerPrefsManager.Sound;
         //soundSource.enabled = PlayerPrefsManager.Sound;
         //noise.enabled = PlayerPrefsManager.Sound;
-        //EventDispatcher.Instance.RegisterListener(EventID.OnSoundChangeValue, OnSoundChangeValue);
-        //EventDispatcher.Instance.RegisterListener(EventID.OnMusicChangeValue, OnMusicChangeValue);
+        EventDispatcher.Instance.RegisterListener(EventID.OnSoundChangeValue, OnSoundChangeValue);
+        EventDispatcher.Instance.RegisterListener(EventID.OnMusicChangeValue, OnMusicChangeValue);
 
         DontDestroyOnLoad(gameObject);
     }
@@ -35,18 +35,19 @@ public class SoundManager : MonoBehaviour
     private void OnSoundChangeValue(object obj)
     {
         if (this == null) return;
-        musicSource.enabled = (bool)obj;
-        soundSource.enabled = (bool)obj;
-        noise.enabled = (bool)obj;
+        foreach(var item in soundSourceDict)
+        {
+            if(item.Key != SoundType.Music)
+            {
+                item.Value.volume = (float)obj;
+            }
+        }
     }
 
     private void OnMusicChangeValue(object obj)
     {
         if (this == null) return;
-        musicSource.enabled = (bool)obj;
-        soundSource.enabled = (bool)obj;
-        noise.enabled = (bool)obj;
-        //musicSource.volume = 0.4f * MusicVolume.Value;
+        soundSourceDict[SoundType.Music].volume = (float)obj;
     }
 
     void OnEnable()
@@ -55,68 +56,46 @@ public class SoundManager : MonoBehaviour
         //musicSource.enabled = PlayerPrefsManager.Sound;
     }
 
-    public void PlayMusic(SoundType type, bool looping = true)
+    public void PlayMusic(SoundName type, bool looping = true)
     {
         AudioClip clip = SoundSourceManager.Instance.GetSoundWithType(type);
-        musicSource.volume = 0.8f;
         PlayMusic(clip, looping);
+        soundSourceDict[SoundType.Music].volume = PlayerPrefsManager.Music ? 1f : 0f;
     }
 
     public void PlayMusic(AudioClip clip, bool looping = true)
     {
-        if (musicSource == null) return;
-        musicSource.clip = clip;
-        musicSource.loop = looping;
-        musicSource.Play();
+        if (soundSourceDict[SoundType.Music] == null) return;
+        soundSourceDict[SoundType.Music].clip = clip;
+        soundSourceDict[SoundType.Music].loop = looping;
+        soundSourceDict[SoundType.Music].volume = 0.8f;
+        soundSourceDict[SoundType.Music].Play();
     }
 
-    public void PlayNoise(SoundType type, bool looping = true)
+    public void PlaySingle(SoundType typeSound, AudioClip clip, float volume = 1f, bool pauseMusic = false)
     {
-        AudioClip clip = SoundSourceManager.Instance.GetSoundWithType(type);
-        PlayNoise(clip, looping);
-    }
-    public void PlayNoise(AudioClip clip, bool looping = true)
-    {
-        if (noise == null) return;
-        noise.clip = clip;
-        noise.loop = looping;
-        noise.Play();
-    }
+        if (!PlayerPrefsManager.Sound) return;
+        if (soundSourceDict[typeSound] == null)
+        {
+            GameObject audioGO = new GameObject(soundSourceDict[typeSound].ToString());
+            audioGO.transform.parent = transform;
+            AudioSource newAudioSoucre = audioGO.AddComponent<AudioSource>();
+            soundSourceDict[typeSound] = newAudioSoucre;
+        }
+        soundSourceDict[typeSound].pitch = UnityEngine.Random.Range(0.98f, 1.02f);
+        soundSourceDict[typeSound].PlayOneShot(clip, volume);
 
-    public void StopNoise()
-    {
-        noise.Stop();
-    }
-
-    public void PlaySingle(AudioClip clip, float volume = 1f, bool pauseMusic = false)
-    {
-        //if (!PlayerPrefsManager.Sound) return;
-        soundSource.pitch = UnityEngine.Random.Range(0.98f, 1.02f);
-        soundSource.PlayOneShot(clip, volume);
         if (pauseMusic) StartCoroutine(PauseMusic(clip.length));
     }
 
-    public void PlaySingle(SoundType type, float volume = 1f, bool pauseMusic = false)
+    public void PlaySingle(SoundType typeSound, SoundName name, float volume = 1f, bool pauseMusic = false)
     {
-        AudioClip clip = SoundSourceManager.Instance.GetSoundWithType(type);
-        PlaySingle(clip, volume, pauseMusic);
+        AudioClip clip = SoundSourceManager.Instance.GetSoundWithType(name);
+        PlaySingle(typeSound, clip, volume, pauseMusic);
 
     }
 
-    public void PlaySingleUI(SoundType type)
-    {
-        AudioClip clip = SoundSourceManager.Instance.GetSoundWithType(type);
-        PlaySingleUI(clip);
-
-    }
-
-    public void PlaySingleUI(AudioClip clip)
-    {
-        //if (PlayerPrefsManager.Sound) return;
-        soundSource.PlayOneShot(clip, 1);
-    }
-
-    public void PlaySingleWithDelay(SoundType type,
+    public void PlaySingleWithDelay(SoundName type,
         float volume = 1f,
         float delayTime = 0,
         bool pauseMusic = false)
@@ -154,21 +133,25 @@ public class SoundManager : MonoBehaviour
         musicSource.volume = 1;
     }
 
-    public void PlayDefaultSound(int type)
-    {
-        PlaySingle((SoundType)type);
-    }
-
     public void PlayComboSound(int number)
     {
         if (number > 15) number = 15;
-        if(Enum.TryParse($"Instrumental_Combo{number}", out SoundType comboType)) 
+        Debug.Log($"Instrumental_Combo{number}");
+        if (Enum.TryParse($"Instrumental_Combo{number}", out SoundName comboType)) 
         {
-            PlaySingle(comboType);
+            PlaySingle(SoundType.ComboSound, comboType);
         }
     }
 
-    public void PlayerSingleLazeDelay(SoundType type, float volume = 1f, float delayTime = 0, GameObject enemy = null, bool pauseMusic = false)
+    public void PlayDieSound(int number)
+    {
+        if (Enum.TryParse($"EnemyDie{number}", out SoundName dieSound))
+        {
+            PlaySingle(SoundType.DieSound, dieSound);
+        }
+    }
+
+    public void PlayerSingleLazeDelay(SoundName type, float volume = 1f, float delayTime = 0, GameObject enemy = null, bool pauseMusic = false)
     {
         AudioClip clip = SoundSourceManager.Instance.GetSoundWithType(type);
         PlayerSingleLazeDelay(clip,

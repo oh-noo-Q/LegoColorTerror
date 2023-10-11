@@ -6,9 +6,7 @@ public class UILegoManager : MonoBehaviour
 {
     public static UILegoManager Instance;
 
-    public MainMenuUIManager mainMenu;
-    public InGameUIManager inGameUI;
-    public EndGameUIManager endGame;
+    public UIContainer mainMenu, inGameUI, endGame;
 
     private void Awake()
     {
@@ -23,13 +21,13 @@ public class UILegoManager : MonoBehaviour
     {
         inGameUI.Show();
         mainMenu.Hide();
-        SoundManager.instance.PlayMusic(SoundType.BGIngameMusic);
+        SoundManager.instance.PlayMusic(SoundName.BGIngameMusic);
     }
     public void ShowMainMenu()
     {
         mainMenu.Show();
         inGameUI.Hide();
-        SoundManager.instance.PlayMusic(SoundType.BGMenuMusic);
+        SoundManager.instance.PlayMusic(SoundName.BGMenuMusic);
     }
 
     public void ShowEndGame()

@@ -1291,7 +1291,7 @@ GameObject:
   - component: {fileID: 7355559332748388683}
   - component: {fileID: 7355559332748388680}
   m_Layer: 0
-  m_Name: quai_3 (1)
+  m_Name: quai_3
   m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

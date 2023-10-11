@@ -1,6 +1,14 @@
 
 public enum SoundType
 {
+    Music = 0,
+    DieSound = 1,
+    ComboSound = 2,
+    LayerSound = 3,
+    BulletSound = 4,
+}
+public enum SoundName
+{
     Click = 0,
     BGIngameMusic = 1,
     BGMenuMusic = 2,
@@ -11,7 +19,6 @@ public enum SoundType
     SlashBullet = 7,
     BulletLayer = 8,
     BulletWrongLayer = 9,
-    None = 10,
     EnemyDie1 = 11,
     EnemyDie2 = 12,
     EnemyDie3 = 13,

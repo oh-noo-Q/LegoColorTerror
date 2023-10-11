@@ -5,7 +5,7 @@ using UnityEngine;
 public class SlimeTouch : MonoBehaviour
 {
     public LegoColor color;
-    public SoundType soundType;
+    public SoundName soundType;
     public Collider boxCollider;
     public Transform posOnCurve;
     public Animator anim;
@@ -23,8 +23,8 @@ public class SlimeTouch : MonoBehaviour
         {
             onTouch = true;
             anim.SetTrigger("Attack");
-            SoundManager.instance.PlaySingle(SoundType.BulletLayer);
-            SoundManager.instance.PlaySingle(soundType);
+            SoundManager.instance.PlaySingle(SoundType.LayerSound, SoundName.BulletLayer);
+            SoundManager.instance.PlaySingle(SoundType.BulletSound, soundType);
             EventDispatcher.Instance.PostEvent(EventID.TabAttackLego, this);
 
             if (delayTimeTouch != null) StopCoroutine(delayTimeTouch);

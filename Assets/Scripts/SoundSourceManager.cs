@@ -5,13 +5,19 @@ using UnityEditor;
 using UnityEngine;
 
 [System.Serializable]
-public class SoundNameDictionary : SerializableDictionaryBase<SoundType, string>
+public class SoundNameDictionary : SerializableDictionaryBase<SoundName, string>
 {
 
 }
 
 [System.Serializable]
-public class DefaultSoundDictionary : SerializableDictionaryBase<SoundType, AudioClip>
+public class DefaultSoundDictionary : SerializableDictionaryBase<SoundName, AudioClip>
+{
+
+}
+
+[System.Serializable]
+public class SoundSourceDictionary : SerializableDictionaryBase<SoundType, AudioSource>
 {
 
 }
@@ -27,7 +33,7 @@ public class SoundSourceManager : SingletonScriptableObject<SoundSourceManager>
     {
     }
 
-    public AudioClip GetSoundWithType(SoundType type)
+    public AudioClip GetSoundWithType(SoundName type)
     {
         return defaultSound[type];
     }

@@ -5,6 +5,8 @@ using UnityEngine;
 public class PlayerPrefsManager 
 {
     public const string PREFS_COIN = "coin";
+    public const string PREFS_SOUND = "sound";
+    public const string PREFS_MUSIC = "music";
     public const string PREFS_HIGH_SCORE = "high_score";
     public const string PREFS_AMOUNT_ENERGY = "amount_energy";
     public const string PREFS_TIME_REFILL_ENERGY = "time_refill_energy";
@@ -16,6 +18,18 @@ public class PlayerPrefsManager
     {
         get => PlayerPrefs.GetInt(PREFS_COIN, DEFAULT_COIN);
         set => PlayerPrefs.SetInt(PREFS_COIN, value);
+    }
+
+    public static bool Sound
+    {
+        get => PlayerPrefs.GetInt(PREFS_SOUND, 1) == 1;
+        set => PlayerPrefs.SetInt(PREFS_SOUND, value ? 1 : 0);
+    }
+
+    public static bool Music
+    {
+        get => PlayerPrefs.GetInt(PREFS_MUSIC, 1) == 1;
+        set => PlayerPrefs.SetInt(PREFS_MUSIC, value ? 1 : 0);
     }
 
     public static int AmountEnergy

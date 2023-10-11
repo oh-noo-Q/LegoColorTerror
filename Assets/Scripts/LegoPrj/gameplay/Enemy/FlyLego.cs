@@ -107,6 +107,7 @@ public class FlyLego : LegoEnemy
             else
             {
                 blockDamage++;
+                SoundManager.instance.PlaySingle(SoundType.LayerSound, SoundName.BulletWrongLayer);
                 EventDispatcher.Instance.PostEvent(EventID.UpdateMeteorStack, -1);
                 numberBlock.ActiveNumber(blockDamage, mainColor);
                 if (blockDamage > 2) AttackPlayer();

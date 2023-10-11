@@ -15,12 +15,13 @@ public class PlayerManager : MonoBehaviour
     public void SetupStart()
     {
         health = maxHealth;
-
+        EventDispatcher.Instance.PostEvent(EventID.OnUpdateHealth, maxHealth);
     }
 
     void UpdateHealth(object obj)
     {
         health += (int)obj;
+        health = Mathf.Clamp(health, 0, maxHealth);
         EventDispatcher.Instance.PostEvent(EventID.OnUpdateHealth, health);
         if(health <= 0)
         {

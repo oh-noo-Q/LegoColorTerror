@@ -55,7 +55,6 @@ public class GameManager : MonoBehaviour
 
     public void RestartEndless()
     {
-        playerManager.SetupStart();
         RevivePlayer();
     }
 
@@ -80,6 +79,12 @@ public class GameManager : MonoBehaviour
     public void ResumeGame()
     {
         Time.timeScale = 1.0f;
+    }
+
+    public void ExitGame()
+    {
+        waitTimeGame = false;
+        enemyManager.ResetLevel();
     }
 
     public void LoadGameEndless(int round)

@@ -6,6 +6,7 @@ using UnityEngine;
 public class Meteor : UltimateSkill
 {
     [SerializeField] GameObject meteorPrf;
+    
 
     private void Awake()
     {
@@ -31,7 +32,10 @@ public class Meteor : UltimateSkill
     protected override void UpdateStack(object value)
     {
         base.UpdateStack(value);
-        if ((int)value % 5 == 0) SoundManager.instance.PlayComboSound((int)value / 5); 
+        if (currentStack % 5 == 0 && currentStack > 0)
+        {
+            SoundManager.instance.PlayComboSound(currentStack / 5);
+        }
         EventDispatcher.Instance.PostEvent(EventID.UpdateMeteorProcess, (float)currentStack / maxStack);
     }
 }

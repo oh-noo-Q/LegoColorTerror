@@ -19,4 +19,6 @@ public enum EventID
     UpdateMeteorProcess,
     UpdateMeteorStack,
     ActiveMeteor,
+    OnSoundChangeValue,
+    OnMusicChangeValue
 }

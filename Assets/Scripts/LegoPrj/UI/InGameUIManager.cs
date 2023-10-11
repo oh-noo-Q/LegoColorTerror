@@ -5,9 +5,10 @@ using UnityEngine.UI;
 
 public class InGameUIManager : UIContainer
 {
-    public Text health;
+    [SerializeField] Button pauseBtn;
+    [SerializeField] List<HealthView> healthList;
+    [SerializeField] Transform healthParent;
     public Text roundTxt;
-    public Text blockTxt;
     public Image processMeteorImg;
     public Button meteorActive;
 
@@ -17,21 +18,47 @@ public class InGameUIManager : UIContainer
         EventDispatcher.Instance.RegisterListener(EventID.UpdateRoundEndLess, UpdateRound);
         EventDispatcher.Instance.RegisterListener(EventID.UpdateMeteorProcess, UpdateProcessMeteor);
         meteorActive.onClick.AddListener(ActiveMeteorOnclick);
+        pauseBtn.onClick.AddListener(PauseBtnOnclick);
     }
 
     void UpdateHealthTxt(object obj)
     {
-        health.text = ((int)obj).ToString();
+        int currentHealth = (int)obj;
+        if(currentHealth > healthList.Count)
+        {
+            for (int i = 0; i < currentHealth; i++)
+            {
+                if (i < healthList.Count)
+                {
+                    healthList[i].Active(true);
+                }
+                else
+                {
+                    HealthView newHealth = Instantiate(healthList[0], healthParent);
+                    healthList.Add(newHealth);
+                    newHealth.Active(false);
+                }
+            }
+        }
+        else
+        {
+            for(int i = 0; i < healthList.Count; i++)
+            {
+                if(i < currentHealth)
+                {
+                    healthList[i].Active(true);
+                }
+                else
+                {
+                    healthList[i].Active(false);
+                }
+            }
+        }
     }
 
     void UpdateRound(object obj)
     {
         roundTxt.text = $"Round {(int)obj}";
-    }
-
-    public void SetBlockText(int amount)
-    {
-        blockTxt.text = $"Block: {amount}";
     }
 
     private void UpdateProcessMeteor(object obj)
@@ -42,5 +69,11 @@ public class InGameUIManager : UIContainer
     private void ActiveMeteorOnclick()
     {
         EventDispatcher.Instance.PostEvent(EventID.ActiveMeteor);
+    }
+
+    void PauseBtnOnclick()
+    {
+        PopupManager.instance.ShowPause();
+        GameManager.Instance.PauseGame();
     }
 }

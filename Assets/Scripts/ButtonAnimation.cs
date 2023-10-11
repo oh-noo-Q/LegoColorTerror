@@ -8,7 +8,11 @@ public class ButtonAnimation : MonoBehaviour, IPointerDownHandler, IPointerUpHan
 {
     public void OnPointerDown(PointerEventData eventData)
     {
-        transform.DOScale(0.8f, 0.2f);
+        transform.localScale = Vector3.one;
+        transform.DOScale(0.8f, 0.2f).OnComplete(() => 
+        {
+        });
+        SoundManager.instance.PlaySingle(SoundType.LayerSound, SoundName.Click);
     }
 
     public void OnPointerUp(PointerEventData eventData)
