@@ -43,4 +43,22 @@ public class PlayerPrefsElite : MonoBehaviour
             return false;
         }
     }
+
+    public static string[] GetStringArray(string Prefs)
+    {
+        string[] tmp = PlayerPrefs.GetString(Prefs).Split("|"[0]);
+        string[] myString = new string[tmp.Length - 1];
+        for (int i = 0; i < tmp.Length - 1; i++)
+        {
+            myString[i] = tmp[i];
+        }
+        return myString;
+    }
+
+    public static void SetStringArray(string Prefs, string[] _Value)
+    {
+        string Value = "";
+        for (int y = 0; y < _Value.Length; y++) { Value += _Value[y] + "|"; }
+        PlayerPrefs.SetString(Prefs, Value);
+    }
 }

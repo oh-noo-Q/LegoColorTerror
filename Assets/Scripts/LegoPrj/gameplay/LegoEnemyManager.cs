@@ -9,13 +9,14 @@ public class LegoEnemyManager : MonoBehaviour
     public LegoEnemy currentTargetEnemy;
     public SlimeMove currentTargetSlime;
 
-    public Bullet bulletPrf;
+    public BulletManager bulletManager;
     public GameObject effectKill;
     public GameObject targetPrf;
 
     GameObject currentTargetObject;
     private void Awake()
     {
+        bulletManager = GetComponent<BulletManager>();
         EventDispatcher.Instance.RegisterListener(EventID.TabAttackLego, AttackEnemy);
         EventDispatcher.Instance.RegisterListener(EventID.TabAttackLego, AttackSlime);
     }
@@ -35,7 +36,7 @@ public class LegoEnemyManager : MonoBehaviour
         int amountPiece = currentTargetEnemy.pieces.Count;
         if (currentTargetEnemy.injureHit <= amountPiece - 1)
         {
-            Bullet newBullet = Instantiate(bulletPrf);
+            Bullet newBullet = Instantiate(bulletManager.bulletGODictionary[ownerSlime.bulletType], bulletManager.parentObj);
             newBullet.gameObject.SetActive(true);
             newBullet.transform.position = ownerSlime.posOnCurve.position;
             newBullet.owner = ownerSlime.posOnCurve;

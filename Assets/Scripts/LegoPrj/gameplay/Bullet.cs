@@ -14,8 +14,6 @@ public class Bullet : MonoBehaviour
 
     [Space(10)]
     [SerializeField] float speed;
-    [SerializeField] float speedRotation;
-    private bool isCounter;
 
     private void Awake()
     {
@@ -45,23 +43,11 @@ public class Bullet : MonoBehaviour
         }
         if(targetPos != Vector3.zero)
             transform.position = Vector3.MoveTowards(transform.position, targetPos, speed * Time.deltaTime);
-        
+        transform.LookAt(target);
         if(transform.position == targetPos)
         {
             Destroy(gameObject);
         }
-        //if(isCounter && transform.position == target.position)
-        //{
-        //    EventDispatcher.Instance.PostEvent(EventID.OnChangeValueHealth, -1);
-        //    Destroy(gameObject);
-        //}
-    }
-
-    public void CounterAttack()
-    {
-        target = owner;
-        isCounter = true;
-        transform.eulerAngles = new Vector3(90, 180, 180f);
     }
 
     private void OnTriggerEnter(Collider other)
@@ -69,11 +55,4 @@ public class Bullet : MonoBehaviour
         
     }
 
-    void RotateToTarget(Transform target)
-    {
-        Vector3 direction = target.position - transform.position;
-        direction.y = 0;
-        Quaternion toRatation = Quaternion.LookRotation(direction, Vector3.forward);
-        transform.rotation = Quaternion.Lerp(transform.rotation, toRatation, speedRotation * Time.deltaTime);
-    }
 }

@@ -24,6 +24,8 @@ public class EndGameUIManager : UIContainer
     {
         Hide();
         UILegoManager.Instance.ShowMainMenu();
+        GameManager.Instance.ExitGame();
+        GameManager.Instance.ResumeGame();
     }
 
     public void ReviveOnclick()

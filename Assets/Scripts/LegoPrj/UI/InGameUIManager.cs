@@ -11,6 +11,9 @@ public class InGameUIManager : UIContainer
     public Text roundTxt;
     public Image processMeteorImg;
     public Button meteorActive;
+    public Text processCountTxt;
+    public Animator metoerAnim;
+    public RankingManger ranking;
 
     private void Awake()
     {
@@ -19,6 +22,12 @@ public class InGameUIManager : UIContainer
         EventDispatcher.Instance.RegisterListener(EventID.UpdateMeteorProcess, UpdateProcessMeteor);
         meteorActive.onClick.AddListener(ActiveMeteorOnclick);
         pauseBtn.onClick.AddListener(PauseBtnOnclick);
+    }
+
+    public override void Show()
+    {
+        base.Show();
+        ranking.UpdateRanking();
     }
 
     void UpdateHealthTxt(object obj)
@@ -63,7 +72,9 @@ public class InGameUIManager : UIContainer
 
     private void UpdateProcessMeteor(object obj)
     {
-        processMeteorImg.fillAmount = (float)obj;
+        processCountTxt.text = obj.ToString();
+        if((int)obj > 0)
+            metoerAnim.SetTrigger("Stack");
     }
 
     private void ActiveMeteorOnclick()

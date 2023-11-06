@@ -20,5 +20,7 @@ public enum EventID
     UpdateMeteorStack,
     ActiveMeteor,
     OnSoundChangeValue,
-    OnMusicChangeValue
+    OnMusicChangeValue,
+    UpdateAmountEnergy,
+    UpdateEnergyText,
 }

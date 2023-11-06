@@ -6,6 +6,7 @@ public class SlimeTouch : MonoBehaviour
 {
     public LegoColor color;
     public SoundName soundType;
+    public BulletType bulletType;
     public Collider boxCollider;
     public Transform posOnCurve;
     public Animator anim;

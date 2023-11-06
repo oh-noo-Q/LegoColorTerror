@@ -15,6 +15,7 @@ public class GameManager : MonoBehaviour
     public TargetObjectManager targetManager;
     public SlimeSpawner slimeSpawner;
     public EffectController effectController;
+    public BulletManager bulletManager;
 
     //dictionary
     public ColorMatDictionary colorDic;
@@ -23,6 +24,9 @@ public class GameManager : MonoBehaviour
     public bool waitTimeGame;
     public bool startGame;
     int roundEndLess;
+
+    private string _namePlayer = "";
+    private int _score;
 
     //Tool
     [Space(20)]
@@ -43,6 +47,7 @@ public class GameManager : MonoBehaviour
 
     public void StartEndless()
     {
+        _score = 0;
         roundEndLess = 0;
         enemyManager.ResetLevel();
         ResumeGame();
@@ -69,6 +74,11 @@ public class GameManager : MonoBehaviour
     {
         PauseGame();
         UILegoManager.Instance.ShowEndGame();
+        if (_score > 0 && _namePlayer != "" && !isTool)
+        {
+            PlayerPrefsManager.AddHighScore(_score, _namePlayer);
+            _score = 0;
+        }
     }
 
     public void PauseGame()
@@ -85,6 +95,7 @@ public class GameManager : MonoBehaviour
     {
         waitTimeGame = false;
         enemyManager.ResetLevel();
+        bulletManager.DestroyAllBullet();
     }
 
     public void LoadGameEndless(int round)
@@ -208,5 +219,16 @@ public class GameManager : MonoBehaviour
     public void EffectLegoExplosion(Transform posEffect, LegoColor colorFx)
     {
         effectController.GenExplosion(posEffect, colorDic[colorFx]);
+    }
+
+    public void SetNamePlayer(string name)
+    {
+        _namePlayer = name;
+    }
+
+    public void UpdateScore(int point)
+    {
+        _score += point;
+        _score = Mathf.Clamp(_score, 0, int.MaxValue);
     }
 }

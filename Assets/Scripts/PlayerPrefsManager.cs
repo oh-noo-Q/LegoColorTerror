@@ -8,11 +8,13 @@ public class PlayerPrefsManager
     public const string PREFS_SOUND = "sound";
     public const string PREFS_MUSIC = "music";
     public const string PREFS_HIGH_SCORE = "high_score";
+    public const string PREFS_RANKING_NAME = "ranking_names";
     public const string PREFS_AMOUNT_ENERGY = "amount_energy";
     public const string PREFS_TIME_REFILL_ENERGY = "time_refill_energy";
+    public const string PREFS_COUNT_TIME_ENERGY = "count_time_energy";
 
     private const int DEFAULT_COIN = 0;
-    public const int DEFAULT_AMOUNT_HIGH_SCORE = 5;
+    public const int DEFAULT_AMOUNT_HIGH_SCORE = 3;
     public const int DEFAULT_MAX_ENERGY = 6;
     public static int Coin
     {
@@ -42,6 +44,12 @@ public class PlayerPrefsManager
     {
         get => PlayerPrefs.GetString(PREFS_TIME_REFILL_ENERGY, "");
         set => PlayerPrefs.SetString(PREFS_TIME_REFILL_ENERGY, value);
+    }
+
+    public static float TimeCountEnergy
+    {
+        get => PlayerPrefs.GetFloat(PREFS_COUNT_TIME_ENERGY, 0);
+        set => PlayerPrefs.SetFloat(PREFS_COUNT_TIME_ENERGY, value);
     }
 
     private static List<int> _highScore;
@@ -74,35 +82,80 @@ public class PlayerPrefsManager
         }
     }
 
-    public static void AddHighScore(int value)
+    private static List<string> _rankingNames;
+
+    public static List<string> RankingNames
+    {
+        get
+        {
+            if (_rankingNames == null)
+            {
+                try
+                {
+                    _rankingNames = new List<string>();
+                    string[] temp = PlayerPrefsElite.GetStringArray(PREFS_RANKING_NAME);
+                    _rankingNames.AddRange(temp);
+
+                }
+                catch (System.Exception e)
+                {
+                    Debug.LogError(e);
+                    return _rankingNames;
+                }
+            }
+            return _rankingNames;
+        }
+        set
+        {
+            _rankingNames = value;
+            PlayerPrefsElite.SetStringArray(PREFS_RANKING_NAME, value.ToArray());
+        }
+    }
+
+    public static void AddHighScore(int value, string name)
     {
         List<int> highScore = HighScore;
-        if (highScore.Count < DEFAULT_AMOUNT_HIGH_SCORE)
+        List<string> rankingNames = RankingNames;
+        bool haveName = false;
+        for(int i = 0; i < rankingNames.Count; i++)
         {
-            highScore.Add(value);
-            for (int i = 0; i < highScore.Count - 1; i++)
+            if(rankingNames[i] == name && highScore[i] < value)
             {
-                if (highScore[i] < value)
-                {
-                    highScore.Insert(i, value);
-                    highScore.Remove(highScore.Count - 1);
-                    HighScore = highScore;
-                    return;
-                }
+                highScore[i] = value;
+                haveName = true;
+                break;
             }
         }
-        else
+        if (!haveName)
         {
-            for (int i = 0; i < DEFAULT_AMOUNT_HIGH_SCORE; i++)
+            if (highScore.Count > 0)
             {
-                if (highScore[i] < value)
+                for (int i = 0; i < DEFAULT_AMOUNT_HIGH_SCORE; i++)
                 {
-                    highScore.Insert(i, value);
-                    highScore.Remove(DEFAULT_AMOUNT_HIGH_SCORE);
-                    break;
+                    if (highScore[i] < value)
+                    {
+                        highScore[i] = value;
+                        rankingNames[i] = name;
+                        break;
+                    }
+                    else
+                    {
+                        if (i + 1 == highScore.Count && i + 1 <= DEFAULT_AMOUNT_HIGH_SCORE)
+                        {
+                            highScore.Add(value);
+                            rankingNames.Add(name);
+                            break;
+                        }
+                    }
                 }
             }
-            HighScore = highScore;
+            else
+            {
+                highScore.Add(value);
+                rankingNames.Add(name);
+            }
         }
+        HighScore = highScore;
+        RankingNames = rankingNames;
     }
 }

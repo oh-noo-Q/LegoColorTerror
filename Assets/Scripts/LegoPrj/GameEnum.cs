@@ -14,3 +14,12 @@ public enum TypeEnemy
     Invi,
     MixColor,
 }
+
+public enum BulletType
+{
+    Fire,
+    Ice,
+    Bow,
+    Lightning,
+    Slash,
+}

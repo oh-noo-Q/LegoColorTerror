@@ -43,7 +43,7 @@ public class UIManager : MonoBehaviour
     {
         endGamePanel.Show((int) inGamePanel.scoreNumber, inGamePanel.coinInGame);
         inGamePanel.gameObject.SetActive(false);
-        PlayerPrefsManager.AddHighScore((int) inGamePanel.scoreNumber);
+        //PlayerPrefsManager.AddHighScore((int) inGamePanel.scoreNumber, "");
         PauseGame();
     }
 

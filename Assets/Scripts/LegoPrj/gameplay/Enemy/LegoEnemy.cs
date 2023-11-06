@@ -66,6 +66,7 @@ public class LegoEnemy : Movement
         int ranDieSound = Random.Range(1, 11);
         SoundManager.instance.PlayDieSound(ranDieSound);
         Destroy(gameObject);
+        GameManager.Instance.UpdateScore(1);
     }
 
     public void DieByUlti()

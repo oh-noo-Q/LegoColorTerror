@@ -33,6 +33,8 @@ public class SettingController : UIContainer
         PlayerPrefsManager.Music = musicStatus;
         musicToggle.SetStatus(musicStatus);
         EventDispatcher.Instance.PostEvent(EventID.OnMusicChangeValue, (musicStatus) ? 1f : 0f);
+        musicBtn.enabled = false;
+        Invoke("EnableMusic", 0.4f);
     }
 
     void SoundBtnOnclick()
@@ -41,6 +43,8 @@ public class SettingController : UIContainer
         PlayerPrefsManager.Sound = soundStatus;
         soundToggle.SetStatus(soundStatus);
         EventDispatcher.Instance.PostEvent(EventID.OnSoundChangeValue, (soundStatus) ? 1f : 0f);
+        soundBtn.enabled = false;
+        Invoke("EnableSound", 0.4f);
     }
 
     void CloseBtnOnclick()
@@ -54,5 +58,15 @@ public class SettingController : UIContainer
             GameManager.Instance.ExitGame();
             UILegoManager.Instance.ShowMainMenu();
         }
+    }
+
+    void EnableMusic()
+    {
+        musicBtn.enabled = true;
+    }
+
+    void EnableSound()
+    {
+        soundBtn.enabled = true;
     }
 }

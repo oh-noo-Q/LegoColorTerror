@@ -1,15 +1,16 @@
 using DG.Tweening;
 using System.Collections;
 using System.Collections.Generic;
+using System.Text;
 using UnityEngine;
 
 public class Meteor : UltimateSkill
 {
     [SerializeField] GameObject meteorPrf;
-    
 
     private void Awake()
     {
+        currentStack = 0;
         EventDispatcher.Instance.RegisterListener(EventID.ActiveMeteor, Activate);
         EventDispatcher.Instance.RegisterListener(EventID.UpdateMeteorStack, UpdateStack);
         UpdateStack(0);
@@ -36,6 +37,8 @@ public class Meteor : UltimateSkill
         {
             SoundManager.instance.PlayComboSound(currentStack / 5);
         }
-        EventDispatcher.Instance.PostEvent(EventID.UpdateMeteorProcess, (float)currentStack / maxStack);
+        EventDispatcher.Instance.PostEvent(EventID.UpdateMeteorProcess, currentStack);
     }
+
+    
 }
