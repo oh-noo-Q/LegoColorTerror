@@ -6,6 +6,9 @@ using UnityEngine;
 [System.Serializable]
 public class BulletObjectDictionary : SerializableDictionaryBase<BulletType, Bullet> { };
 
+[System.Serializable]
+public class EffectBulletDictionary : SerializableDictionaryBase<BulletType, GameObject> { };
+
 public class BulletManager : MonoBehaviour
 {
     public BulletObjectDictionary bulletGODictionary;
