@@ -168,7 +168,7 @@ MonoBehaviour:
   targetPos: {x: 0, y: 0, z: 0}
   targetPiece: 0
   details: []
-  speed: 150
+  speed: 50
 --- !u!1001 &9210587930259019153
 PrefabInstance:
   m_ObjectHideFlags: 0

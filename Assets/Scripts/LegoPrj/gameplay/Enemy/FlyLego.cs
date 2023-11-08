@@ -80,7 +80,7 @@ public class FlyLego : LegoEnemy
         }
     }
 
-    public override void AttackEnemy(LegoColor attackColor, Bullet bullet)
+    public override void AttackEnemy(LegoColor attackColor, Bullet bullet, BulletType type)
     {
         if(isFlying)
         {
@@ -114,7 +114,7 @@ public class FlyLego : LegoEnemy
             }
         }
         else 
-            base.AttackEnemy(attackColor, bullet);
+            base.AttackEnemy(attackColor, bullet, type);
     }
 
     public override void SetTarget(GameObject targetGO)

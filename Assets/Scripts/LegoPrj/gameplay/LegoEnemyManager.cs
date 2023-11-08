@@ -53,7 +53,7 @@ public class LegoEnemyManager : MonoBehaviour
                 newBullet.target = currentTargetEnemy.pieces[currentTargetEnemy.injureHit].transform;
                 newBullet.targetPos = currentTargetEnemy.pieces[currentTargetEnemy.injureHit].transform.position;
             }
-            currentTargetEnemy.AttackEnemy(newBullet.color, newBullet);
+            currentTargetEnemy.AttackEnemy(newBullet.color, newBullet, ownerSlime.bulletType);
         }
     }
 

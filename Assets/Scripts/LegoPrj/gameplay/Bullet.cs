@@ -5,6 +5,7 @@ using DG.Tweening;
 
 public class Bullet : MonoBehaviour
 {
+    public BulletType type;
     public Transform owner;
     public LegoColor color;
     public Transform target;
@@ -37,13 +38,9 @@ public class Bullet : MonoBehaviour
 
     private void Update()
     {
-        if (target != null)
-        {
-            Vector3 realTarget = target.position;
-        }
         if(targetPos != Vector3.zero)
             transform.position = Vector3.MoveTowards(transform.position, targetPos, speed * Time.deltaTime);
-        transform.LookAt(target);
+        //transform.LookAt(target);
         if(transform.position == targetPos)
         {
             Destroy(gameObject);

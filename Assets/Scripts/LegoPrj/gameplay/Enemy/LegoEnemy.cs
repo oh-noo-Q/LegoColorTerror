@@ -117,7 +117,7 @@ public class LegoEnemy : Movement
         }
     }
 
-    public virtual void AttackEnemy(LegoColor attackColor, Bullet bullet)
+    public virtual void AttackEnemy(LegoColor attackColor, Bullet bullet, BulletType type)
     {
         if (attackColor == mainColor)
         {
@@ -131,7 +131,7 @@ public class LegoEnemy : Movement
             pieces[bullet.targetPiece].SetActive(false);
             EventDispatcher.Instance.PostEvent(EventID.UpdateMeteorStack, 1);
             GameManager.Instance.EffectLegoExplosion(pieces[bullet.targetPiece].transform, mainColor);
-            
+            GameManager.Instance.EffecBullet(type, pieces[bullet.targetPiece].transform);
             if (bullet.targetPiece == pieces.Count - 1)
                 GameManager.Instance.enemyManager.KillEnemy(this);
         }

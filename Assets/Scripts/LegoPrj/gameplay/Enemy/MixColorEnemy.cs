@@ -22,7 +22,7 @@ public class MixColorEnemy : LegoEnemy
         }
     }
 
-    public override void AttackEnemy(LegoColor attackColor, Bullet bullet)
+    public override void AttackEnemy(LegoColor attackColor, Bullet bullet, BulletType type)
     {
         if(attackColor == colorMix[injureHit])
         {
@@ -35,6 +35,7 @@ public class MixColorEnemy : LegoEnemy
             injureHit++;
             pieces[bullet.targetPiece].SetActive(false);
             GameManager.Instance.EffectLegoExplosion(pieces[bullet.targetPiece].transform, mainColor);
+            GameManager.Instance.EffecBullet(type, pieces[bullet.targetPiece].transform);
             if (bullet.targetPiece == pieces.Count - 1)
                 GameManager.Instance.enemyManager.KillEnemy(this);
         }

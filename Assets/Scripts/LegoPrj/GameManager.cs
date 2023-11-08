@@ -221,6 +221,11 @@ public class GameManager : MonoBehaviour
         effectController.GenExplosion(posEffect, colorDic[colorFx]);
     }
 
+    public void EffecBullet(BulletType type, Transform posEffect)
+    {
+        effectController.GenEffectBullet(type, posEffect);
+    }
+
     public void SetNamePlayer(string name)
     {
         _namePlayer = name;
