@@ -10,7 +10,7 @@ Material:
   m_Name: lightning_3x1_ADD
   m_Shader: {fileID: 4800000, guid: 08bb478c3438ac64186385a46f4d4fec, type: 3}
   m_ValidKeywords:
-  - CURVEDWORLD_BEND_TYPE_CLASSICRUNNER_X_POSITIVE
+  - CURVEDWORLD_BEND_TYPE_CYLINDRICALROLLOFF_Z
   - _EMISSION
   - _SURFACE_TYPE_TRANSPARENT
   m_InvalidKeywords:
@@ -80,7 +80,7 @@ Material:
     - _CameraFadeParams: {r: 0, g: Infinity, b: 0, a: 0}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _ColorAddSubDiff: {r: 0, g: 0, b: 0, a: 0}
-    - _CurvedWorldBendSettings: {r: 0, g: 1, b: 0, a: 0}
+    - _CurvedWorldBendSettings: {r: 10, g: 1, b: 0, a: 0}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _SoftParticleFadeParams: {r: 0, g: 0, b: 0, a: 0}
     - _TintColor: {r: 0.5, g: 0.5, b: 0.5, a: 0.5}
