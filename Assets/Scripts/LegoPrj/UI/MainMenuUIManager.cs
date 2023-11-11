@@ -36,6 +36,10 @@ public class MainMenuUIManager : UIContainer
             Hide();
             GameManager.Instance.SetNamePlayer(nameField.text);
         }
+        else
+        {
+            PopupManager.instance.ShowNotEnoughEnergy();
+        }
     }
 
     void SettingsOnClick()

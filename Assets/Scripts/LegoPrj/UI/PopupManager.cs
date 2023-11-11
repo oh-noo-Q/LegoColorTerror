@@ -9,6 +9,11 @@ public class PopupManager : MonoBehaviour
     [SerializeField] GameObject dimpObj;
     public SettingController settingController;
     public PauseController pauseController;
+    public NotEnoughtEnergyPopup notEnoughEnergy;
+
+    private float timeToHideNoti = 1f;
+    private Coroutine hideNotiCoroutine;
+
     private void Awake()
     {
         if(instance == null)
@@ -19,25 +24,47 @@ public class PopupManager : MonoBehaviour
 
     public void ShowSettings()
     {
-        dimpObj.SetActive(true);
+        ActiveDimp(true);
         settingController.Show();
     }
 
     public void HideSettings()
     {
-        dimpObj.SetActive(false);
+        ActiveDimp(false);
         settingController.Hide();
     }
 
     public void ShowPause()
     {
-        dimpObj.SetActive(true);
+        ActiveDimp(true);
         pauseController.Show();
     }
 
     public void HidePause()
     {
-        dimpObj.SetActive(false);
+        ActiveDimp(false);
         pauseController.Hide();
+    }
+
+    public void ShowNotEnoughEnergy()
+    {
+        notEnoughEnergy.Show();
+        if (hideNotiCoroutine != null)
+        {
+            StopCoroutine(hideNotiCoroutine);
+        }
+        hideNotiCoroutine = StartCoroutine(DelayHidePopup(notEnoughEnergy));
+    }
+
+    void ActiveDimp(bool active)
+    {
+        dimpObj.SetActive(active);
+    }
+
+
+    IEnumerator DelayHidePopup(UIContainer popup)
+    {
+        yield return new WaitForSeconds(timeToHideNoti);
+        popup.Hide();
     }
 }
